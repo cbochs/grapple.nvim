@@ -1,10 +1,9 @@
 local config = require("grapple.config")
-local marks = require("grapple.marks")
 
 local M = {}
 
 local function file_patterns()
-    local marked_files = marks.marked_files(config.project_root)
+    local marked_files = require("grapple.marks").marked_files(config.project_root)
     if #marked_files == 0 then
         return "notarealfile"
     else
@@ -23,7 +22,7 @@ function M.create_autocmds()
         {
             group = "GrappleSave",
             callback = function()
-                marks.save(config.state_path)
+                require("grapple.marks").save(config.state_path)
             end
         }
     )
@@ -38,7 +37,7 @@ function M.update_autocmds()
             group = "GrappleUpdate",
             pattern = file_patterns(),
             callback = function()
-                marks.update_mark(
+                require("grapple.marks").update_mark(
                     config.project_root,
                     vim.api.nvim_win_get_cursor(0),
                     { buffer = 0 }
