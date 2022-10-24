@@ -36,9 +36,9 @@ local default = {
 
 ## Marking
 
-https://user-images.githubusercontent.com/2467016/197600951-1f5ab942-e8b5-43b7-b53b-c97b939d3f78.mov
-
 A **marked** file is an important file you want to return to with as little keystrokes as possible. Files may be marked, unmarked, and toggled. Marks may be created with a `name` (and optionally `buffer`) to be referenced later.
+
+https://user-images.githubusercontent.com/2467016/197600951-1f5ab942-e8b5-43b7-b53b-c97b939d3f78.mov
 
 ```lua
 vim.keymap.set( "n", "<leader>j", function()
@@ -52,9 +52,9 @@ end, { desc = "Toggle a named mark" })
 
 ## Jumping
 
-https://user-images.githubusercontent.com/2467016/197601258-4a5b4c75-657d-4547-9f36-3120ed2cfeed.mov
-
 A **marked** file can be quickly navigated to from `:h jumplist`.
+
+https://user-images.githubusercontent.com/2467016/197601258-4a5b4c75-657d-4547-9f36-3120ed2cfeed.mov
 
 ```lua
 vim.keymap.set( "n", "<leader>i", function()
