@@ -42,15 +42,14 @@ function M.create_commands()
     vim.api.nvim_create_user_command(
         "GrappleReset",
         function(_) marks.reset() end,
-        { desc = "Reset marks for the current project", nargs = "?" }
+        { desc = "Reset marks for the current project" }
     )
 
     vim.api.nvim_create_user_command(
         "GrappleResetAll",
         function(_) marks.reset_marks() end,
-        { desc = "Reset marks for the current project", nargs = "?" }
+        { desc = "Reset marks for the current project" }
     )
-
 
     vim.api.nvim_create_user_command(
         "GrappleJumpForward",
