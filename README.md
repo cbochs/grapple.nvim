@@ -28,10 +28,7 @@ use {
 
 ```lua
 local default = {
-    log = {
-        level = "error",
-        use_console = false,
-    },
+    log_level = "warn",
     project_root = vim.fn.getcwd(),
     state_path   = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 }
