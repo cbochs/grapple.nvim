@@ -41,12 +41,12 @@ A **marked** file is an important file you want to return to with as little keys
 https://user-images.githubusercontent.com/2467016/197600951-1f5ab942-e8b5-43b7-b53b-c97b939d3f78.mov
 
 ```lua
-vim.keymap.set( "n", "<leader>j", function()
-    require("grapple").select({ name = "Jacob" })
+vim.keymap.set( "n", "<leader>k", function()
+    require("grapple").select({ name = "Kepler" })
 end, { desc = "Select a named mark" })
 
-vim.keymap.set("n", "<leader>J", function()
-    require("grapple").toggle({ name = "Jacob" })
+vim.keymap.set("n", "<leader>K", function()
+    require("grapple").toggle({ name = "Kepler" })
 end, { desc = "Toggle a named mark" })
 ```
 
