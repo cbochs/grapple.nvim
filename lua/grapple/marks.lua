@@ -14,7 +14,7 @@ local _state = nil
 -- EXTERNAL API --
 
 ---Mark a buffer.
----@param opts { buffer: number, index?: number, name?: string } | nil
+---@param opts { buffer?: number, index?: number, name?: string } | nil
 function M.mark(opts)
     local mark_options = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     M.create_mark(config.project_root, mark_options)
@@ -45,14 +45,9 @@ function M.select(opts)
     M.select_mark(config.project_root, opts)
 end
 
----Reset all marks or marks for a specific project.
----@param project_root string?
-function M.reset(project_root)
-    if project_root ~= nil then
-        _state[project_root] = nil
-    else
-        _state = M.default()
-    end
+---Reset marks for the current project.
+function M.reset()
+    M.reset_marks(config.project_root)
 end
 
 -- INTERNAL API --
@@ -83,6 +78,16 @@ end
 ---@param save_path string
 function M.save(save_path)
     state.save(save_path, _state)
+end
+
+---Reset marks or marks for a specific project.
+---@param project_root string?
+function M.reset_marks(project_root)
+    if project_root ~= nil then
+        _state[project_root] = nil
+    else
+        _state = M.default()
+    end
 end
 
 ---Mark a buffer.
