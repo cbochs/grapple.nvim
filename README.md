@@ -39,15 +39,81 @@ local default = {
 
 ## Marking
 
+A **marked** file is an important file you want to return to with as little keystrokes as possible. Files may be marked, unmarked, and toggled. Marks may be created with a `name` (and optionally `buffer`) to be referenced later.
+
+```lua
+vim.keymap.set( "n", "<leader>j", function()
+    require("grapple").select({ name = "Jacob" })
+end, { desc = "Select a named mark" })
+
+vim.keymap.set("n", "<leader>J", function()
+    require("grapple").toggle({ name = "Jacob" })
+end, { desc = "Toggle a named mark" })
+```
+
 ## Jumping
+
+You can use the `jumplist` to jump to marked files.
+
+```lua
+vim.keymap.set( "n", "<leader>i", function()
+    require("grapple").jump_forward()
+end, { desc = "Jump forwards to marked file" })
+
+vim.keymap.set( "n", "<leader>o", function()
+    require("grapple").jump_forward()
+end, { desc = "Jump backwards to a marked file" })
+```
 
 ## Usage
 
 ### `:GrappleMark`
+
+Mark a file. Optionally accepts a `buffer` number and a mark `name`. If nothing is provided, `buffer` will default to `0` (current buffer).
+
+```
+:GrappleMark [buffer={buffer}] [name={name}]
+```
+
 ### `:GrappleUnmark`
+
+Unmark a file. Optionally accepts a `buffer` number and a mark `name`. If nothing is provided, `buffer` will default to `0` (current buffer)
+
+```
+:GrappleUnmark [buffer={buffer}] [name={name}]
+```
+
 ### `:GrappleToggle`
+
+Toggle a mark on a file. Optionally accepts a `buffer` number and a mark `name`. If nothing is provided, `buffer` will default to `0` (current buffer)
+
+```
+:GrappleToggle [buffer={buffer}] [name={name}]
+```
+
+### `:GrappleSelect`
+
+Select and open a marked file. Must provide either a `buffer` number or a mark `name`.
+
+```
+:GrappleSelect [buffer={buffer}] [name={name}]
+```
+
+### `:GrappleReset`
+
+Reset marks marks for the current project.
+
+### `:GrappleResetAll`
+
+Reset marks marks for the current project.
+
 ### `:GrappleJumpForward`
+
+Jump forward in the jumplist to a marked file, if possible.
+
 ### `:GrappleJumpBackward`
+
+Jump backward in the jumplist to a marked file, if possible.
 
 ## Special Thanks
 
