@@ -53,7 +53,7 @@ end, { desc = "Toggle a named mark" })
 
 ## Jumping
 
-You can use the `jumplist` to jump to marked files.
+You can use the `:h jumplist` to jump to marked files.
 
 ```lua
 vim.keymap.set( "n", "<leader>i", function()
