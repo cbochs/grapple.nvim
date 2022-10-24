@@ -1,7 +1,7 @@
 local log = require("grapple.log")
 
 ---@class GrappleConfig
----@field log { level: string, use_console: boolean }
+---@field log_level "error" | "warn" | "info" | "debug"
 ---@field project_root string
 ---@field state_path string
 local M = {}
@@ -11,14 +11,13 @@ local _config = nil
 ---The default configuration for grapple.nvim
 ---@return GrappleConfig
 function M.default()
-    return {
-        log = {
-            level = "error",
-            use_console = false,
-        },
+    ---@type GrappleConfig
+    local _default = {
+        log_level = "error",
         project_root = vim.fn.getcwd(),
         state_path   = vim.fn.stdpath("data") .. "/" .. "grapple.json",
     }
+    return _default
 end
 
 ---Attempt to find a configuration option from a dot-delimited key.

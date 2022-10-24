@@ -12,7 +12,7 @@ local default_config = {
   plugin = "grapple",
 
   -- Should print the output to neovim while running
-  use_console = true,
+  use_console = false,
 
   -- Should highlighting be used in console (using echohl)
   highlights = true,
@@ -21,11 +21,10 @@ local default_config = {
   use_file = true,
 
   -- Any messages above this level will be logged.
-  level = "trace",
+  level = "debug",
 
   -- Level configuration
   modes = {
-    { name = "trace", hl = "Comment", },
     { name = "debug", hl = "Comment", },
     { name = "info",  hl = "None", },
     { name = "warn",  hl = "WarningMsg", },

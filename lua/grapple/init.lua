@@ -13,7 +13,7 @@ function M.setup(opts)
     log.new({ level = "error" }, true)
     config.load(opts)
 
-    log.new(config.log)
+    log.new({ level = config.log_level })
     marks.load(config.state_path)
     autocmds.create_autocmds()
     commands.create_commands()
