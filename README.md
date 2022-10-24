@@ -66,43 +66,43 @@ end, { desc = "Jump backwards to a marked file" })
 
 ### `:GrappleMark`
 
-Mark a file. Optionally accepts a `buffer` number and a mark `name`. If nothing is provided, `buffer` will default to `0` (current buffer).
+Mark a file. Optionally accepts a `buffer` number, and either a mark `name` or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer) and the mark will be inserted in the first available index. Marks with identical file paths with be replaced.
 
 ```
-:GrappleMark [buffer={buffer}] [name={name}]
+:GrappleMark [buffer={buffer}] [name={name}] [index={index}]
 ```
 
 ### `:GrappleUnmark`
 
-Unmark a file. Optionally accepts a `buffer` number and a mark `name`. If nothing is provided, `buffer` will default to `0` (current buffer)
+Unmark a file. Optionally accepts a `buffer` number, mark `name`, or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer).
 
 ```
-:GrappleUnmark [buffer={buffer}] [name={name}]
+:GrappleUnmark [buffer={buffer}] [name={name}] [index={index}]
 ```
 
 ### `:GrappleToggle`
 
-Toggle a mark on a file. Optionally accepts a `buffer` number and a mark `name`. If nothing is provided, `buffer` will default to `0` (current buffer)
+Toggle a mark on a file. Optionally accepts a `buffer` number, and either a mark `name` or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer). Creation behaviour is the same as `:GrappleMark`.
 
 ```
-:GrappleToggle [buffer={buffer}] [name={name}]
+:GrappleToggle [buffer={buffer}] [name={name}] [index={index}]
 ```
 
 ### `:GrappleSelect`
 
-Select and open a marked file. Must provide either a `buffer` number or a mark `name`.
+Select and open a marked file. Must provide either a `buffer` number, mark `name`, or numbered mark `index`.
 
 ```
-:GrappleSelect [buffer={buffer}] [name={name}]
+:GrappleSelect [buffer={buffer}] [name={name}] [index={index}]
 ```
 
 ### `:GrappleReset`
 
-Reset marks marks for the current project.
+Reset marks for the current project.
 
 ### `:GrappleResetAll`
 
-Reset marks marks for the current project.
+Reset marks for all projects.
 
 ### `:GrappleJumpForward`
 
