@@ -47,7 +47,7 @@ end
 function M.file_exists(file_path)
     local save_dir = vim.fs.dirname(file_path)
     local save_name = vim.fs.basename(file_path)
-    local found_files = vim.fs.find(save_name, { path = save_dir})
+    local found_files = vim.fs.find(save_name, { path = save_dir })
     return #found_files > 0
 end
 

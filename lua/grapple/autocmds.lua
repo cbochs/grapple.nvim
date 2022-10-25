@@ -17,34 +17,24 @@ function M.create_autocmds()
     M.update_autocmds()
 
     vim.api.nvim_create_augroup("GrappleSave", { clear = true })
-    vim.api.nvim_create_autocmd(
-        { "VimLeave" },
-        {
-            group = "GrappleSave",
-            callback = function()
-                require("grapple.marks").save(config.state_path)
-            end
-        }
-    )
+    vim.api.nvim_create_autocmd({ "VimLeave" }, {
+        group = "GrappleSave",
+        callback = function()
+            require("grapple.marks").save(config.state_path)
+        end,
+    })
 end
 
 ---Update autocommand correct file patterns
 function M.update_autocmds()
     vim.api.nvim_clear_autocmds({ group = "GrappleUpdate" })
-    vim.api.nvim_create_autocmd(
-        { "BufLeave" },
-        {
-            group = "GrappleUpdate",
-            pattern = file_patterns(),
-            callback = function()
-                require("grapple.marks").update_mark(
-                    config.project_root,
-                    vim.api.nvim_win_get_cursor(0),
-                    { buffer = 0 }
-                )
-            end,
-        }
-    )
+    vim.api.nvim_create_autocmd({ "BufLeave" }, {
+        group = "GrappleUpdate",
+        pattern = file_patterns(),
+        callback = function()
+            require("grapple.marks").update_mark(config.project_root, vim.api.nvim_win_get_cursor(0), { buffer = 0 })
+        end,
+    })
 end
 
 return M

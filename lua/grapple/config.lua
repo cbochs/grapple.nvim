@@ -15,7 +15,7 @@ function M.default()
     local _default = {
         log_level = "warn",
         project_root = vim.fn.getcwd(),
-        state_path   = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+        state_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
     }
     return _default
 end
@@ -93,7 +93,7 @@ setmetatable(M, {
     __newindex = function(_, _)
         log.error("ConfigError - Config is read-only")
         error("ConfigError - Config is read-only")
-    end
+    end,
 })
 
 return M
