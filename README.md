@@ -116,11 +116,8 @@ Jump forward in the jumplist to a marked file, if possible.
 
 Jump backward in the jumplist to a marked file, if possible.
 
-## Special Thanks
+## Inspiration and Thanks
 
-Thanks to tjdevries for easy logging with [vlog.nvim](https://github.com/tjdevries/vlog.nvim)
-
-## Inspiration
-
+* tjdevries [vlog.nvim](https://github.com/tjdevries/vlog.nvim)
 * ThePrimeagen's [harpoon](https://github.com/ThePrimeagen/harpoon)
 * kwarlwang's [bufjump.nvim](https://github.com/kwkarlwang/bufjump.nvim)
