@@ -8,9 +8,13 @@ on:
     branches:
       - main
 
+env:
+  PLUGIN_NAME: grapple
+
 jobs:
-  check-code-format:
+  style:
     runs-on: ubuntu-latest
+    name: check lua style
     steps:
       - uses: actions/checkout@v2
       - uses: JohnnyMorganz/stylua-action@v1
@@ -18,3 +22,21 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: v0.15.0
           args: --check .
+
+  docs:
+    runs-on: ubuntu-latest
+    name: emmylua to vimdoc
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generating help
+        run: |
+          curl -Lq https://github.com/numToStr/lemmy-help/releases/latest/download/lemmy-help-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./lemmy-help lua/**/*.lua > doc/${{env.PLUGIN_NAME}}.txt
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: ${{ github.head_ref }}
+          commit_message: "chore(docs): auto-generate vimdoc"
+          file_pattern: doc/*.txt
