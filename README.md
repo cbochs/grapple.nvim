@@ -62,7 +62,7 @@ vim.keymap.set( "n", "<leader>i", function()
 end, { desc = "Jump forwards to marked file" })
 
 vim.keymap.set( "n", "<leader>o", function()
-    require("grapple").jump_forward()
+    require("grapple").jump_backward()
 end, { desc = "Jump backwards to a marked file" })
 ```
 
