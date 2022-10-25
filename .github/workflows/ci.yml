@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull-request:
+    branches:
+      - main
+
+jobs:
+  check-code-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JohnnyMorganz/stylua-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v0.15.0
+          args: --check .
