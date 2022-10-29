@@ -199,6 +199,10 @@ function M.find_key(project_root, opts)
     local mark_key = nil
 
     if opts.buffer then
+        if not vim.api.nvim_buf_is_valid(opts.buffer) then
+            return
+        end
+
         local buffer_name = vim.api.nvim_buf_get_name(opts.buffer)
         for key, mark in pairs(project) do
             if mark.file_path == buffer_name then
