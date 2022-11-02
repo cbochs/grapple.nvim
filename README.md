@@ -57,9 +57,6 @@ require("grapple").setup({
     integrations = {
         ---Integration with portal.nvim. Registers a "tagged" query item
         portal = true,
-
-        -- todo(cbochs): implement
-        resession = false,
     },
 })
 ```
