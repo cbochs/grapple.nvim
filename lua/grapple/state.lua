@@ -25,10 +25,12 @@ end
 ---@param state table
 ---@return nil
 function M.save(save_path, state)
-    local file = io.open(save_path, "w")
     local serialized_state = M.serialize(state)
-    file:write(serialized_state)
-    file:close()
+    local file = io.open(save_path, "w")
+    if file ~= nil then
+        file:write(serialized_state)
+        file:close()
+    end
 end
 
 ---Load a lua table from a given file.
@@ -36,9 +38,12 @@ end
 ---@return table
 function M.load(save_path)
     local file = io.open(save_path, "r")
-    local serialized_state = file:read("*all")
-    local state = M.deserialize(serialized_state)
-    return state
+    if file ~= nil then
+        local serialized_state = file:read("*all")
+        local state = M.deserialize(serialized_state)
+        return state
+    end
+    return {}
 end
 
 ---Check whether a file exists.

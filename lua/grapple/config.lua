@@ -1,98 +1,42 @@
-local log = require("grapple.log")
+local types = require("grapple.types")
 
----@class GrappleConfig
----@field log_level "error" | "warn" | "info" | "debug"
----@field project_root string
----@field state_path string
+--- @type Grapple.Config
 local M = {}
 
-local _config = nil
+--- @class Grapple.Config
+local DEFAULT_CONFIG = {
+    ---
+    log_level = vim.log.levels.WARN,
 
----The default configuration for grapple.nvim
----@return GrappleConfig
-function M.default()
-    ---@type GrappleConfig
-    local _default = {
-        log_level = "warn",
-        project_root = vim.fn.getcwd(),
-        state_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
-    }
-    return _default
-end
+    ---
+    scope = types.Scope.GLOBAL,
 
----Attempt to find a configuration option from a dot-delimited key.
----@param key_string string
----@return string
-function M.get(key_string)
-    local current_value = _config
-    for key in string.gmatch(key_string, "[^.]+") do
-        if current_value[key] == nil then
-            log.error("ConfigError - Invalid option. key_string: " .. key_string)
-            error("ConfigError - Invalid option. key_string: " .. key_string)
-        end
-        current_value = current_value[key]
-    end
-    return current_value
-end
+    ---
+    save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
----Initialize configuration.
----@param opts? GrappleConfig
----@param force? boolean
-function M.load(opts, force)
+    integrations = {
+        --- todo(cbochs): implement
+        portal = false,
+
+        --- todo(cbochs): implement
+        resession = false,
+    },
+}
+
+--- @type Grapple.Config
+local _config = DEFAULT_CONFIG
+
+---@param opts? Grapple.Config
+function M.load(opts)
     opts = opts or {}
-    force = force or false
 
-    if _config ~= nil and not force then
-        log.warn("Config has already been loaded.")
-        return nil
-    end
-
-    local merged_config = vim.tbl_deep_extend("force", M.default(), opts)
-
-    local errors = M.validate(merged_config)
-    if #errors > 0 then
-        log.error("ValidationError - Invalid options: " .. vim.inspect(errors))
-        error("ValidationError - Invalid options: " .. vim.inspect(errors))
-        return nil
-    end
-
-    _config = merged_config
-end
-
-function M.validate(config, expected_config)
-    config = config or _config
-    expected_config = expected_config or M.default()
-
-    local errors = {}
-    for key, _ in pairs(config) do
-        if expected_config[key] == nil then
-            table.insert(key)
-        end
-        if type(config[key]) == "table" then
-            local nested_errors = M.validate(config[key], expected_config[key])
-            for i, error_key in pairs(nested_errors) do
-                nested_errors[i] = key .. "." .. error_key
-            end
-            errors = { unpack(errors), unpack(nested_errors) }
-        end
-    end
-
-    return errors
+    --- @type Grapple.Config
+    _config = vim.tbl_deep_extend("force", DEFAULT_CONFIG, opts)
 end
 
 setmetatable(M, {
     __index = function(_, index)
-        local value = _config[index]
-        if value == nil then
-            log.error("ConfigError - Invalid option. index: " .. index)
-            error("ConfigError - Invalid option. index: " .. index)
-        end
-        return value
-    end,
-
-    __newindex = function(_, _)
-        log.error("ConfigError - Config is read-only")
-        error("ConfigError - Config is read-only")
+        return _config[index]
     end,
 })
 
