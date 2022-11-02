@@ -72,6 +72,28 @@ function M.select(opts)
     end
 end
 
+---@param opts? Grapple.Options
+---@param direction Grapple.Direction
+function M.cycle(opts, direction)
+    opts = opts or { buffer = 0 }
+    local tag_key = tags.key(config.scope, opts)
+    local start_index = (type(tag_key) == "number") and tag_key or 1
+    local tag = tags.next(config.scope, start_index, direction)
+    if tag ~= nil then
+        tags.select(tag)
+    end
+end
+
+---@param opts? Grapple.Options
+function M.cycle_backward(opts)
+    M.cycle(opts, types.Direction.BACKWARD)
+end
+
+---@param opts? Grapple.Options
+function M.cycle_forward(opts)
+    M.cycle(opts, types.Direction.FORWARD)
+end
+
 ---@param scope? Grapple.Scope
 function M.reset(scope)
     tags.reset(scope or config.scope)

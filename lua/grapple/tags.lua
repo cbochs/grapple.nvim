@@ -151,6 +151,43 @@ function M.key(scope, opts)
 end
 
 ---@param scope Grapple.Scope
+---@param start_index integer
+---@param direction Grapple.Direction
+---@return Grapple.Tag | nil
+function M.next(scope, start_index, direction)
+    local step = 1
+    if direction == types.Direction.BACKWARD then
+        step = -1
+    end
+
+    local scope_key = M.resolve_scope(scope)
+    local project = _tags[scope_key]
+    if #project == 0 then
+        return nil
+    end
+
+    local index = start_index + step
+    if index == 0 then
+        index = #project
+    end
+    if index > #project then
+        index = 1
+    end
+
+    while project[index] == nil and index ~= start_index do
+        index = index + step
+        if index == 0 then
+            index = #project
+        end
+        if index > #project then
+            index = 1
+        end
+    end
+
+    return project[index]
+end
+
+---@param scope Grapple.Scope
 ---@return Grapple.Tag[]
 function M.tags(scope)
     local scope_key = M.resolve_scope(scope)

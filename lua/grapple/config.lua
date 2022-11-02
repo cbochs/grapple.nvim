@@ -16,6 +16,7 @@ local DEFAULT_CONFIG = {
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
     integrations = {
+        ---Integration with portal.nvim. Registers a "tagged" query item
         portal = true,
 
         -- todo(cbochs): implement

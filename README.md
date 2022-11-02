@@ -1,7 +1,5 @@
 # Grapple.nvim
 
-**grapple.nvim** is a lua plugin for Neovim which helps you keep important files as close as possible.
-
 ## Introduction
 
 Grapple is a plugin that aims to provide immediate navigation to important files within a [project scope](#tag-scopes) and bring you back to exactly where you left off.
@@ -55,6 +53,14 @@ require("grapple").setup({
 
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+
+    integrations = {
+        ---Integration with portal.nvim. Registers a "tagged" query item
+        portal = true,
+
+        -- todo(cbochs): implement
+        resession = false,
+    },
 })
 ```
 
@@ -77,6 +83,8 @@ require("grapple").tag({ index = {index} })
 
 -- Select an anonymous tag
 require("grapple").select({ index = {index} })
+
+-- Cycle to the next tag in the list
 require("grapple").cycle_backward()
 require("grapple").cycle_forward()
 
@@ -106,7 +114,7 @@ require("grapple").untag({ name = "{name}" })
 
 Named tags are useful if you want to bind one or two keymaps to a specific tag without worrying about anonymous tags messing up the index you originally saved it in.
 
-### Labelled Tags
+### Labelled Tags (**not implemented**)
 
 Labelled tags are very similar in nature to named labels. In fact, they are single-character named tags and may be created, selected, or deleted in the same manner as a named tag. The difference being with how they are added. Labelled tags are created in the same manner a vim mark is created: `{motion}{label}` (i.e. `ma` for vim marks). This motion is enabled with the use of either a command or its lua-equivilent:
 
@@ -187,6 +195,8 @@ vim.keymap.set("n", "'", require("grapple").select_label, {})
 ```
 
 ## Integrations
+
+### Portal
 
 ### Lualine
 
