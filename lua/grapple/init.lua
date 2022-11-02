@@ -12,6 +12,7 @@ local M = {}
 --- @field buffer integer
 --- @field index integer
 --- @field name string
+--- @field file_path string
 
 ---@param opts? Grapple.Config
 function M.setup(opts)
@@ -21,6 +22,10 @@ function M.setup(opts)
 
     if config.scope ~= types.Scope.NONE then
         tags.load(config.save_path)
+    end
+
+    if config.integrations.portal then
+        require("grapple.integrations.portal").load()
     end
 
     autocmds.create_autocmds()
@@ -52,6 +57,11 @@ end
 function M.find(opts)
     opts = opts or { buffer = 0 }
     return tags.find(config.scope, opts)
+end
+
+---@param opts? Grapple.Options
+function M.exists(opts)
+    return M.find(opts) ~= nil
 end
 
 ---@param opts? Grapple.Options

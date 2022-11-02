@@ -60,10 +60,7 @@ function M.tag(scope, opts)
     end
 
     ---@type Grapple.Tag
-    local tag = {
-        key = opts.name or opts.index,
-        file_path = vim.api.nvim_buf_get_name(opts.buffer),
-    }
+    local tag = { file_path = vim.api.nvim_buf_get_name(opts.buffer) }
 
     local old_tag = M.find(scope, { buffer = opts.buffer })
     if old_tag ~= nil then
@@ -86,10 +83,9 @@ end
 function M.untag(scope, opts)
     local scope_key = M.resolve_scope(scope)
     local project = _tags[scope_key]
-
-    local tag = M.find(scope, opts)
-    if tag ~= nil then
-        project[scope][tag.key] = nil
+    local tag_key = M.key(scope, opts)
+    if tag_key ~= nil then
+        project[tag_key] = nil
     end
 end
 
@@ -98,7 +94,9 @@ end
 ---@param cursor Grapple.Cursor
 function M.update(scope, tag, cursor)
     local scope_key = M.resolve_scope(scope)
-    _tags[scope_key][tag.key].cursor = cursor
+    local project = _tags[scope_key]
+    local tag_key = M.key(scope, { file_path = tag.file_path })
+    project[tag_key].cursor = cursor
 end
 
 ---@param tag Grapple.Tag
@@ -125,11 +123,20 @@ end
 function M.find(scope, opts)
     local scope_key = M.resolve_scope(scope)
     local project = _tags[scope_key]
+    local tag_key = M.key(scope, opts)
+    return project[tag_key]
+end
 
+---@param scope Grapple.Scope
+---@param opts Grapple.Options
+---@return string | integer | nil
+function M.key(scope, opts)
+    local scope_key = M.resolve_scope(scope)
+    local project = _tags[scope_key]
     local tag_key = nil
 
-    if opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
-        local buffer_name = vim.api.nvim_buf_get_name(opts.buffer)
+    if opts.file_path or opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
+        local buffer_name = opts.file_path or vim.api.nvim_buf_get_name(opts.buffer)
         for key, mark in pairs(project) do
             if mark.file_path == buffer_name then
                 tag_key = key
@@ -140,11 +147,7 @@ function M.find(scope, opts)
         tag_key = opts.name or opts.index
     end
 
-    if tag_key ~= nil then
-        return project[tag_key]
-    else
-        return nil
-    end
+    return tag_key
 end
 
 ---@param scope Grapple.Scope

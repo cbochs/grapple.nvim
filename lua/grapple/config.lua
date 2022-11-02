@@ -16,10 +16,9 @@ local DEFAULT_CONFIG = {
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
     integrations = {
-        ---todo(cbochs): implement
-        portal = false,
+        portal = true,
 
-        ---todo(cbochs): implement
+        -- todo(cbochs): implement
         resession = false,
     },
 }
