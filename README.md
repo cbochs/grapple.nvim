@@ -46,8 +46,8 @@ The following is the default configuration. All configuration options may be ove
 
 ```lua
 require("grapple").setup({
-    ---
-    log_level = vim.log.levels.WARN,
+    ---@type "debug" | "info" | "warn" | "error"
+    log_level = "warn",
 
     ---
     scope = types.Scope.GLOBAL,
@@ -65,7 +65,9 @@ There are a few types of tag types available, each with a different user in mind
 
 ### Anonymous Tags
 
-This is the _default_ tag type. Anonymous tags are added to a list, where they may be accessed by index, cycled through, or jumped to using plugins such as [portal.nvim]().
+This is the _default_ tag type. Anonymous tags are added to a list, where they may be accessed by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
+
+**Command** `:GrappleMark [index={index}] [buffer={buffer}]`
 
 ```lua
 -- Create an anonymous tag
@@ -73,7 +75,7 @@ require("grapple").tag()
 require("grapple").tag({ index = {index} })
 
 -- Select an anonymous tag
-require("grapple").select({ index = {index})
+require("grapple").select({ index = {index} })
 require("grapple").cycle_backward()
 require("grapple").cycle_forward()
 
@@ -87,6 +89,8 @@ Anonymous tags are usefule if you're used to plugins like [harpoon].
 ### Named Tags
 
 Named tags allow users to assign a tag to a known key rather than be placed in an unordered list of anonymous tags.
+
+**Command** `:GrappleMark name={name} [buffer={buffer}]`
 
 ```lua
 -- Create a named tag
@@ -105,7 +109,7 @@ Named tags are useful if you want to bind one or two keymaps to a specific tag w
 
 Labelled tags are very similar in nature to named labels. In fact, they are single-character named tags and may be created, selected, or deleted in the same manner as a named tag. The difference being with how they are added. Labelled tags are created in the same manner a vim mark is created: `{motion}{label}` (i.e. `ma` for vim marks). This motion is enabled with the use of either a command or its lua-equivilent:
 
-**Command**: `GrappleLabel`
+**Command**: `:GrappleLabel`
 
 ```lua
 --- Create a labelled mark
@@ -125,16 +129,26 @@ A **scope** is a means of namespacing tags to a specific project. The type of sc
 ```lua
 --- @enum Grapple.Scope
 M.Scope = {
-	--- Tags are ephemeral and are deleted on exit
-	NONE = "none",
+    --- Tags are ephemeral and are deleted on exit
+    NONE = "none",
 
-	--- Use a global namespace for tags
-	GLOBAL = "global",
+    --- Use a global namespace for tags
+    GLOBAL = "global",
 
-	--- Use the current working directory as the tag namespace
-	DIRECTORY = "directory",
+    --- Use the current working directory as the tag namespace
+    DIRECTORY = "directory",
 }
 ```
+
+### Selecting Tags
+
+**Command**: `:GrappleSelect [name={name}] [index={index}] [buffer={buffer}]`
+
+### Deleting Tags
+
+**Commands**:
+* `:GrappleUnmark`
+* `:GrappleReset`
 
 ### Suggested Keymaps
 
@@ -148,11 +162,11 @@ _Named tags_
 
 ```lua
 vim.keymap.set("n", "<leader>j", function()
-    require("grapple").select({ name = "J" })
+    require("grapple").select({ name = "{name}" })
 end, {})
 
 vim.keymap.set("n", "<leader>J", function()
-    require("grapple").toggle({ name = "J" })
+    require("grapple").toggle({ name = "{name}" })
 end, {})
 ```
 
@@ -163,53 +177,11 @@ vim.keymap.set("n", "m", require("grapple").label, {})
 vim.keymap.set("n", "'", require("grapple").select_label, {})
 ```
 
-## Usage
-
-### `:GrappleMark`
-
-Mark a file. Optionally accepts a `buffer` number, and either a mark `name` or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer) and the mark will be inserted in the first available index. Marks with identical file paths with be replaced.
-
-```
-:GrappleMark [buffer={buffer}] [name={name}] [index={index}]
-```
-
-### `:GrappleUnmark`
-
-Unmark a file. Optionally accepts a `buffer` number, mark `name`, or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer).
-
-```
-:GrappleUnmark [buffer={buffer}] [name={name}] [index={index}]
-```
-
-### `:GrappleToggle`
-
-Toggle a mark on a file. Optionally accepts a `buffer` number, and either a mark `name` or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer). Creation behaviour is the same as `:GrappleMark`.
-
-```
-:GrappleToggle [buffer={buffer}] [name={name}] [index={index}]
-```
-
-### `:GrappleSelect`
-
-Select and open a marked file. Must provide either a `buffer` number, mark `name`, or numbered mark `index`.
-
-```
-:GrappleSelect [buffer={buffer}] [name={name}] [index={index}]
-```
-
-### `:GrappleReset`
-
-Reset marks for a selected tag scope.
-
-```
-:GrappleReset [{scope}]
-```
-
 ## Integrations
 
 ### Lualine
 
-A simple lualine component called `grapple` is provided to show whether a buffer is marked or not.
+A simple lualine component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
 
 **Tag inactive**
 
@@ -233,8 +205,8 @@ require("lualine").setup({
 
 ```lua
 M.groups = {
-	lualine_tag_active = "PortalLualineTagActive",
-	lualine_tag_inactive = "PortalLualineTagInactive",
+    lualine_tag_active = "PortalLualineTagActive",
+    lualine_tag_inactive = "PortalLualineTagInactive",
 }
 ```
 
