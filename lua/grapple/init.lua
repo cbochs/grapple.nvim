@@ -4,6 +4,7 @@ local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
 local tags = require("grapple.tags")
+local types = require("grapple.types")
 
 local M = {}
 
@@ -18,7 +19,10 @@ function M.setup(opts)
     log.new({ level = config.log_level })
     highlight.load()
 
-    tags.load(config.save_path)
+    if config.scope ~= types.Scope.NONE then
+        tags.load(config.save_path)
+    end
+
     autocmds.create_autocmds()
     commands.create_commands()
 end

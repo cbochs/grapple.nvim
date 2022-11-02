@@ -8,10 +8,11 @@ local DEFAULT_CONFIG = {
     ---@type "debug" | "info" | "warn" | "error"
     log_level = "warn",
 
-    ---
+    ---The scope used when creating, selecting, and deleting tags
+    ---@type Grapple.Scope
     scope = types.Scope.GLOBAL,
 
-    ---
+    ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
     integrations = {

@@ -4,13 +4,13 @@
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files and bring you back to exactly where you left off.
+Grapple is a plugin that aims to provide immediate navigation to important files within a [project scope](#tag-scopes) and bring you back to exactly where you left off.
 
-To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration)
+To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration).
 
 ## Features
 
-* **Scoped** file tagging for immediate navigation
+* **Project scoped** file tagging for immediate navigation
 * **Persistent** cursor tracking for tagged files
 
 ## Requirements
@@ -49,10 +49,11 @@ require("grapple").setup({
     ---@type "debug" | "info" | "warn" | "error"
     log_level = "warn",
 
-    ---
-    scope = types.Scope.GLOBAL,
+    ---The scope used when creating, selecting, and deleting tags
+    ---@type Grapple.Scope
+    scope = "global",
 
-    ---
+    ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 })
 ```
@@ -138,6 +139,14 @@ M.Scope = {
     --- Use the current working directory as the tag namespace
     DIRECTORY = "directory",
 }
+```
+
+**Used during plugin setup**
+
+```lua
+require("grapple").setup({
+    scope = "global"
+})
 ```
 
 ### Selecting Tags
