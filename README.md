@@ -164,8 +164,23 @@ require("grapple").setup({
 ### Deleting Tags
 
 **Commands**:
-* `:GrappleUnmark`
-* `:GrappleReset`
+* `:GrappleUntag [name={name}] [index={index}] [buffer={buffer}]`
+* `:GrappleReset [scope]`
+
+```lua
+-- Untag the current buffer
+require("grapple").untag()
+
+-- Delete a specific tag
+require("grapple").untag({ name = "{name}" })
+require("grapple").untag({ index = {index} })
+
+-- Delete all tags in the current scope
+require("grapple").reset()
+
+-- Delete all tags in a different scope
+require("grapple").reset("global")
+```
 
 ### Suggested Keymaps
 
