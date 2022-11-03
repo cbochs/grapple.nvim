@@ -24,10 +24,6 @@ function M.setup(opts)
         tags.load(config.save_path)
     end
 
-    if config.integrations.portal then
-        require("grapple.integrations.portal").load()
-    end
-
     autocmds.create_autocmds()
     commands.create_commands()
 end
@@ -82,7 +78,7 @@ end
 ---@param direction Grapple.Direction
 function M.cycle(opts, direction)
     local tag_key = M.key(opts)
-    local start_index = (type(tag_key) == "number") and tag_key or 1
+    local start_index = (type(tag_key) == "number") and tag_key or 0
     local tag = tags.next(config.scope, start_index, direction)
     if tag ~= nil then
         tags.select(tag)

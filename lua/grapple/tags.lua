@@ -171,7 +171,7 @@ function M.next(scope, start_index, direction)
     end
 
     local index = start_index + step
-    if index == 0 then
+    if index <= 0 then
         index = #project
     end
     if index > #project then
@@ -180,7 +180,7 @@ function M.next(scope, start_index, direction)
 
     while project[index] == nil and index ~= start_index do
         index = index + step
-        if index == 0 then
+        if index <= 0 then
             index = #project
         end
         if index > #project then
