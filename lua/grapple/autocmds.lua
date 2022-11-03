@@ -1,38 +1,29 @@
 local config = require("grapple.config")
+local types = require("grapple.types")
 
 local M = {}
 
-local function file_patterns()
-    local marked_files = require("grapple.marks").marked_files(config.project_root)
-    if #marked_files == 0 then
-        return "notarealfile"
-    else
-        return marked_files
-    end
-end
-
 ---Initialize autocommand groups and events
 function M.create_autocmds()
-    vim.api.nvim_create_augroup("GrappleUpdate", { clear = true })
-    M.update_autocmds()
-
-    vim.api.nvim_create_augroup("GrappleSave", { clear = true })
-    vim.api.nvim_create_autocmd({ "VimLeave" }, {
-        group = "GrappleSave",
+    vim.api.nvim_create_augroup("Grapple", { clear = true })
+    vim.api.nvim_create_autocmd({ "BufLeave" }, {
+        group = "Grapple",
+        pattern = "*",
         callback = function()
-            require("grapple.marks").save(config.state_path)
+            local tag = require("grapple.tags").find(config.scope, { buffer = 0 })
+            if tag ~= nil then
+                local cursor = vim.api.nvim_win_get_cursor(0)
+                require("grapple.tags").update(config.scope, tag, cursor)
+            end
         end,
     })
-end
 
----Update autocommand correct file patterns
-function M.update_autocmds()
-    vim.api.nvim_clear_autocmds({ group = "GrappleUpdate" })
-    vim.api.nvim_create_autocmd({ "BufLeave" }, {
-        group = "GrappleUpdate",
-        pattern = file_patterns(),
+    vim.api.nvim_create_autocmd({ "VimLeave" }, {
+        group = "Grapple",
         callback = function()
-            require("grapple.marks").update_mark(config.project_root, vim.api.nvim_win_get_cursor(0), { buffer = 0 })
+            if config.scope ~= types.Scope.NONE then
+                require("grapple.tags").save(config.save_path)
+            end
         end,
     })
 end

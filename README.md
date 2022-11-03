@@ -1,11 +1,22 @@
 # Grapple.nvim
 
-**grapple.nvim** is a lua plugin for Neovim which helps you keep important files as close as possible.
+![grapple_select mov](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
+
+## Introduction
+
+Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes).
+
+To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration).
 
 ## Features
 
-* Project-local **file marking** and **persistent** cursor tracking
-* Jumping forward and backward between marked files
+* **Project scoped** file tagging for immediate navigation
+* **Persistent** cursor tracking for tagged files
+* **Integration** with [portal.nvim](https://github.com/cbochs/portal.nvim) for additional jump options
+
+## Requirements
+
+* [Neovim >= 0.5](https://github.com/neovim/neovim/releases/tag/v0.5.0)
 
 ## Installation
 
@@ -18,103 +29,194 @@ use {
         require("grapple").setup({
             -- Your configuration goes here
             -- Leave empty to use the default configuration
-            -- Refer to the configuration section for more details
+            -- Please see the Configuration section below for more information
         })
     end
 }
 ```
 
+### [Plug](https://github.com/junegunn/vim-plug)
+
+```
+Plug "cbochs/grapple.nvim"
+```
+
 ## Configuration
 
+The following is the default configuration. All configuration options may be overridden during plugin setup.
+
 ```lua
-local default = {
+require("grapple").setup({
+    ---@type "debug" | "info" | "warn" | "error"
     log_level = "warn",
-    project_root = vim.fn.getcwd(),
-    state_path   = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+
+    ---The scope used when creating, selecting, and deleting tags
+    ---@type Grapple.Scope
+    scope = "global",
+
+    ---The save location for tags
+    save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+
+    integrations = {
+        ---Integration with portal.nvim. Registers a "tagged" query item
+        portal = true,
+    },
+})
+```
+
+## Tagging
+
+A `tag` is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
+
+There are a few types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#tag-scopes) to prevent marks in one project polluting the namespace of another.
+
+### Anonymous Tags
+
+This is the _default_ tag type. Anonymous tags are added to a list, where they may be accessed by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
+
+Anonymous tags are useful if you're familiar with plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
+
+**Command** `:GrappleMark [index={index}] [buffer={buffer}]`
+
+```lua
+-- Create an anonymous tag
+require("grapple").tag()
+require("grapple").tag({ index = {index} })
+
+-- Select an anonymous tag
+require("grapple").select({ index = {index} })
+
+-- Cycle to the next tag in the list
+require("grapple").cycle_backward()
+require("grapple").cycle_forward()
+
+-- Delete an anonymous tag
+require("grapple").untag() -- untag the current buffer
+require("grapple").untag({ index = {index} })
+```
+
+### Named Tags
+
+Tags that are given a name are considered to be **namd tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
+
+Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag. See the [suggested keymaps](#named-tag-keymaps)
+
+**Command** `:GrappleMark name={name} [buffer={buffer}]`
+
+```lua
+-- Create a named tag
+require("grapple").tag({ name = "{name}" })
+
+-- Select a named tag
+require("grapple").select({ name = "{name}" })
+
+-- Delete a named tag
+require("grapple").untag({ name = "{name}" })
+```
+
+### Tag Scopes
+
+A **scope** is a means of namespacing tags to a specific project. The type of scoping method is set in the configuration during plugin setup. There are currently three options for tag scopes:
+
+```lua
+--- @enum Grapple.Scope
+M.Scope = {
+    --- Tags are ephemeral and are deleted on exit
+    NONE = "none",
+
+    --- Use a global namespace for tags
+    GLOBAL = "global",
+
+    --- Use the current working directory as the tag namespace
+    DIRECTORY = "directory",
 }
 ```
 
-## Marking
-
-A **marked** file is an important file you want to return to with as little keystrokes as possible. Files may be marked, unmarked, and toggled. Marks may be created with a `name` (and optionally `buffer`) to be referenced later.
-
-https://user-images.githubusercontent.com/2467016/197600951-1f5ab942-e8b5-43b7-b53b-c97b939d3f78.mov
+**Used during plugin setup**
 
 ```lua
-vim.keymap.set( "n", "<leader>k", function()
-    require("grapple").select({ name = "Kepler" })
-end, { desc = "Select a named mark" })
-
-vim.keymap.set("n", "<leader>K", function()
-    require("grapple").toggle({ name = "Kepler" })
-end, { desc = "Toggle a named mark" })
+require("grapple").setup({
+    scope = "global"
+})
 ```
 
-## Jumping
+### Selecting Tags
 
-A **marked** file can be quickly navigated to from `:h jumplist`.
+**Command**: `:GrappleSelect [name={name}] [index={index}] [buffer={buffer}]`
 
-https://user-images.githubusercontent.com/2467016/197601258-4a5b4c75-657d-4547-9f36-3120ed2cfeed.mov
+### Deleting Tags
+
+**Commands**:
+* `:GrappleUntag [name={name}] [index={index}] [buffer={buffer}]`
+* `:GrappleReset [scope]`
 
 ```lua
-vim.keymap.set( "n", "<leader>i", function()
-    require("grapple").jump_forward()
-end, { desc = "Jump forwards to marked file" })
+-- Untag the current buffer
+require("grapple").untag()
 
-vim.keymap.set( "n", "<leader>o", function()
-    require("grapple").jump_backward()
-end, { desc = "Jump backwards to a marked file" })
+-- Delete a specific tag
+require("grapple").untag({ name = "{name}" })
+require("grapple").untag({ index = {index} })
+
+-- Delete all tags in the current scope
+require("grapple").reset()
+
+-- Delete all tags in a different scope
+require("grapple").reset("global")
 ```
 
-## Usage
+### Suggested Keymaps
 
-### `:GrappleMark`
+#### Anonymous tag keymaps
 
-Mark a file. Optionally accepts a `buffer` number, and either a mark `name` or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer) and the mark will be inserted in the first available index. Marks with identical file paths with be replaced.
-
-```
-:GrappleMark [buffer={buffer}] [name={name}] [index={index}]
+```lua
+vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
 ```
 
-### `:GrappleUnmark`
+#### Named tag keymaps
 
-Unmark a file. Optionally accepts a `buffer` number, mark `name`, or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer).
+```lua
+vim.keymap.set("n", "<leader>j", function()
+    require("grapple").select({ name = "{name}" })
+end, {})
 
-```
-:GrappleUnmark [buffer={buffer}] [name={name}] [index={index}]
-```
-
-### `:GrappleToggle`
-
-Toggle a mark on a file. Optionally accepts a `buffer` number, and either a mark `name` or numbered mark `index`. If nothing is provided, `buffer` will default to `0` (current buffer). Creation behaviour is the same as `:GrappleMark`.
-
-```
-:GrappleToggle [buffer={buffer}] [name={name}] [index={index}]
+vim.keymap.set("n", "<leader>J", function()
+    require("grapple").toggle({ name = "{name}" })
+end, {})
 ```
 
-### `:GrappleSelect`
+## Integrations
 
-Select and open a marked file. Must provide either a `buffer` number, mark `name`, or numbered mark `index`.
+### Lualine
 
+A simple lualine component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
+
+**Tag inactive**
+
+<img width="276" alt="Screen Shot 2022-11-01 at 07 02 09" src="https://user-images.githubusercontent.com/2467016/199238779-955bd8f3-f406-4a61-b027-ac64d049481a.png">
+
+**Tag active**
+
+<img width="276" alt="Screen Shot 2022-11-01 at 07 02 38" src="https://user-images.githubusercontent.com/2467016/199238764-96678f97-8603-45d9-ba2e-9a512ce93727.png">
+
+**Usage**
+
+```lua
+require("lualine").setup({
+    sections = {
+        lualine_b = { "grapple" }
+    }
+})
 ```
-:GrappleSelect [buffer={buffer}] [name={name}] [index={index}]
+
+**Highlight Groups**
+
+```lua
+M.groups = {
+    lualine_tag_active = "PortalLualineTagActive",
+    lualine_tag_inactive = "PortalLualineTagInactive",
+}
 ```
-
-### `:GrappleReset`
-
-Reset marks for the current project.
-
-### `:GrappleResetAll`
-
-Reset marks for all projects.
-
-### `:GrappleJumpForward`
-
-Jump forward in the jumplist to a marked file, if possible.
-
-### `:GrappleJumpBackward`
-
-Jump backward in the jumplist to a marked file, if possible.
 
 ## Inspiration and Thanks
 
