@@ -2,173 +2,100 @@ M.create_autocmds()                                          *M.create_autocmds*
     Initialize autocommand groups and events
 
 
-M.update_autocmds()                                          *M.update_autocmds*
-    Update autocommand correct file patterns
-
-
 M.create_commands()                                          *M.create_commands*
 
 
-GrappleConfig                                                    *GrappleConfig*
-
-    Fields: ~
-        {log_level}  ()
+Grapple.Config                                                  *Grapple.Config*
 
 
-M.default()                                                          *M.default*
-    The default configuration for grapple.nvim
-
-    Returns: ~
-        {GrappleConfig}
-
-
-M.get({key_string})                                                      *M.get*
-    Attempt to find a configuration option from a dot-delimited key.
+M.load({opts?})                                                         *M.load*
 
     Parameters: ~
-        {key_string}  (string)
-
-    Returns: ~
-        {string}
-
-
-M.load({opts?}, {force?})                                               *M.load*
-    Initialize configuration.
-
-    Parameters: ~
-        {opts?}   (GrappleConfig)
-        {force?}  (boolean)
-
-
-M.validate()                                                        *M.validate*
-
-
-M.setup({opts?})                                                       *M.setup*
-    PLugin entrypoint.
-
-    Parameters: ~
-        {opts?}  (GrappleConfig)
-
-
-M.jump_forward()                                                *M.jump_forward*
-    Jump to the next marked buffer in the jumplist.
-
-
-M.jump_backward()                                              *M.jump_backward*
-    Jump to the previous marked buffer in the jumplist.
-
-
-M._jump_forward({project_root})                                *M._jump_forward*
-
-    Parameters: ~
-        {project_root}  (string)
-
-
-M._jump_backward({project_root})                              *M._jump_backward*
-
-    Parameters: ~
-        {project_root}  (string)
-
-
-log.new()                                                              *log.new*
-
-
-Mark                                                                      *Mark*
-
-    Fields: ~
-        {file_path}  (string)
-        {cursor}     (table)
-
-
-M.mark({opts})                                                          *M.mark*
-    Mark a buffer.
-
-    Parameters: ~
-        {opts}  ({buffer?:number,index?:number,name?:string}|nil)
-
-
-M.unmark({opts})                                                      *M.unmark*
-    Unmark a buffer.
-
-    Parameters: ~
-        {opts}  ({buffer?:number,name?:string,index?:number})
-
-
-M.toggle({opts})                                                      *M.toggle*
-    Toggle a mark.
-
-    Parameters: ~
-        {opts}  ({buffer?:number,name?:string,index?:number})
-
-
-M.select({opts})                                                      *M.select*
-    Select a mark.
-
-    Parameters: ~
-        {opts}  ({buffer?:number,name?:string,index?:number})
-
-
-M.reset()                                                              *M.reset*
-    Reset marks for the current project.
-
-
-M.default()                                                          *M.default*
+        {opts?}  (Grapple.Config)
 
 
 M.load()                                                                *M.load*
 
 
-M.save({save_path})                                                     *M.save*
-    Save marks to a persisted file.
+M.setup({opts?})                                                       *M.setup*
+     @class Grapple.Options
+     @field buffer integer
+     @field index integer
+     @field name string
+     @field file_path string
 
     Parameters: ~
-        {save_path}  (string)
+        {opts?}  (Grapple.Config)
 
 
-M.reset_marks()                                                  *M.reset_marks*
-
-
-M.create_mark()                                                  *M.create_mark*
-
-
-M.delete_mark()                                                  *M.delete_mark*
-
-    Returns: ~
-        {nil}
-
-
-M.update_mark()                                                  *M.update_mark*
-
-    Returns: ~
-        {nil}
-
-
-M.select_mark()                                                  *M.select_mark*
-
-    Returns: ~
-        {nil}
-
-
-M.find_mark()                                                      *M.find_mark*
-
-    Returns: ~
-        {Mark|nil}
-
-
-M.find_key()                                                        *M.find_key*
-
-    Returns: ~
-        {string|number|nil}
-
-
-M.marked_files({project_root})                                  *M.marked_files*
-    Get a list of marks for a given project
+M.tag({opts?})                                                           *M.tag*
 
     Parameters: ~
-        {project_root}  (string)
+        {opts?}  (Grapple.Options)
 
-    Returns: ~
-        {table}
+
+M.untag({opts?})                                                       *M.untag*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.toggle({opts?})                                                     *M.toggle*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.find({opts?})                                                         *M.find*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.key({opts?})                                                           *M.key*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.exists({opts?})                                                     *M.exists*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.select({opts?})                                                     *M.select*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.cycle({opts?}, {direction})                                          *M.cycle*
+
+    Parameters: ~
+        {opts?}      (Grapple.Options)
+        {direction}  (Grapple.Direction)
+
+
+M.cycle_backward({opts?})                                     *M.cycle_backward*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.cycle_forward({opts?})                                       *M.cycle_forward*
+
+    Parameters: ~
+        {opts?}  (Grapple.Options)
+
+
+M.reset({scope?})                                                      *M.reset*
+
+    Parameters: ~
+        {scope?}  (Grapple.Scope)
+
+
+log.new()                                                              *log.new*
 
 
 M.serialize({state})                                               *M.serialize*
@@ -220,6 +147,114 @@ M.file_exists({file_path})                                       *M.file_exists*
 
     Returns: ~
         {boolean}
+
+
+Grapple.Tag                                                        *Grapple.Tag*
+
+    Fields: ~
+        {key}        (string|integer)
+        {file_path}  (string)
+        {cursor}     (table)
+
+
+Grapple.Cursor                                                  *Grapple.Cursor*
+
+    Type: ~
+        table
+
+
+M.resolve_scope({scope})                                       *M.resolve_scope*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+
+
+M.reset({scope})                                                       *M.reset*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+
+
+M.tag({scope}, {opts})                                                   *M.tag*
+    Tag a buffer.
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+        {opts}   (Grapple.Options)
+
+
+M.untag({scope}, {opts})                                               *M.untag*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+        {opts}   (Grapple.Options)
+
+
+M.update({scope}, {tag}, {cursor})                                    *M.update*
+
+    Parameters: ~
+        {scope}   (Grapple.Scope)
+        {tag}     (Grapple.Tag)
+        {cursor}  (Grapple.Cursor)
+
+
+M.select({tag})                                                       *M.select*
+
+    Parameters: ~
+        {tag}  (Grapple.Tag)
+
+
+M.find({scope}, {opts})                                                 *M.find*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+        {opts}   (Grapple.Options)
+
+    Returns: ~
+        {Grapple.Tag|nil}
+
+
+M.key({scope}, {opts})                                                   *M.key*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+        {opts}   (Grapple.Options)
+
+    Returns: ~
+        {string|integer|nil}
+
+
+M.next({scope}, {start_index}, {direction})
+
+    Parameters: ~
+        {scope}        (Grapple.Scope)
+        {start_index}  (integer)
+        {direction}    (Grapple.Direction)
+
+    Returns: ~
+        {Grapple.Tag|nil}
+
+
+M.tags({scope})                                                         *M.tags*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+
+    Returns: ~
+        {Grapple.Tag[]}
+
+
+M.load({save_path})                                                     *M.load*
+
+    Parameters: ~
+        {save_path}  (string)
+
+
+M.save({save_path})                                                     *M.save*
+    Save tags to a persisted file.
+
+    Parameters: ~
+        {save_path}  (string)
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
