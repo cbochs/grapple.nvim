@@ -85,7 +85,11 @@ function M.untag(scope, opts)
     local project = _tags[scope_key]
     local tag_key = M.key(scope, opts)
     if tag_key ~= nil then
-        project[tag_key] = nil
+        if type(tag_key) == "number" then
+            table.remove(project, tag_key)
+        elseif type(tag_key) == "string" then
+            project[tag_key] = nil
+        end
     end
 end
 
