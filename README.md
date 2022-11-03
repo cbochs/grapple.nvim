@@ -1,5 +1,7 @@
 # Grapple.nvim
 
+![grapple_select mov](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
+
 ## Introduction
 
 Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes).
