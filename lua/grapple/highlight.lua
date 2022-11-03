@@ -1,15 +1,15 @@
 local M = {}
 
 M.groups = {
-    lualine_tag_active = "PortalLualineTagActive",
-    lualine_tag_inactive = "PortalLualineTagInactive",
+    lualine_tag_active = "LualineGrappleTagActive",
+    lualine_tag_inactive = "LualineGrappleTagInactive",
 }
 
 function M.load()
     --- The default theme is based off of catppuccin
     local default_theme = {
-        GrappleLeapTagActive = { fg = "#a6e3a1" },
-        GrappleLeapTagInactive = { fg = "#313244" },
+        LualineGrappleTagActive = { fg = "#a6e3a1" },
+        LualineGrappleTagInactive = { fg = "#313244" },
     }
 
     for _, group in pairs(M.groups) do
