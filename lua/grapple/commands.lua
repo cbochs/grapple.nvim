@@ -12,11 +12,11 @@ local function parse_options(fargs)
 end
 
 function M.create_commands()
-    vim.api.nvim_create_user_command("GrappleMark", function(opts)
+    vim.api.nvim_create_user_command("GrappleTag", function(opts)
         require("grapple").tag(parse_options(opts.fargs))
     end, { desc = "Tag a buffer", nargs = "*" })
 
-    vim.api.nvim_create_user_command("GrappleUnmark", function(opts)
+    vim.api.nvim_create_user_command("GrappleUntag", function(opts)
         require("grapple").untag(parse_options(opts.fargs))
     end, { desc = "Untag a buffer", nargs = "*" })
 
