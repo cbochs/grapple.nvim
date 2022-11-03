@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files within a [project scope](#tag-scopes) and bring you back to exactly where you left off.
+Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes).
 
 To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration).
 
@@ -10,6 +10,7 @@ To get started, [install](#installation) the plugin using your preferred package
 
 * **Project scoped** file tagging for immediate navigation
 * **Persistent** cursor tracking for tagged files
+* **Integration** with [portal.nvim](https://github.com/cbochs/portal.nvim) for additional jump options
 
 ## Requirements
 
@@ -63,13 +64,15 @@ require("grapple").setup({
 
 ## Tagging
 
-A `tag` is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor will be placed right where you left off. In a sense, tags are like dynamic marks (`:h mark`).
+A `tag` is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
 
-There are a few types of tag types available, each with a different user in mind. The options available are [anonymous](#anonymous-tags), [named](#named-tags), and [labelled](#labelled-tags) tags. In addition, tags are [scoped](#tag-scopes) to prevent marks in one project polluting the namespace of another.
+There are a few types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#tag-scopes) to prevent marks in one project polluting the namespace of another.
 
 ### Anonymous Tags
 
 This is the _default_ tag type. Anonymous tags are added to a list, where they may be accessed by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
+
+Anonymous tags are useful if you're familiar with plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
 
 **Command** `:GrappleMark [index={index}] [buffer={buffer}]`
 
@@ -90,11 +93,11 @@ require("grapple").untag() -- untag the current buffer
 require("grapple").untag({ index = {index} })
 ```
 
-Anonymous tags are usefule if you're used to plugins like [harpoon].
-
 ### Named Tags
 
-Named tags allow users to assign a tag to a known key rather than be placed in an unordered list of anonymous tags.
+Tags that are given a name are considered to be **namd tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
+
+Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag. See the [suggested keymaps](#named-tag-keymaps)
 
 **Command** `:GrappleMark name={name} [buffer={buffer}]`
 
@@ -108,25 +111,6 @@ require("grapple").select({ name = "{name}" })
 -- Delete a named tag
 require("grapple").untag({ name = "{name}" })
 ```
-
-Named tags are useful if you want to bind one or two keymaps to a specific tag without worrying about anonymous tags messing up the index you originally saved it in.
-
-### Labelled Tags (**not implemented**)
-
-Labelled tags are very similar in nature to named labels. In fact, they are single-character named tags and may be created, selected, or deleted in the same manner as a named tag. The difference being with how they are added. Labelled tags are created in the same manner a vim mark is created: `{motion}{label}` (i.e. `ma` for vim marks). This motion is enabled with the use of either a command or its lua-equivilent:
-
-**Command**: `:GrappleLabel`
-
-```lua
---- Create a labelled mark
-require("grapple").label()
-
---- Select a labelled mark
-require("grapple").select{ label = true })
-require("grapple").select_label()
-```
-
-Labelled tags are useful if you like vim marks, but wish they wouldn't always go back to the exact line you created them.
 
 ### Tag Scopes
 
@@ -181,13 +165,13 @@ require("grapple").reset("global")
 
 ### Suggested Keymaps
 
-_Anonymous tags_
+#### Anonymous tag keymaps
 
 ```lua
 vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
 ```
 
-_Named tags_
+#### Named tag keymaps
 
 ```lua
 vim.keymap.set("n", "<leader>j", function()
@@ -199,16 +183,7 @@ vim.keymap.set("n", "<leader>J", function()
 end, {})
 ```
 
-_Labelled tags_
-
-```lua
-vim.keymap.set("n", "m", require("grapple").label, {})
-vim.keymap.set("n", "'", require("grapple").select_label, {})
-```
-
 ## Integrations
-
-### Portal
 
 ### Lualine
 
