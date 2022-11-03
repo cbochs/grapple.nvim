@@ -56,11 +56,6 @@ require("grapple").setup({
 
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
-
-    integrations = {
-        ---Integration with portal.nvim. Registers a "tagged" query item
-        portal = true,
-    },
 })
 ```
 
@@ -213,8 +208,8 @@ require("lualine").setup({
 
 ```lua
 M.groups = {
-    lualine_tag_active = "PortalLualineTagActive",
-    lualine_tag_inactive = "PortalLualineTagInactive",
+    lualine_tag_active = "LualineGrappleTagActive",
+    lualine_tag_inactive = "LualineGrappleTagInactive",
 }
 ```
 
