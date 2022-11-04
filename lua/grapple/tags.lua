@@ -117,7 +117,10 @@ function M.tag(scope, opts)
     end
 
     ---@type Grapple.Tag
-    local tag = { file_path = vim.api.nvim_buf_get_name(opts.buffer) }
+    local tag = {
+        file_path = vim.api.nvim_buf_get_name(opts.buffer),
+        cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"'),
+    }
 
     local old_tag = M.find(scope, { buffer = opts.buffer })
     if old_tag ~= nil then
