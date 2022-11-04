@@ -1,0 +1,15 @@
+local M = {}
+
+---Get the saved data for this extension
+---@return any
+M.on_save = function()
+    return require("grapple.tags")._tags
+end
+
+---Restore the extension state
+---@param data table The value returned from on_save
+M.on_load = function(data)
+    require("grapple.tags")._tags = data
+end
+
+return M

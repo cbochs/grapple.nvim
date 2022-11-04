@@ -11,7 +11,8 @@ local types = require("grapple.types")
 
 local M = {}
 
-local _tags = {}
+---@private
+M._tags = {}
 
 ---@param scope Grapple.Scope
 function M.resolve_scope(scope)
@@ -27,14 +28,14 @@ function M.resolve_scope(scope)
         -- todo(cbochs): implement
     end
 
-    _tags[scope_key] = _tags[scope_key] or {}
+    M._tags[scope_key] = M._tags[scope_key] or {}
     return scope_key
 end
 
 ---@param scope Grapple.Scope
 function M.reset(scope)
     local scope_key = M.resolve_scope(scope)
-    _tags[scope_key] = {}
+    M._tags[scope_key] = {}
 end
 
 ---Tag a buffer.
@@ -42,7 +43,7 @@ end
 ---@param opts Grapple.Options
 function M.tag(scope, opts)
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
 
     if opts.name and opts.index then
         log.error("ArgumentError - 'name' and 'index' are mutually exclusive.")
@@ -82,7 +83,7 @@ end
 ---@param opts Grapple.Options
 function M.untag(scope, opts)
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
     local tag_key = M.key(scope, opts)
     if tag_key ~= nil then
         if type(tag_key) == "number" then
@@ -98,7 +99,7 @@ end
 ---@param cursor Grapple.Cursor
 function M.update(scope, tag, cursor)
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
     local tag_key = M.key(scope, { file_path = tag.file_path })
     project[tag_key].cursor = cursor
 end
@@ -126,7 +127,7 @@ end
 ---@return Grapple.Tag | nil
 function M.find(scope, opts)
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
     local tag_key = M.key(scope, opts)
     return project[tag_key]
 end
@@ -136,7 +137,7 @@ end
 ---@return string | integer | nil
 function M.key(scope, opts)
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
     local tag_key = nil
 
     if opts.file_path or opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
@@ -165,7 +166,7 @@ function M.next(scope, start_index, direction)
     end
 
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
     if #project == 0 then
         return nil
     end
@@ -195,21 +196,21 @@ end
 ---@return Grapple.Tag[]
 function M.tags(scope)
     local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
+    local project = M._tags[scope_key]
     return vim.deepcopy(project)
 end
 
 ---@param save_path string
 function M.load(save_path)
     if state.file_exists(save_path) then
-        _tags = state.load(save_path)
+        M._tags = state.load(save_path)
     end
 end
 
 ---Save tags to a persisted file.
 ---@param save_path string
 function M.save(save_path)
-    state.save(save_path, _tags)
+    state.save(save_path, M._tags)
 end
 
 return M
