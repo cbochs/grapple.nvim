@@ -1,6 +1,7 @@
 local log = require("grapple.log")
 local state = require("grapple.state")
 local types = require("grapple.types")
+local _scope = require("grapple.scope")
 
 ---@class Grapple.Tag
 ---@field key string | integer
@@ -13,45 +14,15 @@ local types = require("grapple.types")
 
 local M = {}
 
+---@type table<string, Grapple.Tag[]>
 local _tags = {}
 
+---@private
 ---@param scope Grapple.Scope
----@return string
-local function resolve_scope(scope)
-    local scope_key
-
-    -- Perform scope resolution
-    if scope == types.Scope.NONE then
-        scope_key = "none"
-    elseif scope == types.Scope.GLOBAL then
-        scope_key = "global"
-    elseif scope == types.Scope.DIRECTORY then
-        scope_key = vim.fn.getcwd()
-    elseif scope == types.Scope.LSP then
-        -- There's no good way to disambiguate which client to use when multiple
-        -- are present. For that reason, we choose to take the first active
-        -- client that is attached to the current buffer.
-        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
-        if #clients > 0 then
-            local client = clients[1]
-            scope_key = client.config.root_dir
-        end
-    elseif type(scope) == "function" then
-        -- todo(cbochs): implement
-        -- Grapple.ScopeResolver is falliable
-    end
-
-    -- Always fallback to the DIRECTORY scope
-    if scope_key == nil then
-        scope_key = resolve_scope(types.Scope.DIRECTORY)
-    end
-
-    -- By this point, scope_key is guaranteed to have been resolved
-    ---@type string
-    scope_key = scope_key
-
+local function _scoped_tags(scope)
+    local scope_key = _scope.resolve(scope)
     _tags[scope_key] = _tags[scope_key] or {}
-    return scope_key
+    return _tags[scope_key]
 end
 
 ---@private
@@ -59,9 +30,7 @@ end
 ---@param index Grapple.TagIndex
 ---@return Grapple.Tag
 local function _get(scope, index)
-    local scope_key = resolve_scope(scope)
-    local scope_tags = _tags[scope_key]
-    return scope_tags[index]
+    return _scoped_tags(scope)[index]
 end
 
 ---@private
@@ -69,15 +38,13 @@ end
 ---@param tag Grapple.Tag
 ---@param index Grapple.TagIndex | nil
 local function _set(scope, tag, index)
-    local scope_key = resolve_scope(scope)
-    local scope_tags = _tags[scope_key]
-
+    local scoped_tags = _scoped_tags(scope)
     if index == nil then
-        table.insert(scope_tags, tag)
+        table.insert(scoped_tags, tag)
     elseif type(index) == "string" then
-        scope_tags[index] = tag
+        scoped_tags[index] = tag
     elseif type(index) == "number" then
-        table.insert(scope_tags, index, tag)
+        table.insert(scoped_tags, index, tag)
     end
 end
 
@@ -86,22 +53,18 @@ end
 ---@param tag Grapple.Tag
 ---@param index Grapple.TagIndex
 local function _update(scope, tag, index)
-    local scope_key = resolve_scope(scope)
-    local scope_tags = _tags[scope_key]
-    scope_tags[index] = tag
+    _scoped_tags(scope)[index] = tag
 end
 
 ---@private
 ---@param scope Grapple.Scope
 ---@param index Grapple.TagIndex
 local function _unset(scope, index)
-    local scope_key = resolve_scope(scope)
-    local tags = _tags[scope_key]
-
+    local scoped_tags = _scoped_tags(scope)
     if type(index) == "string" then
-        tags[index] = nil
+        scoped_tags[index] = nil
     elseif type(index) == "number" then
-        table.remove(tags, index)
+        table.remove(scoped_tags, index)
     end
 end
 
@@ -117,14 +80,12 @@ end
 ---@private
 ---@param scope Grapple.Scope
 function M._tags(scope)
-    local scope_key = resolve_scope(scope)
-    local scope_tags = _tags[scope_key]
-    return scope_tags
+    return _scoped_tags(scope)
 end
 
 ---@param scope Grapple.Scope
 function M.reset(scope)
-    local scope_key = resolve_scope(scope)
+    local scope_key = _scope.resolve(scope)
     _tags[scope_key] = {}
 end
 
