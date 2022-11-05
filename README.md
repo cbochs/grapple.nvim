@@ -56,6 +56,11 @@ require("grapple").setup({
 
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+
+    integrations = {
+        ---Support for saving tag state using resession.nvim
+        resession = false,
+    },
 })
 ```
 
@@ -184,7 +189,7 @@ end, {})
 
 ### Lualine
 
-A simple lualine component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
+A simple [lualine](https://github.com/nvim-lualine/lualine.nvim) component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
 
 **Tag inactive**
 
@@ -211,6 +216,28 @@ M.groups = {
     lualine_tag_active = "LualineGrappleTagActive",
     lualine_tag_inactive = "LualineGrappleTagInactive",
 }
+```
+
+### Resession
+
+Backend support is available to use [resession.nvim](https://github.com/stevearc/resession.nvim) for persisting tag state.
+
+**Usage**
+
+```lua
+-- Enable resession integration during grapple setup
+require("grapple").setup({
+    integrations = {
+        resession = true
+    }
+})
+
+-- Enable grapple extension during resession setup
+require("resession").setup({
+    extensions = {
+        grapple = {}
+    }
+})
 ```
 
 ## Inspiration and Thanks

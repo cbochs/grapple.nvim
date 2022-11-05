@@ -157,16 +157,16 @@ Grapple.Tag                                                        *Grapple.Tag*
         {cursor}     (table)
 
 
+Grapple.TagIndex                                              *Grapple.TagIndex*
+
+    Type: ~
+        string|number
+
+
 Grapple.Cursor                                                  *Grapple.Cursor*
 
     Type: ~
         table
-
-
-M.resolve_scope({scope})                                       *M.resolve_scope*
-
-    Parameters: ~
-        {scope}  (Grapple.Scope)
 
 
 M.reset({scope})                                                       *M.reset*
@@ -176,7 +176,6 @@ M.reset({scope})                                                       *M.reset*
 
 
 M.tag({scope}, {opts})                                                   *M.tag*
-    Tag a buffer.
 
     Parameters: ~
         {scope}  (Grapple.Scope)
@@ -221,7 +220,7 @@ M.key({scope}, {opts})                                                   *M.key*
         {opts}   (Grapple.Options)
 
     Returns: ~
-        {string|integer|nil}
+        {Grapple.TagIndex|nil}
 
 
 M.next({scope}, {start_index}, {direction})
@@ -235,15 +234,6 @@ M.next({scope}, {start_index}, {direction})
         {Grapple.Tag|nil}
 
 
-M.tags({scope})                                                         *M.tags*
-
-    Parameters: ~
-        {scope}  (Grapple.Scope)
-
-    Returns: ~
-        {Grapple.Tag[]}
-
-
 M.load({save_path})                                                     *M.load*
 
     Parameters: ~
@@ -251,7 +241,6 @@ M.load({save_path})                                                     *M.load*
 
 
 M.save({save_path})                                                     *M.save*
-    Save tags to a persisted file.
 
     Parameters: ~
         {save_path}  (string)

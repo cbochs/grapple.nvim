@@ -7,6 +7,8 @@ local types = require("grapple.types")
 ---@field file_path string
 ---@field cursor table
 
+---@alias Grapple.TagIndex string | number
+
 ---@alias Grapple.Cursor table
 
 local M = {}
@@ -14,7 +16,7 @@ local M = {}
 local _tags = {}
 
 ---@param scope Grapple.Scope
-function M.resolve_scope(scope)
+local function resolve_scope(scope)
     local scope_key = nil
 
     if scope == types.Scope.NONE then
@@ -31,19 +33,74 @@ function M.resolve_scope(scope)
     return scope_key
 end
 
+---@private
+---@param scope Grapple.Scope
+---@param index Grapple.TagIndex
+---@return Grapple.Tag
+local function _get(scope, index)
+    local scope_key = resolve_scope(scope)
+    local scope_tags = _tags[scope_key]
+    return scope_tags[index]
+end
+
+---@private
+---@param scope Grapple.Scope
+---@param tag Grapple.Tag
+---@param index Grapple.TagIndex | nil
+local function _set(scope, tag, index)
+    local scope_key = resolve_scope(scope)
+    local scope_tags = _tags[scope_key]
+
+    if index == nil then
+        table.insert(scope_tags, tag)
+    elseif type(index) == "string" then
+        scope_tags[index] = tag
+    elseif type(index) == "number" then
+        table.insert(scope_tags, index, tag)
+    end
+end
+
+---@private
+---@param scope Grapple.Scope
+---@param tag Grapple.Tag
+---@param index Grapple.TagIndex
+local function _update(scope, tag, index)
+    local scope_key = resolve_scope(scope)
+    local scope_tags = _tags[scope_key]
+    scope_tags[index] = tag
+end
+
+---@private
+---@param scope Grapple.Scope
+---@param index Grapple.TagIndex
+local function _unset(scope, index)
+    local scope_key = resolve_scope(scope)
+    local tags = _tags[scope_key]
+
+    if type(index) == "string" then
+        tags[index] = nil
+    elseif type(index) == "number" then
+        table.remove(tags, index)
+    end
+end
+
+---@private
+---@param scope Grapple.Scope
+function M._tags(scope)
+    local scope_key = resolve_scope(scope)
+    local scope_tags = _tags[scope_key]
+    return scope_tags
+end
+
 ---@param scope Grapple.Scope
 function M.reset(scope)
-    local scope_key = M.resolve_scope(scope)
+    local scope_key = resolve_scope(scope)
     _tags[scope_key] = {}
 end
 
----Tag a buffer.
 ---@param scope Grapple.Scope
 ---@param opts Grapple.Options
 function M.tag(scope, opts)
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-
     if opts.name and opts.index then
         log.error("ArgumentError - 'name' and 'index' are mutually exclusive.")
         error("ArgumentError - 'name' and 'index' are mutually exclusive.")
@@ -60,7 +117,10 @@ function M.tag(scope, opts)
     end
 
     ---@type Grapple.Tag
-    local tag = { file_path = vim.api.nvim_buf_get_name(opts.buffer) }
+    local tag = {
+        file_path = vim.api.nvim_buf_get_name(opts.buffer),
+        cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"'),
+    }
 
     local old_tag = M.find(scope, { buffer = opts.buffer })
     if old_tag ~= nil then
@@ -69,27 +129,15 @@ function M.tag(scope, opts)
         M.untag(scope, { buffer = 0 })
     end
 
-    if opts.name then
-        project[opts.name] = tag
-    elseif opts.index then
-        table.insert(project, opts.index, tag)
-    else
-        table.insert(project, tag)
-    end
+    _set(scope, tag, opts.name or opts.index)
 end
 
 ---@param scope Grapple.Scope
 ---@param opts Grapple.Options
 function M.untag(scope, opts)
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-    local tag_key = M.key(scope, opts)
-    if tag_key ~= nil then
-        if type(tag_key) == "number" then
-            table.remove(project, tag_key)
-        elseif type(tag_key) == "string" then
-            project[tag_key] = nil
-        end
+    local tag_index = M.key(scope, opts)
+    if tag_index ~= nil then
+        _unset(scope, tag_index)
     end
 end
 
@@ -97,10 +145,12 @@ end
 ---@param tag Grapple.Tag
 ---@param cursor Grapple.Cursor
 function M.update(scope, tag, cursor)
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-    local tag_key = M.key(scope, { file_path = tag.file_path })
-    project[tag_key].cursor = cursor
+    local tag_index = M.key(scope, { file_path = tag.file_path })
+    if tag_index ~= nil then
+        local new_tag = vim.deepcopy(tag)
+        new_tag.cursor = cursor
+        _update(scope, new_tag, tag_index)
+    end
 end
 
 ---@param tag Grapple.Tag
@@ -125,33 +175,34 @@ end
 ---@param opts Grapple.Options
 ---@return Grapple.Tag | nil
 function M.find(scope, opts)
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-    local tag_key = M.key(scope, opts)
-    return project[tag_key]
+    local tag_index = M.key(scope, opts)
+    if tag_index ~= nil then
+        return _get(scope, tag_index)
+    else
+        return nil
+    end
 end
 
 ---@param scope Grapple.Scope
 ---@param opts Grapple.Options
----@return string | integer | nil
+---@return Grapple.TagIndex | nil
 function M.key(scope, opts)
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-    local tag_key = nil
+    local tag_index = nil
 
-    if opts.file_path or opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
+    if opts.file_path or (opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer)) then
+        local scope_tags = M._tags(scope)
         local buffer_name = opts.file_path or vim.api.nvim_buf_get_name(opts.buffer)
-        for key, mark in pairs(project) do
+        for key, mark in pairs(scope_tags) do
             if mark.file_path == buffer_name then
-                tag_key = key
+                tag_index = key
                 break
             end
         end
     else
-        tag_key = opts.name or opts.index
+        tag_index = opts.name or opts.index
     end
 
-    return tag_key
+    return tag_index
 end
 
 ---@param scope Grapple.Scope
@@ -159,44 +210,35 @@ end
 ---@param direction Grapple.Direction
 ---@return Grapple.Tag | nil
 function M.next(scope, start_index, direction)
+    local scope_tags = M._tags(scope)
+    if #scope_tags == 0 then
+        return nil
+    end
+
     local step = 1
     if direction == types.Direction.BACKWARD then
         step = -1
     end
 
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-    if #project == 0 then
-        return nil
-    end
-
     local index = start_index + step
     if index <= 0 then
-        index = #project
+        index = #scope_tags
     end
-    if index > #project then
+    if index > #scope_tags then
         index = 1
     end
 
-    while project[index] == nil and index ~= start_index do
+    while scope_tags[index] == nil and index ~= start_index do
         index = index + step
         if index <= 0 then
-            index = #project
+            index = #scope_tags
         end
-        if index > #project then
+        if index > #scope_tags then
             index = 1
         end
     end
 
-    return project[index]
-end
-
----@param scope Grapple.Scope
----@return Grapple.Tag[]
-function M.tags(scope)
-    local scope_key = M.resolve_scope(scope)
-    local project = _tags[scope_key]
-    return vim.deepcopy(project)
+    return scope_tags[index]
 end
 
 ---@param save_path string
@@ -206,10 +248,21 @@ function M.load(save_path)
     end
 end
 
----Save tags to a persisted file.
 ---@param save_path string
 function M.save(save_path)
     state.save(save_path, _tags)
+end
+
+---@private
+---@param data table<string, Grapple.Tag[]>
+function M._raw_load(data)
+    _tags = data
+end
+
+---@private
+---@return table<string, Grapple.Tag[]>
+function M._raw_save()
+    return _tags
 end
 
 return M

@@ -20,7 +20,7 @@ function M.setup(opts)
     log.new({ level = config.log_level })
     highlight.load()
 
-    if config.scope ~= types.Scope.NONE then
+    if config.scope ~= types.Scope.NONE and not config.integrations.resession then
         tags.load(config.save_path)
     end
 

@@ -21,7 +21,7 @@ function M.create_autocmds()
     vim.api.nvim_create_autocmd({ "VimLeave" }, {
         group = "Grapple",
         callback = function()
-            if config.scope ~= types.Scope.NONE then
+            if config.scope ~= types.Scope.NONE and not config.integrations.resession then
                 require("grapple.tags").save(config.save_path)
             end
         end,
