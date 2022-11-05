@@ -2,9 +2,11 @@ local log = require("grapple.log")
 
 local M = {}
 
+---@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver
+
 ---@alias Grapple.ScopeResolver fun(): string
 
----@enum Grapple.Scope
+---@enum Grapple.ScopeType
 M.Scope = {
     ---Tags are ephemeral and are deleted on exit
     NONE = "none",

@@ -53,7 +53,7 @@ require("grapple").setup({
     log_level = "warn",
 
     ---The scope used when creating, selecting, and deleting tags
-    ---@type Grapple.Scope | Grapple.ScopeResolver
+    ---@type Grapple.Scope
     scope = "global",
 
     ---The save location for tags
@@ -135,7 +135,7 @@ For now, there are five different scope options:
 ```lua
 -- Configure using a builtin type
 require("grapple").setup({
-    ---@type Grapple.Scope
+    ---@type Grapple.ScopeType
     scope = "directory"
 })
 

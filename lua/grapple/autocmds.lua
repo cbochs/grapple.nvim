@@ -1,5 +1,5 @@
 local config = require("grapple.config")
-local types = require("grapple.types")
+local _scope = require("grapple.scope")
 
 local M = {}
 
@@ -21,7 +21,7 @@ function M.create_autocmds()
     vim.api.nvim_create_autocmd({ "VimLeave" }, {
         group = "Grapple",
         callback = function()
-            if config.scope ~= types.Scope.NONE and not config.integrations.resession then
+            if config.scope ~= _scope.Scope.NONE and not config.integrations.resession then
                 require("grapple.tags").save(config.save_path)
             end
         end,
