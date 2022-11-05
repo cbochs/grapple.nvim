@@ -16,9 +16,11 @@ local M = {}
 local _tags = {}
 
 ---@param scope Grapple.Scope
+---@return string
 local function resolve_scope(scope)
-    local scope_key = nil
+    local scope_key
 
+    -- Perform scope resolution
     if scope == types.Scope.NONE then
         scope_key = "none"
     elseif scope == types.Scope.GLOBAL then
@@ -27,7 +29,21 @@ local function resolve_scope(scope)
         scope_key = vim.fn.getcwd()
     elseif scope == types.Scope.LSP then
         -- todo(cbochs): implement
+        -- LSP is falliable
+    elseif type(scope) == "function" then
+        -- todo(cbochs): implement
+        -- Grapple.ScopeResolver is falliable
     end
+
+    -- Always fallback to the DIRECTORY scope
+    if scope_key == nil then
+        resolve_scope(types.Scope.DIRECTORY)
+    end
+
+    -- By this point, scope_key is guaranteed to have been resolved to some
+    -- string type.
+    ---@type string
+    scope_key = scope_key
 
     _tags[scope_key] = _tags[scope_key] or {}
     return scope_key
