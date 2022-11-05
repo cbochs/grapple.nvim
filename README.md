@@ -56,6 +56,11 @@ require("grapple").setup({
 
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+
+    integrations = {
+        ---Support for saving tag state using resession.nvim
+        resession = false,
+    },
 })
 ```
 

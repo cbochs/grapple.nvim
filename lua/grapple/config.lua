@@ -16,7 +16,7 @@ local DEFAULT_CONFIG = {
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
     integrations = {
-        -- todo(cbochs): implement
+        ---Support for saving tag state using resession.nvim
         resession = false,
     },
 }
