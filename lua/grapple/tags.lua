@@ -106,6 +106,15 @@ local function _unset(scope, index)
 end
 
 ---@private
+local function _prune()
+    for scope_key in vim.tbl_keys(_tags) do
+        if vim.tbl_isempty(_tags[scope_key]) then
+            _tags[scope_key] = nil
+        end
+    end
+end
+
+---@private
 ---@param scope Grapple.Scope
 function M._tags(scope)
     local scope_key = resolve_scope(scope)
@@ -271,6 +280,7 @@ end
 
 ---@param save_path string
 function M.save(save_path)
+    _prune()
     state.save(save_path, _tags)
 end
 
@@ -283,6 +293,7 @@ end
 ---@private
 ---@return table<string, Grapple.Tag[]>
 function M._raw_save()
+    _prune()
     return _tags
 end
 
