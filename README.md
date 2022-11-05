@@ -118,17 +118,17 @@ require("grapple").untag({ name = "{name}" })
 
 ### Tag Scopes
 
-A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are resolved into a file path, which in turn are used as the "root" location for a set of tags.
+A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are resolved into a file path, which - in turn - are used as the "root" location for a set of tags.
 
-Some scopes may be falliable (i.e. `"lsp"` or a custom function). Whenever a scope is unable to resolve to a value, a fallback of `"directory"` will be used.
+Some scopes may be falliable (i.e. `"lsp"`). Whenever a scope is unable to resolve to a file path, the scope will fallback to `"directory"`.
 
 For now, there are five different scope options:
 
 * `"none"`: Tags are ephemeral and deleted on exit
 * `"global"`: Tags are scoped to a global namespace
-* `"directory"`: Tags are scoped to the current working directory as the root file path
-* `"lsp"`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server (falliable)
-* `Grapple.ScopeResolver`: Tags are scoped using a provided resolving function. A scope resolver is any function of the type `fun(): string`.
+* `"directory"`: Tags are scoped to the current working directory
+* `"lsp"`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server
+* `Grapple.ScopeResolver`: Tags are scoped using a provided resolving function of type `fun(): string`
 
 **Used during plugin setup**
 
