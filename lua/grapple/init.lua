@@ -4,7 +4,7 @@ local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
 local tags = require("grapple.tags")
-local types = require("grapple.types")
+local _scope = require("grapple.scope")
 
 local M = {}
 
@@ -20,7 +20,7 @@ function M.setup(opts)
     log.new({ level = config.log_level })
     highlight.load()
 
-    if config.scope ~= types.Scope.NONE and not config.integrations.resession then
+    if config.scope ~= _scope.Scope.NONE and not config.integrations.resession then
         tags.load(config.save_path)
     end
 
@@ -87,12 +87,12 @@ end
 
 ---@param opts? Grapple.Options
 function M.cycle_backward(opts)
-    M.cycle(opts, types.Direction.BACKWARD)
+    M.cycle(opts, _scope.Direction.BACKWARD)
 end
 
 ---@param opts? Grapple.Options
 function M.cycle_forward(opts)
-    M.cycle(opts, types.Direction.FORWARD)
+    M.cycle(opts, _scope.Direction.FORWARD)
 end
 
 ---@param scope? Grapple.Scope
