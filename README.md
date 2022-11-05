@@ -127,6 +127,7 @@ For now, there are three different scope options:
 * `"none"`: Tags are ephemeral and deleted on exit
 * `"global"`: Tags are saved to a global namespace
 * `"directory"`: Tags are saved using the current working directory as the root file path
+* `"lsp"`: Tags are saved using the `root_dir` of the current buffer's attached LSP server (falliable)
 
 **Used during plugin setup**
 
