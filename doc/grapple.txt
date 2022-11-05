@@ -98,6 +98,27 @@ M.reset({scope?})                                                      *M.reset*
 log.new()                                                              *log.new*
 
 
+Grapple.Scope                                                    *Grapple.Scope*
+
+    Type: ~
+        Grapple.ScopeType|Grapple.ScopeResolver
+
+
+Grapple.ScopeResolver                                    *Grapple.ScopeResolver*
+
+    Type: ~
+        fun():string
+
+
+M.resolve({scope})                                                   *M.resolve*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+
+    Returns: ~
+        {string}
+
+
 M.serialize({state})                                               *M.serialize*
     Serialize a lua table as json idempotently.
 
