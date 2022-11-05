@@ -2,7 +2,7 @@ local log = require("grapple.log")
 
 local M = {}
 
----@alias Grapple.ScopeResolver fun(): string | nil
+---@alias Grapple.ScopeResolver fun(): string
 
 ---@enum Grapple.Scope
 M.Scope = {

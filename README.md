@@ -122,18 +122,29 @@ A **scope** is a means of namespacing tags to a specific project. During runtime
 
 Some scopes may be falliable (i.e. `"lsp"` or a custom function). Whenever a scope is unable to resolve to a value, a fallback of `"directory"` will be used.
 
-For now, there are three different scope options:
+For now, there are five different scope options:
 
 * `"none"`: Tags are ephemeral and deleted on exit
-* `"global"`: Tags are saved to a global namespace
-* `"directory"`: Tags are saved using the current working directory as the root file path
-* `"lsp"`: Tags are saved using the `root_dir` of the current buffer's attached LSP server (falliable)
+* `"global"`: Tags are scoped to a global namespace
+* `"directory"`: Tags are scoped to the current working directory as the root file path
+* `"lsp"`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server (falliable)
+* `Grapple.ScopeResolver`: Tags are scoped using a provided resolving function. A scope resolver is any function of the type `fun(): string`.
 
 **Used during plugin setup**
 
 ```lua
+-- Configure using a builtin type
 require("grapple").setup({
-    scope = "global"
+    ---@type Grapple.Scope
+    scope = "directory"
+})
+
+-- Configure using a custom resolver
+require("grapple").setup({
+    ---@type Grapple.ScopeResolver
+    scope = function()
+        return vim.fn.getcwd()
+    end
 })
 ```
 

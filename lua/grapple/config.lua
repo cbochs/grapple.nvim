@@ -9,7 +9,7 @@ local DEFAULT_CONFIG = {
     log_level = "warn",
 
     ---The scope used when creating, selecting, and deleting tags
-    ---@type Grapple.Scope
+    ---@type Grapple.Scope | Grapple.ScopeResolver
     scope = scope.Scope.GLOBAL,
 
     ---The save location for tags
