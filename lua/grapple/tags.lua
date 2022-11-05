@@ -254,11 +254,13 @@ function M.save(save_path)
 end
 
 ---@private
+---@param data table<string, Grapple.Tag[]>
 function M._raw_load(data)
     _tags = data
 end
 
 ---@private
+---@return table<string, Grapple.Tag[]>
 function M._raw_save()
     return _tags
 end
