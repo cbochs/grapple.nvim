@@ -116,7 +116,7 @@ require("grapple").untag({ name = "{name}" })
 
 ### Tag Scopes
 
-A **scope** is a means of namespacing tags to a specific project. A scope type will be resolved into a file path, which in turn will be used as the "root" location for a set of tags.
+A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are resolved into a file path, which in turn are used as the "root" location for a set of tags.
 
 Some scopes may be falliable (i.e. `"lsp"` or a custom function). Whenever a scope is unable to resolve to a value, a fallback of `"directory"` will be used.
 
