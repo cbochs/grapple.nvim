@@ -78,7 +78,7 @@ This is the _default_ tag type. Anonymous tags are added to a list, where they m
 
 Anonymous tags are useful if you're familiar with plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
 
-**Command** `:GrappleMark [index={index}] [buffer={buffer}]`
+**Command** `:GrappleTag [index={index}] [buffer={buffer}]`
 
 ```lua
 -- Create an anonymous tag
