@@ -116,21 +116,15 @@ require("grapple").untag({ name = "{name}" })
 
 ### Tag Scopes
 
-A **scope** is a means of namespacing tags to a specific project. The type of scoping method is set in the configuration during plugin setup. There are currently three options for tag scopes:
+A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are resolved into a file path, which in turn are used as the "root" location for a set of tags.
 
-```lua
---- @enum Grapple.Scope
-M.Scope = {
-    --- Tags are ephemeral and are deleted on exit
-    NONE = "none",
+Some scopes may be falliable (i.e. `"lsp"` or a custom function). Whenever a scope is unable to resolve to a value, a fallback of `"directory"` will be used.
 
-    --- Use a global namespace for tags
-    GLOBAL = "global",
+For now, there are three different scope options:
 
-    --- Use the current working directory as the tag namespace
-    DIRECTORY = "directory",
-}
-```
+* `"none"`: Tags are ephemeral and deleted on exit
+* `"global"`: Tags are saved to a global namespace
+* `"directory"`: Tags are saved using the current working directory as the root file path
 
 **Used during plugin setup**
 
