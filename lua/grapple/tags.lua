@@ -107,7 +107,7 @@ end
 
 ---@private
 local function _prune()
-    for scope_key in vim.tbl_keys(_tags) do
+    for _, scope_key in ipairs(vim.tbl_keys(_tags)) do
         if vim.tbl_isempty(_tags[scope_key]) then
             _tags[scope_key] = nil
         end
