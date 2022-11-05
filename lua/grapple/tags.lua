@@ -95,7 +95,7 @@ end
 ---@param scope Grapple.Scope
 function M.reset(scope)
     local scope_key = resolve_scope(scope)
-    M._tags[scope_key] = {}
+    _tags[scope_key] = {}
 end
 
 ---@param scope Grapple.Scope
