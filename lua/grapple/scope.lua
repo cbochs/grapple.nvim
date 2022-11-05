@@ -44,8 +44,8 @@ function M.resolve(scope)
         end
     elseif type(scope) == "function" then
         -- This scope is falliable
-        local ok, resolved_scope = pcall(scope)
-        if ok and type(resolved_scope) == "string" then
+        local resolved_scope = scope()
+        if type(resolved_scope) == "string" then
             scope_key = resolved_scope
         else
             log.warn("Unable to resolve custom scope to a string scope key. Resolved to " .. tostring(resolved_scope))
