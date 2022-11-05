@@ -43,7 +43,7 @@ local function resolve_scope(scope)
 
     -- Always fallback to the DIRECTORY scope
     if scope_key == nil then
-        resolve_scope(types.Scope.DIRECTORY)
+        scope_key = resolve_scope(types.Scope.DIRECTORY)
     end
 
     -- By this point, scope_key is guaranteed to have been resolved
