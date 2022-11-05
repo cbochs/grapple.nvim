@@ -28,8 +28,14 @@ local function resolve_scope(scope)
     elseif scope == types.Scope.DIRECTORY then
         scope_key = vim.fn.getcwd()
     elseif scope == types.Scope.LSP then
-        -- todo(cbochs): implement
-        -- LSP is falliable
+        -- There's no good way to disambiguate which client to use when multiple
+        -- are present. For that reason, we choose to take the first active
+        -- client that is attached to the current buffer.
+        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        if #clients > 0 then
+            local client = clients[1]
+            scope_key = client.config.root_dir
+        end
     elseif type(scope) == "function" then
         -- todo(cbochs): implement
         -- Grapple.ScopeResolver is falliable
@@ -37,11 +43,10 @@ local function resolve_scope(scope)
 
     -- Always fallback to the DIRECTORY scope
     if scope_key == nil then
-        resolve_scope(types.Scope.DIRECTORY)
+        scope_key = resolve_scope(types.Scope.DIRECTORY)
     end
 
-    -- By this point, scope_key is guaranteed to have been resolved to some
-    -- string type.
+    -- By this point, scope_key is guaranteed to have been resolved
     ---@type string
     scope_key = scope_key
 
@@ -97,6 +102,15 @@ local function _unset(scope, index)
         tags[index] = nil
     elseif type(index) == "number" then
         table.remove(tags, index)
+    end
+end
+
+---@private
+local function _prune()
+    for _, scope_key in ipairs(vim.tbl_keys(_tags)) do
+        if vim.tbl_isempty(_tags[scope_key]) then
+            _tags[scope_key] = nil
+        end
     end
 end
 
@@ -266,6 +280,7 @@ end
 
 ---@param save_path string
 function M.save(save_path)
+    _prune()
     state.save(save_path, _tags)
 end
 
@@ -278,6 +293,7 @@ end
 ---@private
 ---@return table<string, Grapple.Tag[]>
 function M._raw_save()
+    _prune()
     return _tags
 end
 
