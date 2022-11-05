@@ -1,10 +1,11 @@
+local _scope = require("grapple.scope")
 local autocmds = require("grapple.autocmds")
 local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
 local tags = require("grapple.tags")
-local _scope = require("grapple.scope")
+local types = require("grapple.types")
 
 local M = {}
 
@@ -87,12 +88,12 @@ end
 
 ---@param opts? Grapple.Options
 function M.cycle_backward(opts)
-    M.cycle(opts, _scope.Direction.BACKWARD)
+    M.cycle(opts, types.Direction.BACKWARD)
 end
 
 ---@param opts? Grapple.Options
 function M.cycle_forward(opts)
-    M.cycle(opts, _scope.Direction.FORWARD)
+    M.cycle(opts, types.Direction.FORWARD)
 end
 
 ---@param scope? Grapple.Scope

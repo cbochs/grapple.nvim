@@ -1,7 +1,7 @@
+local _scope = require("grapple.scope")
 local log = require("grapple.log")
 local state = require("grapple.state")
 local types = require("grapple.types")
-local _scope = require("grapple.scope")
 
 ---@class Grapple.Tag
 ---@field key string | integer
