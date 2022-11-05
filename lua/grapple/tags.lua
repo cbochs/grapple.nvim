@@ -28,8 +28,14 @@ local function resolve_scope(scope)
     elseif scope == types.Scope.DIRECTORY then
         scope_key = vim.fn.getcwd()
     elseif scope == types.Scope.LSP then
-        -- todo(cbochs): implement
-        -- LSP is falliable
+        -- There's no good way to disambiguate which client to use when multiple
+        -- are present. For that reason, we choose to take the first active
+        -- client that is attached to the current buffer.
+        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        if #clients > 0 then
+            local client = clients[1]
+            scope_key = client.config.root_dir
+        end
     elseif type(scope) == "function" then
         -- todo(cbochs): implement
         -- Grapple.ScopeResolver is falliable
@@ -40,8 +46,7 @@ local function resolve_scope(scope)
         resolve_scope(types.Scope.DIRECTORY)
     end
 
-    -- By this point, scope_key is guaranteed to have been resolved to some
-    -- string type.
+    -- By this point, scope_key is guaranteed to have been resolved
     ---@type string
     scope_key = scope_key
 
