@@ -53,7 +53,7 @@ require("grapple").setup({
     log_level = "warn",
 
     ---The scope used when creating, selecting, and deleting tags
-    ---@type Grapple.Scope
+    ---@type Grapple.Scope | Grapple.ScopeResolver
     scope = "global",
 
     ---The save location for tags
