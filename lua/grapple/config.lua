@@ -1,3 +1,4 @@
+local popup = require("grapple.popup")
 local scope = require("grapple.scope")
 
 ---@type Grapple.Config
@@ -14,6 +15,26 @@ local DEFAULT_CONFIG = {
 
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+
+    ---
+    popup = {
+        keymaps = {
+            ["q"] = popup.Action.CLOSE,
+            ["<esc>"] = popup.Action.CLOSE,
+            ["<cr>"] = popup.Action.SELECT,
+            ["<space>"] = popup.Action.SELECT,
+            ["d"] = popup.Action.DELETE,
+            ["u"] = popup.Action.UNDO,
+        },
+        options = {
+            -- relative = "cursor",
+            width = 80, -- implement as "min/max width",
+            height = 10, -- implement as "context lines"
+            focusable = false,
+            border = "single",
+            noautocmd = true,
+        },
+    },
 
     integrations = {
         ---Support for saving tag state using resession.nvim
