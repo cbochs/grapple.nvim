@@ -11,9 +11,8 @@ local M = {}
 
 --- @class Grapple.Options
 --- @field buffer integer
---- @field index integer
---- @field name string
 --- @field file_path string
+--- @field key Grapple.TagKey
 
 ---@param opts? Grapple.Config
 function M.setup(opts)
