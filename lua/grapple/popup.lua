@@ -66,9 +66,8 @@ local function action_select(window, items)
     items[index].select()
 end
 
----@param tags Grapple.Tag[]
----@param scope Grapple.Scope
-function M.open_tags(tags, scope)
+local function tag_items(scope)
+    local tags = _tags._tags(scope)
     local scope_path = _scope.resolve(scope)
     local sanitized_scope_path = string.gsub(scope_path, "%p", "%%%1")
 
@@ -85,6 +84,12 @@ function M.open_tags(tags, scope)
         })
     end
 
+    return items
+end
+
+---@param scope Grapple.Scope
+function M.open_tags(scope)
+    local items = tag_items(scope)
     local buffer = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
     render(buffer, items)
