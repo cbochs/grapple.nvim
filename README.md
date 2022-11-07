@@ -59,6 +59,17 @@ require("grapple").setup({
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
+    ---Window options used for the popup menu
+    popup_options = {
+        relative = "editor",
+        width = 60,
+        height = 20,
+        style = "minimal",
+        focusable = false,
+        border = "single",
+        noautocmd = true,
+    },
+
     integrations = {
         ---Support for saving tag state using resession.nvim
         resession = false,
@@ -78,15 +89,15 @@ This is the _default_ tag type. Anonymous tags are added to a list, where they m
 
 Anonymous tags are useful if you're familiar with plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
 
-**Command** `:GrappleTag [index={index}] [buffer={buffer}]`
+**Command** `:GrappleTag [key={index}] [buffer={buffer}]`
 
 ```lua
 -- Create an anonymous tag
 require("grapple").tag()
-require("grapple").tag({ index = {index} })
+require("grapple").tag({ key = {index} })
 
 -- Select an anonymous tag
-require("grapple").select({ index = {index} })
+require("grapple").select({ key = {index} })
 
 -- Cycle to the next tag in the list
 require("grapple").cycle_backward()
@@ -94,7 +105,7 @@ require("grapple").cycle_forward()
 
 -- Delete an anonymous tag
 require("grapple").untag() -- untag the current buffer
-require("grapple").untag({ index = {index} })
+require("grapple").untag({ key = {index} })
 ```
 
 ### Named Tags
@@ -103,17 +114,17 @@ Tags that are given a name are considered to be **namd tags**. These tags will n
 
 Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag. See the [suggested keymaps](#named-tag-keymaps)
 
-**Command** `:GrappleMark name={name} [buffer={buffer}]`
+**Command** `:GrappleTag key={name} [buffer={buffer}]`
 
 ```lua
 -- Create a named tag
-require("grapple").tag({ name = "{name}" })
+require("grapple").tag({ key = "{name}" })
 
 -- Select a named tag
-require("grapple").select({ name = "{name}" })
+require("grapple").select({ key = "{name}" })
 
 -- Delete a named tag
-require("grapple").untag({ name = "{name}" })
+require("grapple").untag({ key = "{name}" })
 ```
 
 ### Tag Scopes
@@ -150,12 +161,12 @@ require("grapple").setup({
 
 ### Selecting Tags
 
-**Command**: `:GrappleSelect [name={name}] [index={index}] [buffer={buffer}]`
+**Command**: `:GrappleSelect [key={name} or key={index}] [buffer={buffer}]`
 
 ### Deleting Tags
 
 **Commands**:
-* `:GrappleUntag [name={name}] [index={index}] [buffer={buffer}]`
+* `:GrappleUntag [key={name} or key={index}] [buffer={buffer}]`
 * `:GrappleReset [scope]`
 
 ```lua
@@ -163,8 +174,7 @@ require("grapple").setup({
 require("grapple").untag()
 
 -- Delete a specific tag
-require("grapple").untag({ name = "{name}" })
-require("grapple").untag({ index = {index} })
+require("grapple").untag({ key = "{name}" or {index} })
 
 -- Delete all tags in the current scope
 require("grapple").reset()
@@ -185,11 +195,11 @@ vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
 
 ```lua
 vim.keymap.set("n", "<leader>j", function()
-    require("grapple").select({ name = "{name}" })
+    require("grapple").select({ key = "{name}" })
 end, {})
 
 vim.keymap.set("n", "<leader>J", function()
-    require("grapple").toggle({ name = "{name}" })
+    require("grapple").toggle({ key = "{name}" })
 end, {})
 ```
 
