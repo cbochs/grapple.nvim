@@ -4,9 +4,9 @@ local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
-local popup = require("grapple.popup")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
+local ui = require("grapple.ui")
 
 local M = {}
 
@@ -103,11 +103,14 @@ end
 
 ---@param scope? Grapple.Scope
 function M.popup_tags(scope)
-    popup.open_tags(scope or config.scope)
+    scope = scope or config.scope
+    local window_options = vim.deepcopy(config.popup.options)
+    ui.popup_tags(scope, window_options)
 end
 
 function M.popup_scopes()
-    popup.open_scopes()
+    local window_options = vim.deepcopy(config.popup.options)
+    ui.popup_scopes(window_options)
 end
 
 return M

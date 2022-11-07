@@ -205,6 +205,10 @@ function M.keys(scope)
     return vim.tbl_keys(_scoped_tags(scope))
 end
 
+function M.scopes()
+    return vim.tbl_keys(_tags)
+end
+
 ---@param scope Grapple.Scope
 ---@param start_index integer
 ---@param direction Grapple.Direction
@@ -242,48 +246,10 @@ function M.next(scope, start_index, direction)
 end
 
 ---@param scope Grapple.Scope
----@return string[]
-function M.serialize_tags(scope)
-    local scoped_keys = M.keys(scope)
-    local scope_path = _scope.resolve(scope)
-    local sanitized_scope_path = string.gsub(scope_path, "%p", "%%%1")
-
-    local lines = {}
-    for _, key in ipairs(scoped_keys) do
-        local tag = M.find(scope, { key = key })
-        if tag ~= nil then
-            local relative_path = string.gsub(tag.file_path, sanitized_scope_path .. "/", "")
-            local text = " [" .. key .. "] " .. relative_path
-            table.insert(lines, text)
-        end
-    end
-    return lines
-end
-
----@param line string
----@return Grapple.TagKey | nil
-function M.parse_tag(line)
-    local start, _end = string.find(line, "%[.*%]")
-    if not start or not _end then
-        return nil
-    end
-    local parsed_key = string.sub(line, start + 1, _end - 1)
-    return tonumber(parsed_key) or parsed_key
-end
-
----@param scope Grapple.Scope
----@param lines string[]
-function M.resolve_tags(scope, lines)
-    local scoped_keys = {}
-    for _, line in ipairs(lines) do
-        local key = M.parse_tag(line)
-        if key ~= nil then
-            table.insert(scoped_keys, key)
-        end
-    end
-
+---@param keys Grapple.TagKey[]
+function M.resolve_tags(scope, keys)
     local scoped_tags = {}
-    for _, key in ipairs(scoped_keys) do
+    for _, key in ipairs(keys) do
         local tag = M.find(scope, { key = key })
         if type(key) == "number" then
             table.insert(scoped_tags, tag)
@@ -295,42 +261,10 @@ function M.resolve_tags(scope, lines)
     _set_all(scope, scoped_tags)
 end
 
----@return string[]
-function M.serialize_scopes()
-    local scopes = vim.tbl_keys(_tags)
-
-    local lines = {}
-    for _, scope in ipairs(scopes) do
-        local scoped_tags = M.tags(scope)
-        local text = " [" .. #scoped_tags .. "] " .. scope
-        table.insert(lines, text)
-    end
-    table.sort(lines)
-    return lines
-end
-
----@param line string
----@return string | nil
-function M.parse_scope(line)
-    local start, _end = string.find(line, "%] .*$")
-    if not start or not _end then
-        return nil
-    end
-    local parsed_scope = string.sub(line, start + 2, _end)
-    return parsed_scope
-end
-
-function M.resolve_scopes(lines)
-    local remaining_scopes = {}
-    for _, line in ipairs(lines) do
-        local scope = M.parse_scope(line)
-        if scope ~= nil then
-            table.insert(remaining_scopes, scope)
-        end
-    end
-
+---@param scopes string[]
+function M.resolve_scopes(scopes)
     local function not_in_remaining(scope)
-        for _, s in ipairs(remaining_scopes) do
+        for _, s in ipairs(scopes) do
             if scope == s then
                 return false
             end
@@ -338,7 +272,7 @@ function M.resolve_scopes(lines)
         return true
     end
 
-    local deleted_scopes = vim.tbl_filter(not_in_remaining, vim.tbl_keys(_tags))
+    local deleted_scopes = vim.tbl_filter(not_in_remaining, M.scopes())
     for _, scope in ipairs(deleted_scopes) do
         M.reset(scope)
     end
