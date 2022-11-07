@@ -2,7 +2,7 @@ local log = require("grapple.log")
 
 local M = {}
 
----@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver
+---@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver | string
 
 ---@alias Grapple.ScopeResolver fun(): string
 
@@ -52,6 +52,8 @@ function M.resolve(scope)
         else
             log.warn("Unable to resolve custom scope to a string scope key. Resolved to " .. tostring(resolved_scope))
         end
+    elseif type(scope) == "string" then
+        scope_key = scope
     end
 
     -- Always fallback to the DIRECTORY scope

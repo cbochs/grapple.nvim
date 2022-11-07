@@ -305,6 +305,7 @@ function M.serialize_scopes()
         local text = " [" .. #scoped_tags .. "] " .. scope
         table.insert(lines, text)
     end
+    table.sort(lines)
     return lines
 end
 
