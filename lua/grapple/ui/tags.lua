@@ -83,9 +83,8 @@ function M.open(scope, window_options)
     local close = action_close(scope, _popup)
     local select = action_select(scope, _popup)
 
-    popup.leave(_popup, close)
-    vim.keymap.set("n", "q", close, { buffer = _popup.buffer })
-    vim.keymap.set("n", "<esc>", close, { buffer = _popup.buffer })
+    popup.on_leave(_popup, close)
+    vim.keymap.set("n", "q", "<esc>", { buffer = _popup.buffer })
     vim.keymap.set("n", "<cr>", select, { buffer = _popup.buffer })
 end
 
