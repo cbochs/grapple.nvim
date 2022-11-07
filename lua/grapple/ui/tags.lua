@@ -38,34 +38,36 @@ end
 
 ---@param scope Grapple.Scope
 ---@param _popup Grapple.Popup
+local function resolve(scope, _popup)
+    local lines = vim.api.nvim_buf_get_lines(_popup.buffer, 0, -1, false)
+    local remaining_keys = {}
+    for _, line in ipairs(lines) do
+        table.insert(remaining_keys, parse(line))
+    end
+    tags.resolve_tags(scope, remaining_keys)
+end
+
+---@param scope Grapple.Scope
+---@param _popup Grapple.Popup
 ---@return function
 local function action_close(scope, _popup)
     return function()
-        local lines = vim.api.nvim_buf_get_lines(_popup.buffer, 0, -1, false)
+        resolve(scope, _popup)
         popup.close(_popup)
-
-        local remaining_keys = {}
-        for _, line in ipairs(lines) do
-            table.insert(remaining_keys, parse(line))
-        end
-
-        tags.resolve_tags(scope, remaining_keys)
     end
 end
 
 ---@param scope Grapple.Scope
----@param close function
-local function action_select(scope, close)
+---@param _popup Grapple.Popup
+local function action_select(scope, _popup)
     return function()
-        local line = vim.api.nvim_get_current_line()
-        close()
+        local current_line = vim.api.nvim_get_current_line()
+        local tag_key = parse(current_line)
+        local tag = tags.find(scope, { key = tag_key or "" })
 
-        local tag_key = parse(line)
-        if tag_key == nil then
-            return
-        end
+        resolve(scope, _popup)
+        popup.close(_popup)
 
-        local tag = tags.find(scope, { key = tag_key })
         if tag ~= nil then
             tags.select(tag)
         end
@@ -79,7 +81,7 @@ function M.open(scope, window_options)
     local _popup = popup.open(lines, window_options)
 
     local close = action_close(scope, _popup)
-    local select = action_select(scope, close)
+    local select = action_select(scope, _popup)
 
     popup.leave(_popup, close)
     vim.keymap.set("n", "q", close, { buffer = _popup.buffer })
