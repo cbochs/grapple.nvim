@@ -250,9 +250,12 @@ function M.serialize(scope)
 
     local lines = {}
     for _, key in pairs(scoped_keys) do
-        local relative_path = string.gsub(key.file_path, sanitized_scope_path .. "/", "")
-        local text = " [" .. key .. "] " .. relative_path
-        table.insert(lines, text)
+        local tag = M.find(scope, { key = key })
+        if tag ~= nil then
+            local relative_path = string.gsub(tag.file_path, sanitized_scope_path .. "/", "")
+            local text = " [" .. key .. "] " .. relative_path
+            table.insert(lines, text)
+        end
     end
     return lines
 end
