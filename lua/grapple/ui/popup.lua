@@ -26,7 +26,7 @@ end
 
 ---@param popup Grapple.Popup
 ---@param close function
-function M.leave(popup, close)
+function M.on_leave(popup, close)
     vim.api.nvim_create_augroup("GrapplePopup", { clear = true })
     vim.api.nvim_create_autocmd({ "WinLeave" }, {
         group = "GrapplePopup",
