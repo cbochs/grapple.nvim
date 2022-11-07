@@ -18,9 +18,10 @@ local DEFAULT_CONFIG = {
     ---
     popup = {
         options = {
-            -- relative = "cursor",
-            width = 80, -- implement as "min/max width",
-            height = 10, -- implement as "context lines"
+            relative = "editor",
+            width = 60,
+            height = 20,
+            style = "minimal",
             focusable = false,
             border = "single",
             noautocmd = true,
