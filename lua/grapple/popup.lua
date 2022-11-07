@@ -9,7 +9,7 @@ function M.open_tags(scope)
     vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
 
     local lines = tags.serialize(scope)
-    vim.api.nvim_buf_set_lines(buffer, 0, -1, lines)
+    vim.api.nvim_buf_set_lines(buffer, 0, -1, false, lines)
 
     local window_options = vim.deepcopy(config.popup.options)
     local window = vim.api.nvim_open_win(buffer, false, window_options)
