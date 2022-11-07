@@ -4,6 +4,7 @@ local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
+local popup = require("grapple.popup")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 
@@ -98,6 +99,11 @@ end
 ---@param scope? Grapple.Scope
 function M.reset(scope)
     tags.reset(scope or config.scope)
+end
+
+---@param scope? Grapple.Scope
+function M.popup_tags(scope)
+    popup.open_tags(scope or config.scope)
 end
 
 return M
