@@ -106,4 +106,8 @@ function M.popup_tags(scope)
     popup.open_tags(scope or config.scope)
 end
 
+function M.popup_scopes()
+    popup.open_scopes()
+end
+
 return M
