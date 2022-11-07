@@ -15,17 +15,15 @@ local DEFAULT_CONFIG = {
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
-    ---
-    popup = {
-        options = {
-            relative = "editor",
-            width = 60,
-            height = 20,
-            style = "minimal",
-            focusable = false,
-            border = "single",
-            noautocmd = true,
-        },
+    ---Window options used for the popup menu
+    popup_options = {
+        relative = "editor",
+        width = 60,
+        height = 20,
+        style = "minimal",
+        focusable = false,
+        border = "single",
+        noautocmd = true,
     },
 
     integrations = {
