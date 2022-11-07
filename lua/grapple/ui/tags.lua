@@ -85,6 +85,7 @@ function M.open(scope, window_options)
 
     popup.on_leave(_popup, close)
     vim.keymap.set("n", "q", "<esc>", { buffer = _popup.buffer })
+    vim.keymap.set("n", "<esc>", close, { buffer = _popup.buffer })
     vim.keymap.set("n", "<cr>", select, { buffer = _popup.buffer })
 end
 
