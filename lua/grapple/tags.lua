@@ -267,7 +267,8 @@ function M.parse_line(line)
     if not start or not _end then
         return nil
     end
-    return string.sub(line, start + 2, _end - start - 2)
+    local parsed_key = string.sub(line, start + 1, _end - 1)
+    return tonumber(parsed_key) or parsed_key
 end
 
 ---@param scope Grapple.Scope
@@ -276,15 +277,17 @@ function M.resolve_lines(scope, lines)
     local scoped_keys = {}
     for _, line in ipairs(lines) do
         local key = M.parse_line(line)
-        if key then
-            table.insert(scoped_keys, M.parse_line(line))
+        if key ~= nil then
+            table.insert(scoped_keys, key)
         end
     end
 
     local scoped_tags = {}
     for _, key in ipairs(scoped_keys) do
         local tag = M.find(scope, { key = key })
-        if tag ~= nil then
+        if type(key) == "number" then
+            table.insert(scoped_tags, tag)
+        elseif type(key) == "string" then
             scoped_tags[key] = tag
         end
     end
