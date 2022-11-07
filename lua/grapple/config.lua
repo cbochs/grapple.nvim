@@ -23,7 +23,6 @@ local DEFAULT_CONFIG = {
         style = "minimal",
         focusable = false,
         border = "single",
-        noautocmd = true,
     },
 
     integrations = {

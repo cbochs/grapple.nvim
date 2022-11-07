@@ -25,6 +25,17 @@ function M.open(lines, window_options)
 end
 
 ---@param popup Grapple.Popup
+---@param close function
+function M.leave(popup, close)
+    vim.api.nvim_create_augroup("GrapplePopup", { clear = true })
+    vim.api.nvim_create_autocmd({ "WinLeave" }, {
+        group = "GrapplePopup",
+        buffer = popup.buffer,
+        callback = close,
+    })
+end
+
+---@param popup Grapple.Popup
 function M.close(popup)
     if vim.api.nvim_win_is_valid(popup.window) then
         vim.api.nvim_win_close(popup.window, true)

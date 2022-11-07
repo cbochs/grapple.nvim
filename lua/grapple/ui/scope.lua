@@ -51,6 +51,7 @@ function M.open(window_options)
     local _popup = popup.open(lines, window_options)
     local close = action_close(_popup)
 
+    popup.leave(_popup, close)
     vim.keymap.set("n", "q", close, { buffer = _popup.buffer })
     vim.keymap.set("n", "<esc>", close, { buffer = _popup.buffer })
 end
