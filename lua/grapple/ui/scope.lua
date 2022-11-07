@@ -10,7 +10,7 @@ local function serialize()
 
     local lines = {}
     for _, scope in ipairs(scopes) do
-        local scoped_tags = M.tags(scope)
+        local scoped_tags = tags.tags(scope)
         local text = " [" .. #scoped_tags .. "] " .. scope
         table.insert(lines, text)
     end
