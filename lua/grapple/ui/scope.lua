@@ -3,8 +3,8 @@ local tags = require("grapple.tags")
 
 local M = {}
 
----@return string[]
-local function serialize()
+---@return { scopes: string[], lines: string[] }
+local function itemize()
     local scopes = tags.scopes()
     table.sort(scopes)
 
@@ -15,7 +15,10 @@ local function serialize()
         table.insert(lines, text)
     end
 
-    return lines
+    return {
+        scopes = scopes,
+        lines = lines,
+    }
 end
 
 ---@param line string
@@ -30,26 +33,33 @@ local function parse(line)
 end
 
 ---@param _popup Grapple.Popup
+---@param scopes string[]
 ---@return function
-local function action_close(_popup)
+local function action_close(_popup, scopes)
     return function()
         local lines = vim.api.nvim_buf_get_lines(_popup.buffer, 0, -1, false)
         popup.close(_popup)
 
         local remaining_scopes = {}
         for _, line in ipairs(lines) do
-            table.insert(remaining_scopes, parse(line))
+            local scope = parse(line)
+            if scope ~= nil then
+                remaining_scopes[scope] = true
+            end
         end
-
-        tags.resolve_scopes(remaining_scopes)
+        for _, scope in ipairs(scopes) do
+            if not remaining_scopes[scope] then
+                tags.reset(scope)
+            end
+        end
     end
 end
 
 ---@param window_options table
 function M.open(window_options)
-    local lines = serialize()
-    local _popup = popup.open(lines, window_options)
-    local close = action_close(_popup)
+    local items = itemize()
+    local _popup = popup.open(items.lines, window_options)
+    local close = action_close(_popup, items.scopes)
 
     popup.on_leave(_popup, close)
     vim.keymap.set("n", "q", close, { buffer = _popup.buffer })

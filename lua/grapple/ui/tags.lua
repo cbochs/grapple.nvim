@@ -1,27 +1,28 @@
 local _scope = require("grapple.scope")
+local _tags = require("grapple.tags")
 local log = require("grapple.log")
 local popup = require("grapple.ui.popup")
-local tags = require("grapple.tags")
 
 local M = {}
 
 ---@param scope Grapple.Scope
----@return string[]
-local function serialize(scope)
-    local scoped_keys = tags.keys(scope)
+---@return { tags: Grapple.TagTable, lines: string[] }
+local function itemize(scope)
+    local scoped_tags = _tags.tags(scope)
     local scope_path = _scope.resolve(scope)
     local sanitized_scope_path = string.gsub(scope_path, "%p", "%%%1")
 
     local lines = {}
-    for _, key in ipairs(scoped_keys) do
-        local tag = tags.find(scope, { key = key })
-        if tag ~= nil then
-            local relative_path = string.gsub(tag.file_path, sanitized_scope_path .. "/", "")
-            local text = " [" .. key .. "] " .. relative_path
-            table.insert(lines, text)
-        end
+    for key, tag in pairs(scoped_tags) do
+        local relative_path = string.gsub(tag.file_path, sanitized_scope_path .. "/", "")
+        local text = " [" .. key .. "] " .. relative_path
+        table.insert(lines, text)
     end
-    return lines
+
+    return {
+        tags = scoped_tags,
+        lines = lines,
+    }
 end
 
 ---@param line string
@@ -37,39 +38,49 @@ local function parse(line)
 end
 
 ---@param scope Grapple.Scope
+---@param tags Grapple.TagTable
 ---@param _popup Grapple.Popup
-local function resolve(scope, _popup)
+local function resolve(scope, tags, _popup)
     local lines = vim.api.nvim_buf_get_lines(_popup.buffer, 0, -1, false)
     local remaining_keys = {}
     for _, line in ipairs(lines) do
-        table.insert(remaining_keys, parse(line))
+        local tag_key = parse(line)
+        if tag_key ~= nil then
+            remaining_keys[tag_key] = true
+        end
     end
-    tags.resolve_tags(scope, remaining_keys)
+    for key, tag in pairs(tags) do
+        if not remaining_keys[key] then
+            _tags.untag(scope, { file_path = tag.file_path })
+        end
+    end
 end
 
 ---@param scope Grapple.Scope
+---@param tags Grapple.TagTable
 ---@param _popup Grapple.Popup
 ---@return function
-local function action_close(scope, _popup)
+local function action_close(scope, tags, _popup)
     return function()
-        resolve(scope, _popup)
+        resolve(scope, tags, _popup)
         popup.close(_popup)
     end
 end
 
 ---@param scope Grapple.Scope
+---@param tags Grapple.TagTable
 ---@param _popup Grapple.Popup
-local function action_select(scope, _popup)
+local function action_select(scope, tags, _popup)
     return function()
         local current_line = vim.api.nvim_get_current_line()
         local tag_key = parse(current_line)
-        local tag = tags.find(scope, { key = tag_key or "" })
+        local tag = _tags.find(scope, { key = tag_key or "" })
 
-        resolve(scope, _popup)
+        resolve(scope, tags, _popup)
         popup.close(_popup)
 
         if tag ~= nil then
-            tags.select(tag)
+            _tags.select(tag)
         end
     end
 end
@@ -77,11 +88,11 @@ end
 ---@param scope Grapple.Scope
 ---@param window_options table
 function M.open(scope, window_options)
-    local lines = serialize(scope)
-    local _popup = popup.open(lines, window_options)
+    local items = itemize(scope)
+    local _popup = popup.open(items.lines, window_options)
 
-    local close = action_close(scope, _popup)
-    local select = action_select(scope, _popup)
+    local close = action_close(scope, items.tags, _popup)
+    local select = action_select(scope, items.tags, _popup)
 
     popup.on_leave(_popup, close)
     vim.keymap.set("n", "q", "<esc>", { buffer = _popup.buffer })

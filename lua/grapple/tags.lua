@@ -9,7 +9,7 @@ local types = require("grapple.types")
 ---@field cursor table
 
 ---@alias Grapple.TagKey string | integer
-
+---@alias Grapple.TagTable table<Grapple.TagKey, Grapple.Tag>
 ---@alias Grapple.Cursor table
 
 local M = {}
@@ -50,14 +50,6 @@ end
 
 ---@private
 ---@param scope Grapple.Scope
----@param tags Grapple.Tag[]
-local function _set_all(scope, tags)
-    local scope_path = _scope.resolve(scope)
-    _tags[scope_path] = tags
-end
-
----@private
----@param scope Grapple.Scope
 ---@param tag Grapple.Tag
 ---@param key Grapple.TagKey
 local function _update(scope, tag, key)
@@ -87,8 +79,9 @@ end
 
 ---@private
 ---@param scope Grapple.Scope
+---@ereturn Grapple.TagTable
 function M.tags(scope)
-    return _scoped_tags(scope)
+    return vim.deepcopy(_scoped_tags(scope))
 end
 
 ---@param scope Grapple.Scope
@@ -243,39 +236,6 @@ function M.next(scope, start_index, direction)
     end
 
     return scoped_tags[index]
-end
-
----@param scope Grapple.Scope
----@param keys Grapple.TagKey[]
-function M.resolve_tags(scope, keys)
-    local scoped_tags = {}
-    for _, key in ipairs(keys) do
-        local tag = M.find(scope, { key = key })
-        if type(key) == "number" then
-            table.insert(scoped_tags, tag)
-        elseif type(key) == "string" then
-            scoped_tags[key] = tag
-        end
-    end
-
-    _set_all(scope, scoped_tags)
-end
-
----@param scopes string[]
-function M.resolve_scopes(scopes)
-    local function not_in_remaining(scope)
-        for _, s in ipairs(scopes) do
-            if scope == s then
-                return false
-            end
-        end
-        return true
-    end
-
-    local deleted_scopes = vim.tbl_filter(not_in_remaining, M.scopes())
-    for _, scope in ipairs(deleted_scopes) do
-        M.reset(scope)
-    end
 end
 
 ---@param save_path string
