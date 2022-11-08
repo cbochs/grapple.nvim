@@ -88,6 +88,11 @@ end
 ---@param scope Grapple.Scope
 ---@param window_options table
 function M.open(scope, window_options)
+    if vim.fn.has("nvim-0.9") == 1 then
+        window_options.title = _scope.resolve(scope)
+        window_options.title_pos = "center"
+    end
+
     local items = itemize(scope)
     local _popup = popup.open(items.lines, window_options)
 

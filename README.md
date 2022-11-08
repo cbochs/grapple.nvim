@@ -20,6 +20,7 @@ To get started, [install](#installation) the plugin using your preferred package
 ## Requirements
 
 * [Neovim >= 0.5](https://github.com/neovim/neovim/releases/tag/v0.5.0)
+* Neovim >= 0.9 - OPTIONAL for popup title
 
 ## Installation
 
@@ -64,7 +65,7 @@ require("grapple").setup({
     popup_options = {
         relative = "editor",
         width = 60,
-        height = 20,
+        height = 12,
         style = "minimal",
         focusable = false,
         border = "single",
