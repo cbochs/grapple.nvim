@@ -1,6 +1,6 @@
 # Grapple.nvim
 
-![grapple_select mov](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
+![grapple_showcase_tagging](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
 
 _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
@@ -14,6 +14,7 @@ To get started, [install](#installation) the plugin using your preferred package
 
 * **Project scoped** file tagging for immediate navigation
 * **Persistent** cursor tracking for tagged files
+* **Popup** menu to manage tags and scopes as regular text
 * **Integration** with [portal.nvim](https://github.com/cbochs/portal.nvim) for additional jump options
 
 ## Requirements
@@ -67,7 +68,6 @@ require("grapple").setup({
         style = "minimal",
         focusable = false,
         border = "single",
-        noautocmd = true,
     },
 
     integrations = {
@@ -110,7 +110,7 @@ require("grapple").untag({ key = {index} })
 
 ### Named Tags
 
-Tags that are given a name are considered to be **namd tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
+Tags that are given a name are considered to be **named tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
 
 Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag. See the [suggested keymaps](#named-tag-keymaps)
 
@@ -182,6 +182,20 @@ require("grapple").reset()
 -- Delete all tags in a different scope
 require("grapple").reset("global")
 ```
+
+### Popup Menu
+
+A popup menu is available to enable easy management of tags and scopes. The opened buffer can be modified like a regular buffer, meaning items can be selected and deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
+
+![grapple_showcase_popup](https://user-images.githubusercontent.com/2467016/200480227-15c0e1a8-9f3c-49e1-af1e-676b168a061b.gif)
+
+#### Tag popup menu
+
+**Format**: ` [{index}] {tag_relative_path}`
+
+#### Scope popup menu
+
+**Format**: `[{#tags}] {scope_path}`
 
 ### Suggested Keymaps
 
