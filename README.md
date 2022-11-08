@@ -6,7 +6,7 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes).
+Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected (and deleted) from within an editable [popup](#popup-menu).
 
 To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration).
 
@@ -191,11 +191,23 @@ A popup menu is available to enable easy management of tags and scopes. The open
 
 #### Tag popup menu
 
-**Format**: ` [{index}] {tag_relative_path}`
+**Command**: `GrapplePopup tags`
+
+```lua
+require("grapple").popup_tags()
+```
+
+![tags_popup_menu_screenshot](https://user-images.githubusercontent.com/2467016/200584049-11159149-a292-4ae4-9907-8d13ecd9ad8b.png)
 
 #### Scope popup menu
 
-**Format**: `[{#tags}] {scope_path}`
+**Command**: `GrapplePopup scopes`
+
+```lua
+require("grapple").popup_scopes()
+```
+
+![scopes_popup_menu_screenshot](https://user-images.githubusercontent.com/2467016/200584062-58401ba8-a03e-4cb8-b872-f30e39414117.png)
 
 ### Suggested Keymaps
 
