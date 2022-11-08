@@ -191,23 +191,27 @@ A popup menu is available to enable easy management of tags and scopes. The open
 
 #### Tag popup menu
 
+The **tags** popup menu opens a floating window containing all the tags within a specified scope. A tag can be selected by moving to its corresponding line and pressing enter (`<cr>`). A tag (or tags) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`.
+
 **Command**: `GrapplePopup tags`
 
 ```lua
+-- Open the tags popup menu in the current scope
 require("grapple").popup_tags()
+
+-- Open the tags popup menu in a different scope
+require("grapple").popup_tags("global")
 ```
 
-![tags_popup_menu_screenshot](https://user-images.githubusercontent.com/2467016/200584049-11159149-a292-4ae4-9907-8d13ecd9ad8b.png)
-
 #### Scope popup menu
+
+The **scopes** popup menu opens a floating window containing all the scope paths that have been created. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the scope path.
 
 **Command**: `GrapplePopup scopes`
 
 ```lua
 require("grapple").popup_scopes()
 ```
-
-![scopes_popup_menu_screenshot](https://user-images.githubusercontent.com/2467016/200584062-58401ba8-a03e-4cb8-b872-f30e39414117.png)
 
 ### Suggested Keymaps
 
