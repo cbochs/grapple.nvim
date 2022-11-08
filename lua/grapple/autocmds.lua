@@ -6,6 +6,7 @@ local M = {}
 ---Initialize autocommand groups and events
 function M.create_autocmds()
     vim.api.nvim_create_augroup("Grapple", { clear = true })
+
     vim.api.nvim_create_autocmd({ "BufLeave" }, {
         group = "Grapple",
         pattern = "*",

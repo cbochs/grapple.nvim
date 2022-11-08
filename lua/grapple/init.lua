@@ -6,14 +6,14 @@ local highlight = require("grapple.highlight")
 local log = require("grapple.log")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
+local ui = require("grapple.ui")
 
 local M = {}
 
 --- @class Grapple.Options
 --- @field buffer integer
---- @field index integer
---- @field name string
 --- @field file_path string
+--- @field key Grapple.TagKey
 
 ---@param opts? Grapple.Config
 function M.setup(opts)
@@ -99,6 +99,18 @@ end
 ---@param scope? Grapple.Scope
 function M.reset(scope)
     tags.reset(scope or config.scope)
+end
+
+---@param scope? Grapple.Scope
+function M.popup_tags(scope)
+    scope = scope or config.scope
+    local window_options = vim.deepcopy(config.popup_options)
+    ui.popup_tags(scope, window_options)
+end
+
+function M.popup_scopes()
+    local window_options = vim.deepcopy(config.popup_options)
+    ui.popup_scopes(window_options)
 end
 
 return M

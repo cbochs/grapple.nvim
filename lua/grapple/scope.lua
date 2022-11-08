@@ -2,7 +2,7 @@ local log = require("grapple.log")
 
 local M = {}
 
----@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver
+---@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver | string
 
 ---@alias Grapple.ScopeResolver fun(): string
 
@@ -52,9 +52,14 @@ function M.resolve(scope)
         else
             log.warn("Unable to resolve custom scope to a string scope key. Resolved to " .. tostring(resolved_scope))
         end
+    elseif type(scope) == "string" then
+        if vim.fn.isdirectory(scope_key) == 0 then
+            log.warn("The resolved scope path does not exist as a directory. Path: " .. scope)
+        end
+        scope_key = scope
     end
 
-    -- Always fallback to the DIRECTORY scope
+    -- Fallback to the DIRECTORY scope when necessary
     if scope_key == nil then
         scope_key = M.resolve(M.Scope.DIRECTORY)
     end

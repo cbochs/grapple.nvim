@@ -20,9 +20,8 @@ M.load()                                                                *M.load*
 M.setup({opts?})                                                       *M.setup*
      @class Grapple.Options
      @field buffer integer
-     @field index integer
-     @field name string
      @field file_path string
+     @field key Grapple.TagKey
 
     Parameters: ~
         {opts?}  (Grapple.Config)
@@ -95,13 +94,22 @@ M.reset({scope?})                                                      *M.reset*
         {scope?}  (Grapple.Scope)
 
 
+M.popup_tags({scope?})                                            *M.popup_tags*
+
+    Parameters: ~
+        {scope?}  (Grapple.Scope)
+
+
+M.popup_scopes()                                                *M.popup_scopes*
+
+
 log.new()                                                              *log.new*
 
 
 Grapple.Scope                                                    *Grapple.Scope*
 
     Type: ~
-        Grapple.ScopeType|Grapple.ScopeResolver
+        Grapple.ScopeType|Grapple.ScopeResolver|string
 
 
 Grapple.ScopeResolver                                    *Grapple.ScopeResolver*
@@ -178,10 +186,16 @@ Grapple.Tag                                                        *Grapple.Tag*
         {cursor}     (table)
 
 
-Grapple.TagIndex                                              *Grapple.TagIndex*
+Grapple.TagKey                                                  *Grapple.TagKey*
 
     Type: ~
-        string|number
+        string|integer
+
+
+Grapple.TagTable                                              *Grapple.TagTable*
+
+    Type: ~
+        table<Grapple.TagKey,Grapple.Tag>
 
 
 Grapple.Cursor                                                  *Grapple.Cursor*
@@ -241,7 +255,19 @@ M.key({scope}, {opts})                                                   *M.key*
         {opts}   (Grapple.Options)
 
     Returns: ~
-        {Grapple.TagIndex|nil}
+        {Grapple.TagKey|nil}
+
+
+M.keys({scope})                                                         *M.keys*
+
+    Parameters: ~
+        {scope}  (Grapple.Scope)
+
+    Returns: ~
+        {Grapple.TagKey[]}
+
+
+M.scopes()                                                            *M.scopes*
 
 
 M.next({scope}, {start_index}, {direction})

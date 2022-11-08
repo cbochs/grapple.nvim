@@ -1,12 +1,12 @@
 # Grapple.nvim
 
-![grapple_select mov](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
+![grapple_showcase_tagging](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
 
 _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes).
+Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected (and deleted) from within an editable [popup](#popup-menu).
 
 To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration).
 
@@ -14,6 +14,7 @@ To get started, [install](#installation) the plugin using your preferred package
 
 * **Project scoped** file tagging for immediate navigation
 * **Persistent** cursor tracking for tagged files
+* **Popup** menu to manage tags and scopes as regular text
 * **Integration** with [portal.nvim](https://github.com/cbochs/portal.nvim) for additional jump options
 
 ## Requirements
@@ -59,6 +60,16 @@ require("grapple").setup({
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
+    ---Window options used for the popup menu
+    popup_options = {
+        relative = "editor",
+        width = 60,
+        height = 20,
+        style = "minimal",
+        focusable = false,
+        border = "single",
+    },
+
     integrations = {
         ---Support for saving tag state using resession.nvim
         resession = false,
@@ -78,15 +89,15 @@ This is the _default_ tag type. Anonymous tags are added to a list, where they m
 
 Anonymous tags are useful if you're familiar with plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
 
-**Command** `:GrappleTag [index={index}] [buffer={buffer}]`
+**Command** `:GrappleTag [key={index}] [buffer={buffer}]`
 
 ```lua
 -- Create an anonymous tag
 require("grapple").tag()
-require("grapple").tag({ index = {index} })
+require("grapple").tag({ key = {index} })
 
 -- Select an anonymous tag
-require("grapple").select({ index = {index} })
+require("grapple").select({ key = {index} })
 
 -- Cycle to the next tag in the list
 require("grapple").cycle_backward()
@@ -94,26 +105,26 @@ require("grapple").cycle_forward()
 
 -- Delete an anonymous tag
 require("grapple").untag() -- untag the current buffer
-require("grapple").untag({ index = {index} })
+require("grapple").untag({ key = {index} })
 ```
 
 ### Named Tags
 
-Tags that are given a name are considered to be **namd tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
+Tags that are given a name are considered to be **named tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
 
 Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag. See the [suggested keymaps](#named-tag-keymaps)
 
-**Command** `:GrappleMark name={name} [buffer={buffer}]`
+**Command** `:GrappleTag key={name} [buffer={buffer}]`
 
 ```lua
 -- Create a named tag
-require("grapple").tag({ name = "{name}" })
+require("grapple").tag({ key = "{name}" })
 
 -- Select a named tag
-require("grapple").select({ name = "{name}" })
+require("grapple").select({ key = "{name}" })
 
 -- Delete a named tag
-require("grapple").untag({ name = "{name}" })
+require("grapple").untag({ key = "{name}" })
 ```
 
 ### Tag Scopes
@@ -150,12 +161,12 @@ require("grapple").setup({
 
 ### Selecting Tags
 
-**Command**: `:GrappleSelect [name={name}] [index={index}] [buffer={buffer}]`
+**Command**: `:GrappleSelect [key={name} or key={index}] [buffer={buffer}]`
 
 ### Deleting Tags
 
 **Commands**:
-* `:GrappleUntag [name={name}] [index={index}] [buffer={buffer}]`
+* `:GrappleUntag [key={name} or key={index}] [buffer={buffer}]`
 * `:GrappleReset [scope]`
 
 ```lua
@@ -163,14 +174,43 @@ require("grapple").setup({
 require("grapple").untag()
 
 -- Delete a specific tag
-require("grapple").untag({ name = "{name}" })
-require("grapple").untag({ index = {index} })
+require("grapple").untag({ key = "{name}" or {index} })
 
 -- Delete all tags in the current scope
 require("grapple").reset()
 
 -- Delete all tags in a different scope
 require("grapple").reset("global")
+```
+
+### Popup Menu
+
+A popup menu is available to enable easy management of tags and scopes. The opened buffer can be modified like a regular buffer, meaning items can be selected and deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
+
+![grapple_showcase_popup](https://user-images.githubusercontent.com/2467016/200480227-15c0e1a8-9f3c-49e1-af1e-676b168a061b.gif)
+
+#### Tag popup menu
+
+The **tags** popup menu opens a floating window containing all the tags within a specified scope. A tag can be selected by moving to its corresponding line and pressing enter (`<cr>`). A tag (or tags) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`.
+
+**Command**: `:GrapplePopup tags`
+
+```lua
+-- Open the tags popup menu in the current scope
+require("grapple").popup_tags()
+
+-- Open the tags popup menu in a different scope
+require("grapple").popup_tags("global")
+```
+
+#### Scope popup menu
+
+The **scopes** popup menu opens a floating window containing all the scope paths that have been created. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the scope path.
+
+**Command**: `:GrapplePopup scopes`
+
+```lua
+require("grapple").popup_scopes()
 ```
 
 ### Suggested Keymaps
@@ -185,11 +225,11 @@ vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
 
 ```lua
 vim.keymap.set("n", "<leader>j", function()
-    require("grapple").select({ name = "{name}" })
+    require("grapple").select({ key = "{name}" })
 end, {})
 
 vim.keymap.set("n", "<leader>J", function()
-    require("grapple").toggle({ name = "{name}" })
+    require("grapple").toggle({ key = "{name}" })
 end, {})
 ```
 
