@@ -100,9 +100,11 @@ function M.open(scope, window_options)
     local select = action_select(scope, items.tags, _popup)
 
     popup.on_leave(_popup, close)
-    vim.keymap.set("n", "q", "<esc>", { buffer = _popup.buffer })
-    vim.keymap.set("n", "<esc>", close, { buffer = _popup.buffer })
-    vim.keymap.set("n", "<cr>", select, { buffer = _popup.buffer })
+
+    local kopts = { buffer = _popup.buffer, nowait = true }
+    vim.keymap.set("n", "q", "<esc>", vim.tbl_extend("keep", { remap = true }, kopts))
+    vim.keymap.set("n", "<esc>", close, kopts)
+    vim.keymap.set("n", "<cr>", select, kopts)
 end
 
 return M
