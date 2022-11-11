@@ -8,6 +8,7 @@ local M = {}
 ---@return Grapple.Popup
 function M.open(lines, window_options)
     local buffer = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_option(buffer, "filetype", "grapple")
     vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
     vim.api.nvim_buf_set_lines(buffer, 0, -1, false, lines)
 
