@@ -86,6 +86,23 @@ local function action_select(scope, tags, _popup)
 end
 
 ---@param scope Grapple.Scope
+---@param _ Grapple.TagTable
+---@param _popup Grapple.Popup
+local function action_reorder(scope, _, _popup)
+    return function()
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+        local new_tag_keys = vim.tbl_map(parse, lines)
+        local new_tags = vim.tbl_map(function(tag_key)
+            return _tags.find(scope, { key = tag_key or "" })
+        end, new_tag_keys)
+
+        _tags.set_tags(scope, new_tags)
+
+        popup.close(_popup)
+    end
+end
+
+---@param scope Grapple.Scope
 ---@param window_options table
 function M.open(scope, window_options)
     if vim.fn.has("nvim-0.9") == 1 then
@@ -98,13 +115,25 @@ function M.open(scope, window_options)
 
     local close = action_close(scope, items.tags, _popup)
     local select = action_select(scope, items.tags, _popup)
+    local reorder = action_reorder(scope, items.tags, _popup)
+
+    local function reorder_or_select()
+        local new_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+        local is_modified = table.concat(items.lines) ~= table.concat(new_lines)
+        local is_reorder = is_modified and #items.lines == #new_lines
+
+        if is_reorder then
+            reorder()
+        else
+            select()
+        end
+    end
 
     popup.on_leave(_popup, close)
-
     local kopts = { buffer = _popup.buffer, nowait = true }
     vim.keymap.set("n", "q", "<esc>", vim.tbl_extend("keep", { remap = true }, kopts))
     vim.keymap.set("n", "<esc>", close, kopts)
-    vim.keymap.set("n", "<cr>", select, kopts)
+    vim.keymap.set("n", "<cr>", reorder_or_select, kopts)
 end
 
 return M

@@ -77,7 +77,6 @@ local function _prune()
     end
 end
 
----@private
 ---@param scope Grapple.Scope
 ---@ereturn Grapple.TagTable
 function M.tags(scope)
@@ -88,6 +87,15 @@ end
 function M.reset(scope)
     local scope_path = _scope.resolve(scope)
     _tags[scope_path] = nil
+end
+
+---@param scope Grapple.Scope
+---@param tags Grapple.TagTable
+function M.set_tags(scope, tags)
+    M.reset(scope)
+    for key, tag in ipairs(tags) do
+        _set(scope, tag, key)
+    end
 end
 
 ---@param scope Grapple.Scope
