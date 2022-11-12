@@ -5,17 +5,18 @@ local M = {}
 ---@field window integer
 
 ---@param lines string[]
+---@param winopts table
 ---@return Grapple.Popup
-function M.open(lines, window_options)
+function M.open(lines, winopts)
     local buffer = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(buffer, "filetype", "grapple")
     vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
     vim.api.nvim_buf_set_lines(buffer, 0, -1, false, lines)
 
-    window_options.row = math.floor(((vim.o.lines - window_options.height) / 2) - 1)
-    window_options.col = math.floor((vim.o.columns - window_options.width) / 2)
+    winopts.row = math.floor(((vim.o.lines - winopts.height) / 2) - 1)
+    winopts.col = math.floor((vim.o.columns - winopts.width) / 2)
 
-    local window = vim.api.nvim_open_win(buffer, true, window_options)
+    local window = vim.api.nvim_open_win(buffer, true, winopts)
 
     local popup = {
         buffer = buffer,

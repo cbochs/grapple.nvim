@@ -30,7 +30,7 @@ end
 ---@param key Grapple.TagKey
 ---@return Grapple.Tag
 local function _get(scope, key)
-    return _scoped_tags(scope)[key]
+    return vim.tbl_extend("keep", _scoped_tags(scope)[key], { key = key })
 end
 
 ---@private
@@ -78,9 +78,11 @@ local function _prune()
 end
 
 ---@param scope Grapple.Scope
----@ereturn Grapple.TagTable
+---@return Grapple.TagTable
 function M.tags(scope)
-    return vim.deepcopy(_scoped_tags(scope))
+    return vim.tbl_map(function(key)
+        return _get(scope, key)
+    end, M.keys(scope))
 end
 
 ---@param scope Grapple.Scope
@@ -93,8 +95,8 @@ end
 ---@param tags Grapple.TagTable
 function M.set_tags(scope, tags)
     M.reset(scope)
-    for key, tag in ipairs(tags) do
-        _set(scope, tag, key)
+    for _, tag in ipairs(tags) do
+        _set(scope, tag, tag.key)
     end
 end
 

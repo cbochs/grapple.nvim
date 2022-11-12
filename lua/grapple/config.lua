@@ -16,13 +16,17 @@ local DEFAULT_CONFIG = {
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
 
     ---Window options used for the popup menu
+    ---@class Grapple.PopupConfig
     popup_options = {
-        relative = "editor",
-        width = 60,
-        height = 12,
-        style = "minimal",
-        focusable = false,
-        border = "single",
+        autosave = false, -- autosave on popup modifications
+        winopts = {
+            relative = "editor",
+            width = 60,
+            height = 12,
+            style = "minimal",
+            focusable = false,
+            border = "single",
+        },
     },
 
     integrations = {

@@ -55,15 +55,16 @@ local function action_close(_popup, scopes)
     end
 end
 
----@param window_options table
-function M.open(window_options)
+---@param opts Grapple.PopupConfig
+function M.open(opts)
+    local winopts = opts.winopts
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = "All Scopes"
-        window_options.title_pos = "center"
+        winopts.title = "All Scopes"
+        winopts.title_pos = "center"
     end
 
     local items = itemize()
-    local _popup = popup.open(items.lines, window_options)
+    local _popup = popup.open(items.lines, winopts)
     local close = action_close(_popup, items.scopes)
 
     popup.on_leave(_popup, close)
