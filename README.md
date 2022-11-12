@@ -63,12 +63,15 @@ require("grapple").setup({
 
     ---Window options used for the popup menu
     popup_options = {
-        relative = "editor",
-        width = 60,
-        height = 12,
-        style = "minimal",
-        focusable = false,
-        border = "single",
+        autosave = false, -- autosave on popup modifications
+        winopts = {
+            relative = "editor",
+            width = 60,
+            height = 12,
+            style = "minimal",
+            focusable = false,
+            border = "single",
+        },
     },
 
     integrations = {
@@ -186,7 +189,7 @@ require("grapple").reset("global")
 
 ### Popup Menu
 
-A popup menu is available to enable easy management of tags and scopes. The opened buffer can be modified like a regular buffer, meaning items can be selected and deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
+A popup menu is available to enable easy management of tags and scopes. The opened buffer can be modified like a regular buffer, meaning items can be selected, modified or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
 
 ![grapple_showcase_popup](https://user-images.githubusercontent.com/2467016/200480227-15c0e1a8-9f3c-49e1-af1e-676b168a061b.gif)
 
