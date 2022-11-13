@@ -104,13 +104,13 @@ end
 ---@param scope_? Grapple.Scope
 function M.popup_tags(scope_)
     scope_ = scope_ or config.scope
-    local opts = vim.deepcopy(config.popup_options)
-    ui.popup_tags(scope_, opts)
+    local window_options = vim.deepcopy(config.popup_options)
+    ui.popup_tags(scope_, window_options)
 end
 
 function M.popup_scopes()
-    local opts = vim.deepcopy(config.popup_options)
-    ui.popup_scopes(opts)
+    local window_options = vim.deepcopy(config.popup_options)
+    ui.popup_scopes(window_options)
 end
 
 return M
