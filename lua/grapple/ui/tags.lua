@@ -120,24 +120,6 @@ end
 ---@param scope_ Grapple.Scope
 ---@param popup_ Grapple.Popup
 ---@param parser Grapple.Parser<Grapple.PartialTag>
----@param serializer_ Grapple.Serializer<Grapple.PartialTag>
-local function action_update(scope_, popup_, parser, serializer_)
-    return function()
-        resolve(scope_, popup_, parser)
-
-        local popup_tags = {}
-        for key, tag in pairs(tags.tags(scope_)) do
-            table.insert(popup_tags, into_popup_tag(key, tag))
-        end
-
-        local lines = vim.tbl_map(serializer_, popup_tags)
-        popup.update(popup_, lines)
-    end
-end
-
----@param scope_ Grapple.Scope
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.PartialTag>
 local function action_close(scope_, popup_, parser)
     return function()
         resolve(scope_, popup_, parser)
@@ -181,7 +163,6 @@ function M.open(scope_, window_options)
     local popup_ = popup.open(window_options)
     popup.update(popup_, lines)
 
-    local update = action_update(scope_, popup_, parser, serializer)
     local close = action_close(scope_, popup_, parser)
     local select = action_select(scope_, popup_, parser)
 
@@ -189,7 +170,6 @@ function M.open(scope_, window_options)
     vim.keymap.set("n", "q", close, keymap_options)
     vim.keymap.set("n", "<esc>", close, keymap_options)
     vim.keymap.set("n", "<cr>", select, keymap_options)
-    vim.keymap.set("n", "<c-s>", update, keymap_options)
     popup.on_leave(popup_, close)
 end
 
