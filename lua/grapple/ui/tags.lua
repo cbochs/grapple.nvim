@@ -44,11 +44,16 @@ local function parse(line)
         return nil
     end
     local pattern = "%[(.*)%] +(.*)"
+    local ptag = nil
     for key, relative_path in string.gmatch(line, pattern) do
-        return { key = tonumber(key) or key, relative_path = relative_path }
+        ptag = { key = tonumber(key) or key, relative_path = relative_path }
     end
-    log.warn(("Unable to parse line into tag key. Line:\n'%s'"):format(line))
-    return nil
+    if ptag ~= nil then
+        return ptag
+    else
+        log.warn(("Unable to parse line into tag key. Line:\n'%s'"):format(line))
+        return nil
+    end
 end
 
 ---@class Grapple.UIState
@@ -60,10 +65,6 @@ end
 ---@param state Grapple.UIState
 local function action_update(state)
     local new_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    local partial_tags = vim.tbl_map(parse, new_lines)
-    partial_tags = vim.tbl_filter(function(ptag)
-        return ptag.key ~= nil
-    end, partial_tags)
 
     ---@type Grapple.TagTable
     local new_tags = {}
