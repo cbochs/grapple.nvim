@@ -1,0 +1,26 @@
+name: generate vimdocs
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PLUGIN_NAME: grapple
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    name: emmylua to vimdoc
+    steps:
+      - uses: actions/checkout@v2
+      - name: generate vimdoc
+        run: |
+          curl -Lq https://github.com/numToStr/lemmy-help/releases/latest/download/lemmy-help-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./lemmy-help lua/**/*.lua > doc/${{env.PLUGIN_NAME}}.txt
+      - name: commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: ${{ github.head_ref }}
+          commit_message: "chore(docs): auto-generate vimdoc"
+          file_pattern: doc/*.txt
