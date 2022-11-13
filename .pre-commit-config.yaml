@@ -3,5 +3,9 @@ repos:
     rev: v0.15.0
     hooks:
       - id: stylua-github
+  - repo: https://github.com/lunarmodules/luacheck
+    rev: v1.0.0
+    hooks:
+      - id: luacheck
 
 files: 'lua/.*'
