@@ -53,7 +53,7 @@ function M.resolve(scope)
             log.warn("Unable to resolve custom scope to a string scope key. Resolved to " .. tostring(resolved_scope))
         end
     elseif type(scope) == "string" then
-        if vim.fn.isdirectory(scope_key) == 0 then
+        if vim.fn.isdirectory(scope) == 0 then
             log.warn("The resolved scope path does not exist as a directory. Path: " .. scope)
         end
         scope_key = scope

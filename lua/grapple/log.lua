@@ -50,6 +50,7 @@ log.new = function(config, standalone)
     if standalone then
         obj = log
     else
+        -- luacheck: ignore
         obj = {}
     end
 

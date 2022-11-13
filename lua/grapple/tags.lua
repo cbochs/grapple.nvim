@@ -4,7 +4,6 @@ local state = require("grapple.state")
 local types = require("grapple.types")
 
 ---@class Grapple.Tag
----@field key string | integer
 ---@field file_path string
 ---@field cursor table
 
@@ -93,27 +92,46 @@ end
 ---@param scope Grapple.Scope
 ---@param opts Grapple.Options
 function M.tag(scope, opts)
-    if opts.buffer == nil then
-        log.error("ArgumentError - buffer cannot be nil.")
-        error("ArgumentError - buffer cannot be nil.")
-    end
+    local file_path
+    local cursor
 
-    if not vim.api.nvim_buf_is_valid(opts.buffer) then
-        log.error("ArgumentError - buffer is invalid.")
-        error("ArgumentError - buffer is invalid.")
+    if opts.buffer then
+        if not vim.api.nvim_buf_is_valid(opts.buffer) then
+            log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
+            error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
+        end
+        file_path = vim.api.nvim_buf_get_name(opts.buffer)
+        cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
+    elseif opts.file_path then
+        if not state.file_exists(opts.file_path) then
+            log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
+            error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
+        end
+        file_path = opts.file_path
+    else
+        log.error("ArgumentError - a buffer or file path are required to tag a file.")
+        error("ArgumentError - a buffer or file path are required to tag a file.")
     end
 
     ---@type Grapple.Tag
     local tag = {
-        file_path = vim.api.nvim_buf_get_name(opts.buffer),
-        cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"'),
+        file_path = file_path,
+        cursor = cursor,
     }
 
-    local old_tag = M.find(scope, { buffer = opts.buffer })
-    if old_tag ~= nil then
-        log.warn("Replacing mark. Old tag: " .. old_tag.file_path .. ". New tag: " .. tag.file_path)
+    local old_key = M.key(scope, { file_path = file_path })
+    if old_key ~= nil then
+        log.warn(
+            "Replacing tag. Old key: "
+                .. old_key
+                .. ". New key: "
+                .. (opts.key or "[tbd]")
+                .. ". Path: "
+                .. tag.file_path
+        )
+        local old_tag = M.find(scope, { key = old_key })
         tag.cursor = old_tag.cursor
-        M.untag(scope, { buffer = 0 })
+        M.untag(scope, { file_path = file_path })
     end
 
     _set(scope, tag, opts.key)
@@ -198,8 +216,24 @@ function M.keys(scope)
     return vim.tbl_keys(_scoped_tags(scope))
 end
 
+---@return string[]
 function M.scopes()
     return vim.tbl_keys(_tags)
+end
+
+function M.reorder(scope)
+    local numbered_keys = vim.tbl_filter(function(key)
+        return type(key) == "number"
+    end, M.keys(scope))
+    table.sort(numbered_keys)
+
+    local index = 1
+    for _, key in ipairs(numbered_keys) do
+        if key ~= index then
+            M.tag(scope, { file_path = _get(scope, key).file_path, key = index })
+        end
+        index = index + 1
+    end
 end
 
 ---@param scope Grapple.Scope
