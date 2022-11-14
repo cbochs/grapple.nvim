@@ -95,19 +95,19 @@ function M.tag(scope_, opts)
     local file_path
     local cursor
 
-    if opts.buffer then
+    if opts.file_path then
+        if not state.file_exists(opts.file_path) then
+            log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
+            error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
+        end
+        file_path = opts.file_path
+    elseif opts.buffer then
         if not vim.api.nvim_buf_is_valid(opts.buffer) then
             log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
             error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
         end
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
         cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
-    elseif opts.file_path then
-        if not state.file_exists(opts.file_path) then
-            log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
-            error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
-        end
-        file_path = opts.file_path
     else
         log.error("ArgumentError - a buffer or file path are required to tag a file.")
         error("ArgumentError - a buffer or file path are required to tag a file.")
