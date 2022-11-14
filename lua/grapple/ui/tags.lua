@@ -48,6 +48,10 @@ local function create_parser(scope_)
     ---@param line string
     ---@return Grapple.PartialTag
     return function(line)
+        if #line == 0 then
+            return nil
+        end
+
         local pattern = "%[(.*)%] +(.*)"
         local key, relative_path = string.match(line, pattern)
         if key == nil or relative_path == nil then
@@ -55,9 +59,16 @@ local function create_parser(scope_)
             return nil
         end
 
+        local file_path
+        if string.sub(relative_path, 1, 1) == "/" then
+            file_path = relative_path
+        else
+            file_path = scope_path .. "/" .. relative_path
+        end
+
         ---@type Grapple.PartialTag
         local partial_tag = {
-            file_path = scope_path .. "/" .. relative_path,
+            file_path = file_path,
             key = tonumber(key) or key,
         }
 
@@ -98,6 +109,8 @@ local function resolve(scope_, popup_, parser)
                 table.insert(modified_tags, partial_tag)
             end
             remaining_tags[key] = true
+        else
+            log.warn("Unable to find tag key for parsed file path. Path: " .. partial_tag.file_path)
         end
     end
 

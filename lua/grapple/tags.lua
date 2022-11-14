@@ -199,8 +199,8 @@ function M.key(scope_, opts)
     elseif opts.file_path or (opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer)) then
         local scoped_tags = M.tags(scope_)
         local buffer_name = opts.file_path or vim.api.nvim_buf_get_name(opts.buffer)
-        for key, mark in pairs(scoped_tags) do
-            if mark.file_path == buffer_name then
+        for key, tag in pairs(scoped_tags) do
+            if tag.file_path == buffer_name then
                 tag_key = key
                 break
             end
