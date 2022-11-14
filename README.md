@@ -229,7 +229,7 @@ Remove a scoped tag on a file or buffer.
 
 **Options**: [`Grapple.Options`](#grappleoptions) (one of)
 * buffer: `integer` (default: `0`)
-* file_path: `string`
+* file_path: `string` (overrides `buffer`)
 * key: [`Grapple.TagKey`](#grappletagkey)
 
 **Examples**
