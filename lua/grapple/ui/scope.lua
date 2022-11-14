@@ -51,17 +51,6 @@ end
 
 ---@param popup_ Grapple.Popup
 ---@param parser Grapple.Parser<Grapple.Scope>
----@param serializer Grapple.Serializer<Grapple.Scope>
-local function action_update(popup_, parser, serializer)
-    return function()
-        resolve(popup_, parser)
-        local lines = vim.tbl_map(serializer, tags.scopes())
-        popup.update(popup_, lines)
-    end
-end
-
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.Scope>
 local function action_close(popup_, parser)
     return function()
         resolve(popup_, parser)
@@ -83,13 +72,11 @@ function M.open(window_options)
     local popup_ = popup.open(window_options)
     popup.update(popup_, lines)
 
-    local update = action_update(popup_, parser, serializer)
     local close = action_close(popup_, parser)
 
     local keymap_options = { buffer = popup_.buffer, nowait = true }
     vim.keymap.set("n", "q", close, keymap_options)
     vim.keymap.set("n", "<esc>", close, keymap_options)
-    vim.keymap.set("n", "<c-s>", update, keymap_options)
     popup.on_leave(popup_, close)
 end
 
