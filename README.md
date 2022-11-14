@@ -6,7 +6,7 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected (and deleted) from within an editable [popup menu](#popup-menu).
+Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
 To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default configuration for the plugin can be found in the [configuration](#configuration) section below. The API provided by grapple can be found in the [usage](@usage) secion below.
 
@@ -108,20 +108,18 @@ For now, there are five different scope options:
 * `"global"`: Tags are scoped to a global namespace
 * `"directory"`: Tags are scoped to the current working directory
 * `"lsp"`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server
-* `Grapple.ScopeResolver`: Tags are scoped using a provided resolving function of type `fun(): string`
+* [`Grapple.ScopeResolver`](#grapplescoperesolver): Tags are scoped using a provided resolving function
 
 **Used during plugin setup**
 
 ```lua
 -- Configure using a builtin type
 require("grapple").setup({
-    ---@type Grapple.ScopeType
     scope = "directory"
 })
 
 -- Configure using a custom scope resolver
 require("grapple").setup({
-    ---@type Grapple.ScopeResolver
     scope = function()
         return vim.fn.getcwd()
     end
@@ -130,13 +128,16 @@ require("grapple").setup({
 
 ## Popup Menu
 
-A popup menu is available to enable easy management of tags and scopes. The opened buffer can be modified like a regular buffer, meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
-
-![grapple_showcase_popup](https://user-images.githubusercontent.com/2467016/200480227-15c0e1a8-9f3c-49e1-af1e-676b168a061b.gif)
+A popup menu is available to enable easy management of tags and scopes. The opened buffer (filetype: `grapple`) can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
 
 ### Tag Popup Menu
 
-The **tags popup menu** opens a floating window containing all the tags within a specified scope. A tag can be selected by moving to its corresponding line and pressing enter (`<cr>`). A tag (or tags) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`.
+The **tags popup menu** opens a floating window containing all the tags within a specified scope. The floating window can be exited with either `q`, `<esc>`, or any keybinding that is bound to `<esc>`. Several actions are available within the tags popup menu:
+* **Selection**: a tag can be selected by moving to its corresponding line and pressing enter (`<cr>`)
+* **Deletion**: a tag (or tags) can be removed by deleting them from the popup menu (i.e. NORMAL `dd` and VISUAL `d`)
+* **Reordering**: an [anonymous tag](#anonymous-tags) (or tags) can be reordered by moving them up or down within the popup menu. Ordering is determined by the tags position within the popup menu: top (first index) to bottom (last index)
+* **Renaming**: a [named tag](#named-tags) can be renamed by editing its key value between the `[` square brackets `]`
+
 
 **Command**: `:GrapplePopup tags`
 
