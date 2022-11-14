@@ -1,9 +1,9 @@
-local _scope = require("grapple.scope")
 local autocmds = require("grapple.autocmds")
 local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
+local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 local ui = require("grapple.ui")
@@ -21,7 +21,7 @@ function M.setup(opts)
     log.new({ level = config.log_level })
     highlight.load()
 
-    if config.scope ~= _scope.Scope.NONE and not config.integrations.resession then
+    if config.scope ~= scope.Scope.NONE and not config.integrations.resession then
         tags.load(config.save_path)
     end
 
@@ -96,16 +96,16 @@ function M.cycle_forward(opts)
     M.cycle(opts, types.Direction.FORWARD)
 end
 
----@param scope? Grapple.Scope
-function M.reset(scope)
-    tags.reset(scope or config.scope)
+---@param scope_? Grapple.Scope
+function M.reset(scope_)
+    tags.reset(scope_ or config.scope)
 end
 
----@param scope? Grapple.Scope
-function M.popup_tags(scope)
-    scope = scope or config.scope
+---@param scope_? Grapple.Scope
+function M.popup_tags(scope_)
+    scope_ = scope_ or config.scope
     local window_options = vim.deepcopy(config.popup_options)
-    ui.popup_tags(scope, window_options)
+    ui.popup_tags(scope_, window_options)
 end
 
 function M.popup_scopes()

@@ -1,110 +1,176 @@
-local _scope = require("grapple.scope")
-local _tags = require("grapple.tags")
 local log = require("grapple.log")
 local popup = require("grapple.ui.popup")
+local scope = require("grapple.scope")
+local tags = require("grapple.tags")
 
 local M = {}
 
----@param scope Grapple.Scope
----@return { tags: Grapple.TagTable, lines: string[] }
-local function itemize(scope)
-    local scoped_tags = _tags.tags(scope)
-    local scope_path = _scope.resolve(scope)
-    local sanitized_scope_path = string.gsub(scope_path, "%p", "%%%1")
+---Ingested by the serializer
+---@class Grapple.PopupTag
+---@field key Grapple.TagKey
+---@field tag Grapple.Tag
 
-    local lines = {}
-    for key, tag in pairs(scoped_tags) do
-        local relative_path = string.gsub(tag.file_path, sanitized_scope_path .. "/", "")
-        local text = " [" .. key .. "] " .. relative_path
-        table.insert(lines, text)
-    end
+---Created by the parser
+---@class Grapple.PartialTag
+---@field file_path string
+---@field key Grapple.TagKey
 
+---@param key Grapple.TagKey
+---@param tag Grapple.Tag
+---@return Grapple.PopupTag
+local function into_popup_tag(key, tag)
     return {
-        tags = scoped_tags,
-        lines = lines,
+        key = key,
+        tag = tag,
     }
 end
 
----@param line string
----@return Grapple.TagKey | nil
-local function parse(line)
-    local start, _end = string.find(line, "%[.*%]")
-    if not start or not _end then
-        log.warn("Unable to parse line into tag key. Line: " .. line)
-        return nil
-    end
-    local parsed_key = string.sub(line, start + 1, _end - 1)
-    return tonumber(parsed_key) or parsed_key
-end
+---@param scope_ Grapple.Scope
+---@return Grapple.Serializer<Grapple.PopupTag>
+local function create_serializer(scope_)
+    local scope_path = scope.resolve(scope_)
+    scope_path = string.gsub(scope_path, "%p", "%%%1")
 
----@param scope Grapple.Scope
----@param tags Grapple.TagTable
----@param _popup Grapple.Popup
-local function resolve(scope, tags, _popup)
-    local lines = vim.api.nvim_buf_get_lines(_popup.buffer, 0, -1, false)
-    local remaining_keys = {}
-    for _, line in ipairs(lines) do
-        local tag_key = parse(line)
-        if tag_key ~= nil then
-            remaining_keys[tag_key] = true
-        end
-    end
-    for key, tag in pairs(tags) do
-        if not remaining_keys[key] then
-            _tags.untag(scope, { file_path = tag.file_path })
-        end
+    ---@param popup_tag Grapple.PopupTag
+    ---@return string
+    return function(popup_tag)
+        local relative_path = string.gsub(popup_tag.tag.file_path, scope_path .. "/", "")
+        local text = " [" .. popup_tag.key .. "] " .. relative_path
+        return text
     end
 end
 
----@param scope Grapple.Scope
----@param tags Grapple.TagTable
----@param _popup Grapple.Popup
----@return function
-local function action_close(scope, tags, _popup)
+---@param scope_ Grapple.Scope
+---@return Grapple.Parser<Grapple.PartialTag>
+local function create_parser(scope_)
+    local scope_path = scope.resolve(scope_)
+
+    ---@param line string
+    ---@return Grapple.PartialTag
+    return function(line)
+        local pattern = "%[(.*)%] +(.*)"
+        local key, relative_path = string.match(line, pattern)
+        if key == nil or relative_path == nil then
+            log.warn(("Unable to parse line into tag key. Line: %s"):format(line))
+            return nil
+        end
+
+        ---@type Grapple.PartialTag
+        local partial_tag = {
+            file_path = scope_path .. "/" .. relative_path,
+            key = tonumber(key) or key,
+        }
+
+        return partial_tag
+    end
+end
+
+---@param scope_ Grapple.Scope
+---@param popup_ Grapple.Popup
+---@param parser Grapple.Parser<Grapple.PartialTag>
+local function resolve(scope_, popup_, parser)
+    ---@type string[]
+    local lines = vim.api.nvim_buf_get_lines(popup_.buffer, 0, -1, false)
+
+    ---@type Grapple.PartialTag[]
+    local partial_tags = vim.tbl_map(parser, lines)
+
+    -- Use the line number as the index for numbered tags
+    local index = 1
+    for i = 1, #partial_tags do
+        if type(partial_tags[i].key) == "number" then
+            partial_tags[i].key = index
+            index = index + 1
+        end
+    end
+
+    ---@type table<string, boolean>
+    local remaining_tags = {}
+
+    ---@type Grapple.PartialTag[]
+    local modified_tags = {}
+
+    -- Determine which tags have been modified and which were deleted
+    for _, partial_tag in ipairs(partial_tags) do
+        local key = tags.key(scope_, { file_path = partial_tag.file_path })
+        if key ~= nil then
+            if partial_tag.key ~= key then
+                table.insert(modified_tags, partial_tag)
+            end
+            remaining_tags[key] = true
+        end
+    end
+
+    -- Delete tags that do not exist anymore
+    for _, key in ipairs(tags.keys(scope_)) do
+        if not remaining_tags[key] then
+            tags.untag(scope_, { key = key })
+        end
+    end
+
+    -- Update tags that now have a different key
+    for _, partial_tag in ipairs(modified_tags) do
+        tags.tag(scope_, { file_path = partial_tag.file_path, key = partial_tag.key })
+    end
+
+    -- Fill any "holes" that were made from deletion and updating
+    tags.reorder(scope_)
+end
+
+---@param scope_ Grapple.Scope
+---@param popup_ Grapple.Popup
+---@param parser Grapple.Parser<Grapple.PartialTag>
+local function action_close(scope_, popup_, parser)
     return function()
-        resolve(scope, tags, _popup)
-        popup.close(_popup)
+        resolve(scope_, popup_, parser)
+        popup.close(popup_)
     end
 end
 
----@param scope Grapple.Scope
----@param tags Grapple.TagTable
----@param _popup Grapple.Popup
-local function action_select(scope, tags, _popup)
+---@param scope_ Grapple.Scope
+---@param popup_ Grapple.Popup
+---@param parser Grapple.Parser<Grapple.PartialTag>
+local function action_select(scope_, popup_, parser)
     return function()
         local current_line = vim.api.nvim_get_current_line()
-        local tag_key = parse(current_line)
-        local tag = _tags.find(scope, { key = tag_key or "" })
+        local partial_tag = parser(current_line)
+        action_close(scope_, popup_, parser)()
 
-        resolve(scope, tags, _popup)
-        popup.close(_popup)
-
-        if tag ~= nil then
-            _tags.select(tag)
+        local selected_tag = tags.find(scope_, { file_path = partial_tag.file_path })
+        if selected_tag ~= nil then
+            tags.select(selected_tag)
         end
     end
 end
 
----@param scope Grapple.Scope
+---@param scope_ Grapple.Scope
 ---@param window_options table
-function M.open(scope, window_options)
+function M.open(scope_, window_options)
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = _scope.resolve(scope)
+        window_options.title = scope.resolve(scope_)
         window_options.title_pos = "center"
     end
 
-    local items = itemize(scope)
-    local _popup = popup.open(items.lines, window_options)
+    local serializer = create_serializer(scope_)
+    local parser = create_parser(scope_)
 
-    local close = action_close(scope, items.tags, _popup)
-    local select = action_select(scope, items.tags, _popup)
+    local popup_tags = {}
+    for key, tag in pairs(tags.tags(scope_)) do
+        table.insert(popup_tags, into_popup_tag(key, tag))
+    end
 
-    popup.on_leave(_popup, close)
+    local lines = vim.tbl_map(serializer, popup_tags)
+    local popup_ = popup.open(window_options)
+    popup.update(popup_, lines)
 
-    local kopts = { buffer = _popup.buffer, nowait = true }
-    vim.keymap.set("n", "q", "<esc>", vim.tbl_extend("keep", { remap = true }, kopts))
-    vim.keymap.set("n", "<esc>", close, kopts)
-    vim.keymap.set("n", "<cr>", select, kopts)
+    local close = action_close(scope_, popup_, parser)
+    local select = action_select(scope_, popup_, parser)
+
+    local keymap_options = { buffer = popup_.buffer, nowait = true }
+    vim.keymap.set("n", "q", close, keymap_options)
+    vim.keymap.set("n", "<esc>", close, keymap_options)
+    vim.keymap.set("n", "<cr>", select, keymap_options)
+    popup.on_leave(popup_, close)
 end
 
 return M

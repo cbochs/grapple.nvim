@@ -4,13 +4,18 @@ local M = {}
 ---@field buffer integer
 ---@field window integer
 
+---@generic T
+---@alias Grapple.Serializer fun(item: T): string
+
+---@generic T
+---@alias Grapple.Parser fun(line: string): T
+
 ---@param lines string[]
 ---@return Grapple.Popup
-function M.open(lines, window_options)
+function M.open(window_options)
     local buffer = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(buffer, "filetype", "grapple")
     vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
-    vim.api.nvim_buf_set_lines(buffer, 0, -1, false, lines)
 
     window_options.row = math.floor(((vim.o.lines - window_options.height) / 2) - 1)
     window_options.col = math.floor((vim.o.columns - window_options.width) / 2)
@@ -23,6 +28,12 @@ function M.open(lines, window_options)
     }
 
     return popup
+end
+
+---@param popup Grapple.Popup
+---@param lines string[]
+function M.update(popup, lines)
+    vim.api.nvim_buf_set_lines(popup.buffer, 0, -1, false, lines)
 end
 
 ---@param popup Grapple.Popup
