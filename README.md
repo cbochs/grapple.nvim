@@ -6,9 +6,9 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#tagging) within a [project scope](@tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected (and deleted) from within an editable [popup](#popup-menu).
+Grapple is a plugin that aims to provide immediate navigation to important files by means of [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected (and deleted) from within an editable [popup menu](#popup-menu).
 
-To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! You can find the default configuration for the plugin in the section [below](#configuration).
+To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default configuration for the plugin can be found in the [configuration](#configuration) section below. The API provided by grapple can be found in the [usage](@usage) secion below.
 
 ## Features
 
@@ -78,55 +78,23 @@ require("grapple").setup({
 })
 ```
 
-## Tagging
+## File Tags
 
-A `tag` is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
+A **tag** is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
 
-There are a few types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#tag-scopes) to prevent marks in one project polluting the namespace of another.
+There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#tag-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below.
 
 ### Anonymous Tags
 
 This is the _default_ tag type. Anonymous tags are added to a list, where they may be accessed by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
 
-Anonymous tags are useful if you're familiar with plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
-
-**Command** `:GrappleTag [key={index}] [buffer={buffer}]`
-
-```lua
--- Create an anonymous tag
-require("grapple").tag()
-require("grapple").tag({ key = {index} })
-
--- Select an anonymous tag
-require("grapple").select({ key = {index} })
-
--- Cycle to the next tag in the list
-require("grapple").cycle_backward()
-require("grapple").cycle_forward()
-
--- Delete an anonymous tag
-require("grapple").untag() -- untag the current buffer
-require("grapple").untag({ key = {index} })
-```
+Anonymous tags are similar to those found in plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
 
 ### Named Tags
 
 Tags that are given a name are considered to be **named tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
 
 Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag. See the [suggested keymaps](#named-tag-keymaps)
-
-**Command** `:GrappleTag key={name} [buffer={buffer}]`
-
-```lua
--- Create a named tag
-require("grapple").tag({ key = "{name}" })
-
--- Select a named tag
-require("grapple").select({ key = "{name}" })
-
--- Delete a named tag
-require("grapple").untag({ key = "{name}" })
-```
 
 ### Tag Scopes
 
@@ -151,7 +119,7 @@ require("grapple").setup({
     scope = "directory"
 })
 
--- Configure using a custom resolver
+-- Configure using a custom scope resolver
 require("grapple").setup({
     ---@type Grapple.ScopeResolver
     scope = function()
@@ -160,41 +128,23 @@ require("grapple").setup({
 })
 ```
 
-### Selecting Tags
-
-**Command**: `:GrappleSelect [key={name} or key={index}] [buffer={buffer}]`
-
-### Deleting Tags
-
-**Commands**:
-* `:GrappleUntag [key={name} or key={index}] [buffer={buffer}]`
-* `:GrappleReset [scope]`
-
-```lua
--- Untag the current buffer
-require("grapple").untag()
-
--- Delete a specific tag
-require("grapple").untag({ key = "{name}" or {index} })
-
--- Delete all tags in the current scope
-require("grapple").reset()
-
--- Delete all tags in a different scope
-require("grapple").reset("global")
-```
-
-### Popup Menu
+## Popup Menu
 
 A popup menu is available to enable easy management of tags and scopes. The opened buffer can be modified like a regular buffer, meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
 
 ![grapple_showcase_popup](https://user-images.githubusercontent.com/2467016/200480227-15c0e1a8-9f3c-49e1-af1e-676b168a061b.gif)
 
-#### Tag popup menu
+### Tag Popup Menu
 
-The **tags** popup menu opens a floating window containing all the tags within a specified scope. A tag can be selected by moving to its corresponding line and pressing enter (`<cr>`). A tag (or tags) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`.
+The **tags popup menu** opens a floating window containing all the tags within a specified scope. A tag can be selected by moving to its corresponding line and pressing enter (`<cr>`). A tag (or tags) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`.
 
 **Command**: `:GrapplePopup tags`
+
+**API**: `require("grapple").popup_tags(scope)`
+
+**Scope**: [`Grapple.Scope`](#grapplescope)
+
+**Examples**
 
 ```lua
 -- Open the tags popup menu in the current scope
@@ -204,17 +154,161 @@ require("grapple").popup_tags()
 require("grapple").popup_tags("global")
 ```
 
-#### Scope popup menu
+### Scope Popup Menu
 
-The **scopes** popup menu opens a floating window containing all the scope paths that have been created. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the scope path.
+The **scopes popup menu** opens a floating window containing all the scope paths that have been created. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the scope path.
 
 **Command**: `:GrapplePopup scopes`
 
+**API**: `require("grapple.popup_scopes()`
+
+**Examples**
+
 ```lua
+-- Open the scopes popup menu
 require("grapple").popup_scopes()
 ```
 
-### Suggested Keymaps
+## Usage
+
+### Tagging a file
+
+Create a scoped tag on a file or buffer with an (optional) tag key.
+
+**Note**: only one tag can be created _per scope per file_. If a tag already exists for the given file or buffer, it will be overridden with the new tag.
+
+**Command**: `:GrappleTag [key={index}] [buffer={buffer}] [file_path={file_path}]`
+
+**API**: `require("grapple").tag(opts: Grapple.Options)`
+
+**Options**: [`Grapple.Options`](#grappleoptions)
+* buffer: `integer` (default: `0`)
+* file_path: `string` (overrides `buffer`)
+* key: [`Grapple.TagKey`](#grappletagkey)
+
+**Examples**
+
+```lua
+-- Tag the current buffer
+require("grapple").tag()
+
+-- Tag a file using its file path
+require("grapple").tag({ file_path = "{file_path}" })
+
+-- Tag the curent buffer using a specified key
+require("grapple").tag({ key = {index} })
+require("grapple").tag({ key = "{name}" })
+```
+
+### Toggling a tag on a file
+
+Conditionally tag or untag a file or buffer based on whether the tag already exists or not.
+
+**Command**: `:GrappleToggle [key={index}] [buffer={buffer}] [file_path={file_path}]`
+
+**API**: `require("grapple").toggle(opts)`
+
+**Options**: [`Grapple.Options`](#grappleoptions)
+* buffer: `integer` (default: `0`)
+* file_path: `string` (overrides `buffer`)
+* key: [`Grapple.TagKey`](#grappletagkey) (optional)
+
+```lua
+-- Toggle a tag on the current buffer
+require("grapple").toggle()
+```
+
+### Removing a tag on a file
+
+Remove a scoped tag on a file or buffer.
+
+**Command**: `:GrappleUntag [key={name} or key={index}] [buffer={buffer}] [file_path={file_path}]`
+
+**API**: `require("grapple").untag(opts)`
+
+**Options**: [`Grapple.Options`](#grappleoptions) (one of)
+* buffer: `integer` (default: `0`)
+* file_path: `string`
+* key: [`Grapple.TagKey`](#grappletagkey)
+
+**Examples**
+
+```lua
+-- Untag the current buffer
+require("grapple").untag()
+
+-- Untag a file using its file path
+require("grapple").untag({ file_path = "{file_path}" })
+
+-- Untag a file using its tag key
+require("grapple").untag({ key = {index} })
+require("grapple").untag({ key = "{name}" })
+```
+
+### Selecting a tagged file
+
+Open a tagged file or buffer in the current window.
+
+**Command**: `:GrappleSelect [key={index} or key={name}]`
+
+**API**: `require("grapple").select(opts)`
+
+**Options**: [`Grapple.Options`](#grappleoptions) (one of)
+* buffer: `integer`
+* file_path: `string`
+* key: [`Grapple.TagKey`](#grappletagkey)
+
+**Examples**
+
+```lua
+-- Select an anonymous (numbered) tag
+require("grapple").select({ key = {index} })
+
+-- Select a named tag
+require("grapple").select({ key = "{name}" })
+```
+
+### Cycling through tagged files
+
+Select the next available tagged file from the scoped tag list.
+
+**Note**: only [anonymous tags](#anonymous-tags) are cycled through, not [named tags](#named-tags).
+
+**Command**: N/A
+
+**API**:
+* `require("grapple").cycle_backward()`
+* `require("grapple").cycle_forward()`
+
+```lua
+-- Cycle to the previous tagged file
+require("grapple").cycle_backward()
+
+-- Cycle to the next tagged file
+require("grapple").cycle_forward()
+```
+
+### Resetting a tag scope
+
+Clear all tags for a tag scope.
+
+**Command**: `:GrappleReset [scope]`
+
+**API**: `require("grapple").reset(scope)`
+
+**Scope**: [`Grapple.Scope`](#grapplescope) (optional)
+
+**Examples**
+
+```lua
+-- Reset tags for the current scope
+require("grapple").reset()
+
+-- Reset tags for a specified scope
+require("grapple").reset("global")
+```
+
+## Suggested Keymaps
 
 #### Anonymous tag keymaps
 
@@ -236,17 +330,17 @@ end, {})
 
 ## Integrations
 
-### Lualine
+### [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim)
 
-A simple [lualine](https://github.com/nvim-lualine/lualine.nvim) component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
+A simple lualine component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
 
-**Tag inactive**
+**Untagged buffer**
 
-<img width="276" alt="Screen Shot 2022-11-01 at 07 02 09" src="https://user-images.githubusercontent.com/2467016/199238779-955bd8f3-f406-4a61-b027-ac64d049481a.png">
+<img width="240" alt="Screen Shot 2022-11-01 at 07 02 09" src="https://user-images.githubusercontent.com/2467016/199238779-955bd8f3-f406-4a61-b027-ac64d049481a.png">
 
-**Tag active**
+**Tagged buffer**
 
-<img width="276" alt="Screen Shot 2022-11-01 at 07 02 38" src="https://user-images.githubusercontent.com/2467016/199238764-96678f97-8603-45d9-ba2e-9a512ce93727.png">
+<img width="240" alt="Screen Shot 2022-11-01 at 07 02 38" src="https://user-images.githubusercontent.com/2467016/199238764-96678f97-8603-45d9-ba2e-9a512ce93727.png">
 
 **Usage**
 
@@ -267,9 +361,9 @@ M.groups = {
 }
 ```
 
-### Resession
+### [resession.nvim](https://github.com/stevearc/resession.nvim)
 
-Backend support is available to use [resession.nvim](https://github.com/stevearc/resession.nvim) for persisting tag state.
+Support is available to use [resession.nvim](https://github.com/stevearc/resession.nvim) for persisting tag state.
 
 **Usage**
 
@@ -288,6 +382,67 @@ require("resession").setup({
     }
 })
 ```
+
+## Grapple Types
+
+<details open>
+<summary>Type Definitions</summary>
+
+### `Grapple.Options`
+
+Options available for most top-level tagging actions (e.g. tag, untag, select, toggle, etc).
+
+**Type**: `table`
+
+#### `options.buffer`: `integer`
+#### `options.file_path`: `string`
+#### `options.key`: [`Grapple.TagKey`](#grappletagkey)
+
+---
+
+### `Grapple.Tag`
+
+A tag contains two pieces of information: the absolute `file_path` of the tagged file, and the last known `cursor` location. A tag is stored in a tag table with a [`Grapple.TagKey`](#grappletagkey), but can only be deterministically identified by its `file_path`.
+
+**Type**: `table`
+
+#### `tag.file_path`: `string`
+#### `tag.cursor`: `integer[2]` (row, column)
+
+---
+
+### `Grapple.TagKey`
+
+A tag may be referenced as an [anonymous tag](#anonymous-tags) by its index (`integer`) or a [named tag](#named-tags) by its key (`string`).
+
+**Type**: `integer` | `string`
+
+---
+
+### `Grapple.Scope`
+
+A scope determines how tags are separated for a given project. There are several builtin options available as [`Grapple.ScopeType`](#grapplescopetype). If the builtin options don't suit a particular use-case, a [`Grapple.ScopeResolver`](#grapplescoperesolver) is also permitted for finer control. Finally, a scope can also be a `string` directory path.
+
+**Type**: [`Grapple.ScopeType`](#grapplescopetype) | [`Grapple.ScopeResolver`](#grapplescoperesolver) | `string`
+
+---
+
+### `Grapple.ScopeType`
+
+**Type**: `enum`
+
+#### `scope.NONE`: `"none"`
+#### `scope.GLOBAL`: `"global"`
+#### `scope.DIRECTORY`: `"directory"`
+#### `scope.LSP`: `"lsp"`
+
+---
+
+### `Grapple.ScopeResolver`
+
+**Type**: `fun(): string`
+
+</details>
 
 ## Inspiration and Thanks
 
