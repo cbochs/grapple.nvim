@@ -1,0 +1,612 @@
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 November 16
+
+==============================================================================
+Table of Contents                             *grapple.nvim-table-of-contents*
+
+1. Grapple.nvim                                    |grapple.nvim-grapple.nvim|
+  - Introduction                                   |grapple.nvim-introduction|
+  - Features                                           |grapple.nvim-features|
+  - Requirements                                   |grapple.nvim-requirements|
+  - Installation                                   |grapple.nvim-installation|
+  - Configuration                                 |grapple.nvim-configuration|
+  - File Tags                                         |grapple.nvim-file-tags|
+  - Popup Menu                                       |grapple.nvim-popup-menu|
+  - Usage                                                 |grapple.nvim-usage|
+  - Suggested Keymaps                         |grapple.nvim-suggested-keymaps|
+  - Integrations                                   |grapple.nvim-integrations|
+  - Grapple Types                                 |grapple.nvim-grapple-types|
+  - Inspiration and Thanks               |grapple.nvim-inspiration-and-thanks|
+
+==============================================================================
+1. Grapple.nvim                                    *grapple.nvim-grapple.nvim*
+
+<div class="figure">
+<img src="https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif" title="fig:"/>
+<p class="caption">grapple_showcase_tagging</p>
+</div>
+
+_Theme: catppuccin <https://github.com/catppuccin/nvim>_
+
+INTRODUCTION                                       *grapple.nvim-introduction*
+
+Grapple is a plugin that aims to provide immediate navigation to important
+files (and its last known cursor location) by means of persistent
+|grapple.nvim-file-tags| within a |grapple.nvim-project-scope|. Tagged files
+can be bound to a |grapple.nvim-keymap| or selected from within an editable
+|grapple.nvim-popup-menu|.
+
+To get started, |grapple.nvim-install| the plugin using your preferred package
+manager, setup the plugin, and give it a go! Default configuration for the
+plugin can be found in the |grapple.nvim-configuration| section below. The API
+provided by Grapple can be found in the |grapple.nvim-usage| section below.
+
+FEATURES                                               *grapple.nvim-features*
+
+
+- **Project scoped** file tagging for immediate navigation
+- **Persistent** cursor tracking for tagged files
+- **Popup** menu to manage tags and scopes as regular text
+- **Integration** with portal.nvim <https://github.com/cbochs/portal.nvim> for additional jump options
+
+
+REQUIREMENTS                                       *grapple.nvim-requirements*
+
+
+- Neovim >= 0.5 <https://github.com/neovim/neovim/releases/tag/v0.5.0>
+- Neovim >= 0.9 - OPTIONAL for popup title
+
+
+INSTALLATION                                       *grapple.nvim-installation*
+
+PACKER <HTTPS://GITHUB.COM/WBTHOMASON/PACKER.NVIM> ~
+
+>
+    use {
+        "cbochs/grapple.nvim",
+        config = function()
+            require("grapple").setup({
+                -- Your configuration goes here
+                -- Leave empty to use the default configuration
+                -- Please see the Configuration section below for more information
+            })
+        end
+    }
+<
+
+
+PLUG <HTTPS://GITHUB.COM/JUNEGUNN/VIM-PLUG> ~
+
+>
+    Plug "cbochs/grapple.nvim"
+<
+
+
+CONFIGURATION                                     *grapple.nvim-configuration*
+
+The following is the default configuration. All configuration options may be
+overridden during plugin setup.
+
+>
+    require("grapple").setup({
+        ---@type "debug" | "info" | "warn" | "error"
+        log_level = "warn",
+    
+        ---The scope used when creating, selecting, and deleting tags
+        ---@type Grapple.Scope
+        scope = "global",
+    
+        ---The save location for tags
+        save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+    
+        ---Window options used for the popup menu
+        popup_options = {
+            relative = "editor",
+            width = 60,
+            height = 12,
+            style = "minimal",
+            focusable = false,
+            border = "single",
+        },
+    
+        integrations = {
+            ---Support for saving tag state using resession.nvim
+            resession = false,
+        },
+    })
+<
+
+
+FILE TAGS                                             *grapple.nvim-file-tags*
+
+A **tag** is a persistent tag on a file or buffer. It is a means of indicating
+a file you want to return to. When a file is tagged, Grapple will save your
+cursor location so that when you jump back, your cursor is placed right where
+you left off. In a sense, tags are like file-level marks (`:h mark`).
+
+There are a couple types of tag types available, each with a different use-case
+in mind. The options available are |grapple.nvim-anonymous| and
+|grapple.nvim-named| tags. In addition, tags are |grapple.nvim-scoped| to
+prevent tags in one project polluting the namespace of another. For command and
+API information, please see the |grapple.nvim-usage| below.
+
+ANONYMOUS TAGS ~
+
+This is the _default_ tag type. Anonymous tags are added to a list, where they
+may be accessed by index, cycled through, or jumped to using plugins such as
+portal.nvim <https://github.com/cbochs/portal.nvim>.
+
+Anonymous tags are similar to those found in plugins like harpoon
+<https://github.com/ThePrimeagen/harpoon>.
+
+NAMED TAGS ~
+
+Tags that are given a name are considered to be **named tags**. These tags will
+not be cycled through with `cycle_{backward, forward}`, but instead must be
+explicitly selected.
+
+Named tags are useful if you want one or two keymaps to be used for tagging and
+selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to
+`select/toggle` a file tag. See the |grapple.nvim-suggested-keymaps|
+
+TAG SCOPES ~
+
+A **scope** is a means of namespacing tags to a specific project. During
+runtime, scopes are resolved into a file path, which - in turn - are used as
+the "root" location for a set of tags.
+
+Some scopes may be falliable (i.e. `"lsp"`). Whenever a scope is unable to
+resolve to a file path, the scope will fallback to `"directory"`. Below are the
+available scope options:
+
+
+- `"none"`: Tags are ephemeral and deleted on exit
+- `"global"`: Tags are scoped to a global namespace
+- `"directory"`: Tags are scoped to the current working directory
+- `"static"`: Tags are scoped to neovim’s initial working directory
+- `"lsp"`: Tags are scoped using the `root_dir` of the current buffer’s attached LSP server
+- |grapple.nvim-`grapple.scoperesolver`|: Tags are scoped using a provided resolving function
+
+
+**Used during plugin setup**
+
+>
+    -- Configure using a builtin type
+    require("grapple").setup({
+        scope = "directory"
+    })
+    
+    -- Configure using a custom scope resolver
+    require("grapple").setup({
+        scope = function()
+            return vim.fn.getcwd()
+        end
+    })
+<
+
+
+POPUP MENU                                           *grapple.nvim-popup-menu*
+
+A popup menu is available to enable easy management of tags and scopes. The
+opened buffer (filetype: `grapple`) can be modified like a regular buffer;
+meaning items can be selected, modified, reordered, or deleted with well-known
+vim motions. Currently, there are two available popup menus: one for
+|grapple.nvim-tags| and another for |grapple.nvim-scopes|.
+
+TAG POPUP MENU ~
+
+The **tags popup menu** opens a floating window containing all the tags within
+a specified scope. The floating window can be exited with either `q`, `<esc>`,
+or any keybinding that is bound to `<esc>`. Several actions are available
+within the tags popup menu: **Selection**: a tag can be selected by moving to
+its corresponding line and pressing enter (`<cr>`) **Deletion**: a tag (or
+tags) can be removed by deleting them from the popup menu (i.e. NORMAL `dd`
+and VISUAL `d`) **Reordering**: an |grapple.nvim-anonymous-tag| (or tags) can
+be reordered by moving them up or down within the popup menu. Ordering is
+determined by the tags position within the popup menu: top (first index) to
+bottom (last index) **Renaming**: a |grapple.nvim-named-tag| can be renamed by
+editing its key value between the `[` square brackets `]`
+
+**Command**: `:GrapplePopup tags`
+
+**API**: `require("grapple").popup_tags(scope)`
+
+**Scope**: |grapple.nvim-`grapple.scope`| (optional, default: `config.scope`)
+
+**Examples**
+
+>
+    -- Open the tags popup menu in the current scope
+    require("grapple").popup_tags()
+    
+    -- Open the tags popup menu in a different scope
+    require("grapple").popup_tags("global")
+<
+
+
+SCOPE POPUP MENU ~
+
+The **scopes popup menu** opens a floating window containing all the scope
+paths that have been created. A scope (or scopes) can be deleted with typical
+vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited
+with either `q` or any keybinding that is bound to `<esc>`. The total number of
+tags within a scope will be displayed to the left of the scope path.
+
+**Command**: `:GrapplePopup scopes`
+
+**API**: `require("grapple.popup_scopes()`
+
+**Examples**
+
+>
+    -- Open the scopes popup menu
+    require("grapple").popup_scopes()
+<
+
+
+USAGE                                                     *grapple.nvim-usage*
+
+TAGGING A FILE ~
+
+Create a scoped tag on a file or buffer with an (optional) tag key.
+
+**Note**: only one tag can be created _per scope per file_. If a tag already
+exists for the given file or buffer, it will be overridden with the new tag.
+
+**Command**: `:GrappleTag [key={index} or key={name}] [buffer={buffer}]
+[file_path={file_path}]`
+
+**API**: `require("grapple").tag(opts)`
+
+**Options**: |grapple.nvim-`grapple.options`|
+
+
+- buffer: `integer` (optional, default: `0`)
+- file_path: `string` (optional, overrides `buffer`)
+- key: |grapple.nvim-`grapple.tagkey`| (optional, default appended)
+
+
+**Examples**
+
+>
+    -- Tag the current buffer
+    require("grapple").tag()
+    
+    -- Tag a file using its file path
+    require("grapple").tag({ file_path = "{file_path}" })
+    
+    -- Tag the curent buffer using a specified key
+    require("grapple").tag({ key = 1 })
+    require("grapple").tag({ key = "{name}" })
+<
+
+
+TOGGLING A TAG ON A FILE ~
+
+Conditionally tag or untag a file or buffer based on whether the tag already
+exists or not.
+
+**Command**: `:GrappleToggle [key={index} or key={name}] [buffer={buffer}]
+[file_path={file_path}]`
+
+**API**: `require("grapple").toggle(opts)`
+
+**Options**: |grapple.nvim-`grapple.options`|
+
+
+- buffer: `integer` (optional, default: `0`)
+- file_path: `string` (optional, overrides `buffer`)
+- key: |grapple.nvim-`grapple.tagkey`| (optional, default: inherited from |grapple.nvim-tag| and |grapple.nvim-untag|)
+
+
+>
+    -- Toggle a tag on the current buffer
+    require("grapple").toggle()
+<
+
+
+REMOVING A TAG ON A FILE ~
+
+Remove a scoped tag on a file or buffer.
+
+**Command**: `:GrappleUntag [key={name} or key={index}] [buffer={buffer}]
+[file_path={file_path}]`
+
+**API**: `require("grapple").untag(opts)`
+
+**Options**: |grapple.nvim-`grapple.options`| (one of)
+
+
+- buffer: `integer` (default: `0`)
+- file_path: `string` (overrides `buffer`)
+- key: |grapple.nvim-`grapple.tagkey`| (overrides `buffer` and `file_path`)
+
+
+**Examples**
+
+>
+    -- Untag the current buffer
+    require("grapple").untag()
+    
+    -- Untag a file using its file path
+    require("grapple").untag({ file_path = "{file_path}" })
+    
+    -- Untag a file using its tag key
+    require("grapple").untag({ key = 1 })
+    require("grapple").untag({ key = "{name}" })
+<
+
+
+SELECTING A TAGGED FILE ~
+
+Open a tagged file or buffer in the current window.
+
+**Command**: `:GrappleSelect [key={index} or key={name}]`
+
+**API**: `require("grapple").select(opts)`
+
+**Options**: |grapple.nvim-`grapple.options`| (one of)
+
+
+- buffer: `integer`
+- file_path: `string`
+- key: |grapple.nvim-`grapple.tagkey`| (preferred)
+
+
+**Examples**
+
+>
+    -- Select an anonymous (numbered) tag
+    require("grapple").select({ key = 1 })
+    
+    -- Select a named tag
+    require("grapple").select({ key = "{name}" })
+<
+
+
+CYCLING THROUGH TAGGED FILES ~
+
+Select the next available tagged file from the scoped tag list.
+
+**Note**: only |grapple.nvim-anonymous-tags| are cycled through, not
+|grapple.nvim-named-tags|.
+
+**Command**: N/A
+
+**API**: `require("grapple").cycle_backward()`
+`require("grapple").cycle_forward()`
+
+>
+    -- Cycle to the previous tagged file
+    require("grapple").cycle_backward()
+    
+    -- Cycle to the next tagged file
+    require("grapple").cycle_forward()
+<
+
+
+RESETTING A TAG SCOPE ~
+
+Clear all tags for a tag scope.
+
+**Command**: `:GrappleReset [scope]`
+
+**API**: `require("grapple").reset(scope)`
+
+**Options**: |grapple.nvim-`grapple.scope`| (optional, default: `config.scope`)
+
+**Examples**
+
+>
+    -- Reset tags for the current scope
+    require("grapple").reset()
+    
+    -- Reset tags for a specified scope
+    require("grapple").reset("global")
+<
+
+
+SUGGESTED KEYMAPS                             *grapple.nvim-suggested-keymaps*
+
+                                          *grapple.nvim-Anonymous-tag-keymaps*
+
+>
+    vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
+<
+
+
+                                              *grapple.nvim-Named-tag-keymaps*
+
+>
+    vim.keymap.set("n", "<leader>j", function()
+        require("grapple").select({ key = "{name}" })
+    end, {})
+    
+    vim.keymap.set("n", "<leader>J", function()
+        require("grapple").toggle({ key = "{name}" })
+    end, {})
+<
+
+
+INTEGRATIONS                                       *grapple.nvim-integrations*
+
+LUALINE.NVIM <HTTPS://GITHUB.COM/NVIM-LUALINE/LUALINE.NVIM> ~
+
+A simple lualine component called `grapple` is provided to show whether a
+buffer is tagged or not. When a buffer is tagged, the key of the tag will be
+displayed.
+
+**Untagged buffer**
+
+<img width="240" alt="Screen Shot 2022-11-01 at 07 02 09"
+src="https://user-images.githubusercontent.com/2467016/199238779-955bd8f3-f406-4a61-b027-ac64d049481a.png">
+
+**Tagged buffer**
+
+<img width="240" alt="Screen Shot 2022-11-01 at 07 02 38"
+src="https://user-images.githubusercontent.com/2467016/199238764-96678f97-8603-45d9-ba2e-9a512ce93727.png">
+
+**Usage**
+
+>
+    require("lualine").setup({
+        sections = {
+            lualine_b = { "grapple" }
+        }
+    })
+<
+
+
+**Highlight Groups**
+
+>
+    M.groups = {
+        lualine_tag_active = "LualineGrappleTagActive",
+        lualine_tag_inactive = "LualineGrappleTagInactive",
+    }
+<
+
+
+RESESSION.NVIM <HTTPS://GITHUB.COM/STEVEARC/RESESSION.NVIM> ~
+
+Support is available to use resession.nvim
+<https://github.com/stevearc/resession.nvim> for persisting tag state.
+
+**Usage**
+
+>
+    -- Enable resession integration during grapple setup
+    require("grapple").setup({
+        integrations = {
+            resession = true
+        }
+    })
+    
+    -- Enable grapple extension during resession setup
+    require("resession").setup({
+        extensions = {
+            grapple = {}
+        }
+    })
+<
+
+
+GRAPPLE TYPES                                     *grapple.nvim-grapple-types*
+
+<details open>
+
+Type Definitions
+
+`GRAPPLE.OPTIONS` ~
+
+Options available for most top-level tagging actions (e.g. tag, untag, select,
+toggle, etc).
+
+**Type**: `table`
+
+                                               *grapple.nvim-`options.buffer`*
+
+`options.buffer`                       **Type**: `integer`
+
+
+                                            *grapple.nvim-`options.file_path`*
+
+`options.file_path`                    **Type**: `string`
+
+
+                                                  *grapple.nvim-`options.key`*
+
+`options.key`                          **Type**:
+                                       |grapple.nvim-`grapple.tagkey`|
+
+
+------------------------------------------------------------------------------
+
+`GRAPPLE.TAG` ~
+
+A tag contains two pieces of information: the absolute `file_path` of the
+tagged file, and the last known `cursor` location. A tag is stored in a tag
+table with a |grapple.nvim-`grapple.tagkey`|, but can only be deterministically
+identified by its `file_path`.
+
+**Type**: `table`
+
+                                                *grapple.nvim-`tag.file_path`*
+
+`tag.file_path`                        **Type**: `string`
+
+
+                                                   *grapple.nvim-`tag.cursor`*
+
+`tag.cursor`                           **Type**: `integer[2]` (row, column)
+
+
+------------------------------------------------------------------------------
+
+`GRAPPLE.TAGKEY` ~
+
+A tag may be referenced as an |grapple.nvim-anonymous-tag| by its index
+(`integer`) or a |grapple.nvim-named-tag| by its key (`string`).
+
+**Type**: `integer` | `string`
+
+------------------------------------------------------------------------------
+
+`GRAPPLE.SCOPE` ~
+
+A scope determines how tags are separated for a given project. There are
+several builtin options available as |grapple.nvim-`grapple.scopetype`|. If the
+builtin options don’t suit a particular use-case, a
+|grapple.nvim-`grapple.scoperesolver`| is also permitted for finer control.
+Finally, a scope can also be a `string` directory path.
+
+**Type**: |grapple.nvim-`grapple.scopetype`| |
+|grapple.nvim-`grapple.scoperesolver`| | `string`
+
+------------------------------------------------------------------------------
+
+`GRAPPLE.SCOPETYPE` ~
+
+A default set of builtin scope resolution methods.
+
+**Type**: `enum`
+
+                                                         *grapple.nvim-`NONE`*
+
+`NONE`                                 **Value**: `"none"`
+
+
+                                                       *grapple.nvim-`GLOBAL`*
+
+`GLOBAL`                               **Value**: `"global"`
+
+
+                                                    *grapple.nvim-`DIRECTORY`*
+
+`DIRECTORY`                            **Value**: `"directory"`
+
+
+                                                          *grapple.nvim-`LSP`*
+
+`LSP`                                  **Value**: `"lsp"`
+
+
+------------------------------------------------------------------------------
+
+`GRAPPLE.SCOPERESOLVER` ~
+
+A function that should return a directory path, which is used to determine what
+scope tags are saved in.
+
+**Type**: `fun(): string`
+
+INSPIRATION AND THANKS                   *grapple.nvim-inspiration-and-thanks*
+
+
+- tjdevries vlog.nvim <https://github.com/tjdevries/vlog.nvim>
+- ThePrimeagen’s harpoon <https://github.com/ThePrimeagen/harpoon>
+- kwarlwang’s bufjump.nvim <https://github.com/kwkarlwang/bufjump.nvim>
+
+
+Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
+
+vim:tw=78:ts=8:noet:ft=help:norl:
