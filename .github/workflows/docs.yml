@@ -11,6 +11,8 @@ jobs:
     name: pandoc to vimdoc
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT }}
       - name: panvimdoc
         uses: kdheepak/panvimdoc@main
         with:
@@ -21,4 +23,3 @@ jobs:
         with:
           commit_message: 'chore(docs): auto generate docs'
           branch: ${{ github.head_ref }}
-          push_options: --force
