@@ -143,7 +143,7 @@ The **tags popup menu** opens a floating window containing all the tags within a
 
 **API**: `require("grapple").popup_tags(scope)`
 
-**Scope**: [`Grapple.Scope`](#grapplescope)
+**Scope**: [`Grapple.Scope`](#grapplescope) (optional, default: `config.scope`)
 
 **Examples**
 
