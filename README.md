@@ -107,6 +107,7 @@ For now, there are five different scope options:
 * `"none"`: Tags are ephemeral and deleted on exit
 * `"global"`: Tags are scoped to a global namespace
 * `"directory"`: Tags are scoped to the current working directory
+* `"static"`: Tags are scoped to neovim's initial working directory
 * `"lsp"`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server
 * [`Grapple.ScopeResolver`](#grapplescoperesolver): Tags are scoped using a provided resolving function
 
