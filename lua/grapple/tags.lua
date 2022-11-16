@@ -96,11 +96,11 @@ function M.tag(scope_, opts)
     local cursor
 
     if opts.file_path then
-        if not state.file_exists(opts.file_path) then
+        file_path = state.resolve_file_path(opts.file_path)
+        if file_path == nil then
             log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
             error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
         end
-        file_path = opts.file_path
     elseif opts.buffer then
         if not vim.api.nvim_buf_is_valid(opts.buffer) then
             log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
@@ -198,11 +198,13 @@ function M.key(scope_, opts)
         tag_key = opts.key
     elseif opts.file_path or (opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer)) then
         local scoped_tags = M.tags(scope_)
-        local buffer_name = opts.file_path or vim.api.nvim_buf_get_name(opts.buffer)
-        for key, tag in pairs(scoped_tags) do
-            if tag.file_path == buffer_name then
-                tag_key = key
-                break
+        local file_path = state.resolve_file_path(opts.file_path) or vim.api.nvim_buf_get_name(opts.buffer)
+        if file_path ~= nil then
+            for key, tag in pairs(scoped_tags) do
+                if tag.file_path == file_path then
+                    tag_key = key
+                    break
+                end
             end
         end
     end
