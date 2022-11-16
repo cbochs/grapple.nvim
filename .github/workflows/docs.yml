@@ -21,3 +21,4 @@ jobs:
         with:
           commit_message: 'chore(docs): auto generate docs'
           branch: ${{ github.head_ref }}
+          push_options: --force
