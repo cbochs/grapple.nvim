@@ -14,12 +14,17 @@ M.Scope = {
     ---Use a global namespace for tags
     GLOBAL = "global",
 
+    ---Use the working directory set at startup
+    STATIC = "static",
+
     ---Use the current working directory as the tag namespace
     DIRECTORY = "directory",
 
     ---Use the reported "root_dir" from LSP clients as the tag namespace
     LSP = "lsp",
 }
+
+local static_directory = vim.fn.getcwd()
 
 ---@param scope Grapple.Scope
 ---@return string
@@ -33,6 +38,8 @@ function M.resolve(scope)
         scope_key = "global"
     elseif scope == M.Scope.DIRECTORY then
         scope_key = vim.fn.getcwd()
+    elseif scope == M.Scope.STATIC then
+        scope_key = static_directory
     elseif scope == M.Scope.LSP then
         -- This scope is falliable
         --
@@ -50,7 +57,7 @@ function M.resolve(scope)
         if type(resolved_scope) == "string" then
             scope_key = resolved_scope
         else
-            log.warn("Unable to resolve custom scope to a string scope key. Resolved to " .. tostring(resolved_scope))
+            log.warn("Unable to resolve custom scope to a scope path. Resolved to: " .. tostring(resolved_scope))
         end
     elseif type(scope) == "string" then
         if vim.fn.isdirectory(scope) == 0 then
