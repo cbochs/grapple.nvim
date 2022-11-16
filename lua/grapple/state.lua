@@ -56,4 +56,18 @@ function M.file_exists(file_path)
     return #found_files > 0
 end
 
+---Attempt to convert a file path into its absolute counterpart.
+---@param file_path string
+---@return string | nil
+function M.resolve_file_path(file_path)
+    local absolute_path = vim.fn.expand(file_path)
+    if string.sub(absolute_path, 1, 1) ~= "/" then
+        absolute_path = vim.fn.getcwd() .. "/" .. absolute_path
+    end
+    if not M.file_exists(absolute_path) then
+        return
+    end
+    return absolute_path
+end
+
 return M

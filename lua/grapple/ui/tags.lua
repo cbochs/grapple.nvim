@@ -29,12 +29,17 @@ end
 ---@return Grapple.Serializer<Grapple.PopupTag>
 local function create_serializer(scope_)
     local scope_path = scope.resolve(scope_)
-    scope_path = string.gsub(scope_path, "%p", "%%%1")
+
+    if vim.fn.isdirectory(scope_path) then
+        scope_path = string.gsub(scope_path .. "/", "%p", "%%%1")
+    else
+        scope_path = ""
+    end
 
     ---@param popup_tag Grapple.PopupTag
     ---@return string
     return function(popup_tag)
-        local relative_path = string.gsub(popup_tag.tag.file_path, scope_path .. "/", "")
+        local relative_path = string.gsub(popup_tag.tag.file_path, "^" .. scope_path, "")
         local text = " [" .. popup_tag.key .. "] " .. relative_path
         return text
     end
@@ -44,6 +49,9 @@ end
 ---@return Grapple.Parser<Grapple.PartialTag>
 local function create_parser(scope_)
     local scope_path = scope.resolve(scope_)
+    if not vim.fn.isdirectory(scope_path) then
+        scope_path = ""
+    end
 
     ---@param line string
     ---@return Grapple.PartialTag
