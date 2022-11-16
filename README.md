@@ -8,7 +8,7 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
-To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default configuration for the plugin can be found in the [configuration](#configuration) section below. The API provided by Grapple can be found in the [usage](#usage) secion below.
+To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default configuration for the plugin can be found in the [configuration](#configuration) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
 
 ## Features
 
@@ -178,14 +178,15 @@ Create a scoped tag on a file or buffer with an (optional) tag key.
 
 **Note**: only one tag can be created _per scope per file_. If a tag already exists for the given file or buffer, it will be overridden with the new tag.
 
-**Command**: `:GrappleTag [key={index}] [buffer={buffer}] [file_path={file_path}]`
+**Command**: `:GrappleTag [key={index} or key={name}] [buffer={buffer}] [file_path={file_path}]`
 
-**API**: `require("grapple").tag(opts: Grapple.Options)`
+**API**: `require("grapple").tag(opts)`
 
 **Options**: [`Grapple.Options`](#grappleoptions)
-* buffer: `integer` (default: `0`)
-* file_path: `string` (overrides `buffer`)
-* key: [`Grapple.TagKey`](#grappletagkey)
+
+* buffer: `integer` (optional, default: `0`)
+* file_path: `string` (optional, overrides `buffer`)
+* key: [`Grapple.TagKey`](#grappletagkey) (optional, default appended)
 
 **Examples**
 
@@ -197,7 +198,7 @@ require("grapple").tag()
 require("grapple").tag({ file_path = "{file_path}" })
 
 -- Tag the curent buffer using a specified key
-require("grapple").tag({ key = {index} })
+require("grapple").tag({ key = 1 })
 require("grapple").tag({ key = "{name}" })
 ```
 
@@ -205,14 +206,15 @@ require("grapple").tag({ key = "{name}" })
 
 Conditionally tag or untag a file or buffer based on whether the tag already exists or not.
 
-**Command**: `:GrappleToggle [key={index}] [buffer={buffer}] [file_path={file_path}]`
+**Command**: `:GrappleToggle [key={index} or key={name}] [buffer={buffer}] [file_path={file_path}]`
 
 **API**: `require("grapple").toggle(opts)`
 
 **Options**: [`Grapple.Options`](#grappleoptions)
-* buffer: `integer` (default: `0`)
-* file_path: `string` (overrides `buffer`)
-* key: [`Grapple.TagKey`](#grappletagkey) (optional)
+
+* buffer: `integer` (optional, default: `0`)
+* file_path: `string` (optional, overrides `buffer`)
+* key: [`Grapple.TagKey`](#grappletagkey) (optional, default: inherited from [tag](#taggg-a-file) and [untag](#removing-a-tag-on-a-file))
 
 ```lua
 -- Toggle a tag on the current buffer
@@ -228,9 +230,10 @@ Remove a scoped tag on a file or buffer.
 **API**: `require("grapple").untag(opts)`
 
 **Options**: [`Grapple.Options`](#grappleoptions) (one of)
+
 * buffer: `integer` (default: `0`)
 * file_path: `string` (overrides `buffer`)
-* key: [`Grapple.TagKey`](#grappletagkey)
+* key: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
 
 **Examples**
 
@@ -242,7 +245,7 @@ require("grapple").untag()
 require("grapple").untag({ file_path = "{file_path}" })
 
 -- Untag a file using its tag key
-require("grapple").untag({ key = {index} })
+require("grapple").untag({ key = 1 })
 require("grapple").untag({ key = "{name}" })
 ```
 
@@ -255,15 +258,16 @@ Open a tagged file or buffer in the current window.
 **API**: `require("grapple").select(opts)`
 
 **Options**: [`Grapple.Options`](#grappleoptions) (one of)
+
 * buffer: `integer`
 * file_path: `string`
-* key: [`Grapple.TagKey`](#grappletagkey)
+* key: [`Grapple.TagKey`](#grappletagkey) (preferred)
 
 **Examples**
 
 ```lua
 -- Select an anonymous (numbered) tag
-require("grapple").select({ key = {index} })
+require("grapple").select({ key = 1 })
 
 -- Select a named tag
 require("grapple").select({ key = "{name}" })
@@ -297,7 +301,7 @@ Clear all tags for a tag scope.
 
 **API**: `require("grapple").reset(scope)`
 
-**Scope**: [`Grapple.Scope`](#grapplescope) (optional)
+**Options**: [`Grapple.Scope`](#grapplescope) (optional, default: `config.scope`)
 
 **Examples**
 
@@ -395,9 +399,17 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 
 **Type**: `table`
 
-#### `options.buffer`: `integer`
-#### `options.file_path`: `string`
-#### `options.key`: [`Grapple.TagKey`](#grappletagkey)
+#### `options.buffer`
+
+**Type**: `integer`
+
+#### `options.file_path`
+
+**Type**: `string`
+
+#### `options.key`
+
+**Type**: [`Grapple.TagKey`](#grappletagkey)
 
 ---
 
@@ -407,8 +419,13 @@ A tag contains two pieces of information: the absolute `file_path` of the tagged
 
 **Type**: `table`
 
-#### `tag.file_path`: `string`
-#### `tag.cursor`: `integer[2]` (row, column)
+#### `tag.file_path`
+
+**Type**: `string`
+
+#### `tag.cursor`
+
+**Type**: `integer[2]` (row, column)
 
 ---
 
@@ -430,16 +447,31 @@ A scope determines how tags are separated for a given project. There are several
 
 ### `Grapple.ScopeType`
 
+A default set of builtin scope resolution methods.
+
 **Type**: `enum`
 
-#### `scope.NONE`: `"none"`
-#### `scope.GLOBAL`: `"global"`
-#### `scope.DIRECTORY`: `"directory"`
-#### `scope.LSP`: `"lsp"`
+#### `NONE`
+
+**Value**: `"none"`
+
+#### `GLOBAL`
+
+**Value**: `"global"`
+
+#### `DIRECTORY`
+
+**Value**: `"directory"`
+
+#### `LSP`
+
+**Value**: `"lsp"`
 
 ---
 
 ### `Grapple.ScopeResolver`
+
+A function that should return a directory path, which is used to determine what scope tags are saved in.
 
 **Type**: `fun(): string`
 
