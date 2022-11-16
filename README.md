@@ -100,9 +100,7 @@ Named tags are useful if you want one or two keymaps to be used for tagging and 
 
 A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are resolved into a file path, which - in turn - are used as the "root" location for a set of tags.
 
-Some scopes may be falliable (i.e. `"lsp"`). Whenever a scope is unable to resolve to a file path, the scope will fallback to `"directory"`.
-
-For now, there are five different scope options:
+Some scopes may be falliable (i.e. `"lsp"`). Whenever a scope is unable to resolve to a file path, the scope will fallback to `"directory"`. Below are the available scope options:
 
 * `"none"`: Tags are ephemeral and deleted on exit
 * `"global"`: Tags are scoped to a global namespace
