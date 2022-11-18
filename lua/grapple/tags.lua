@@ -121,7 +121,7 @@ function M.tag(scope_, opts)
 
     local old_key = M.key(scope_, { file_path = file_path })
     if old_key ~= nil then
-        log.warn(
+        log.debug(
             "Replacing tag. Old key: "
                 .. old_key
                 .. ". New key: "
@@ -196,10 +196,16 @@ function M.key(scope_, opts)
 
     if opts.key then
         tag_key = opts.key
-    elseif opts.file_path or (opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer)) then
-        local scoped_tags = M.tags(scope_)
-        local file_path = state.resolve_file_path(opts.file_path) or vim.api.nvim_buf_get_name(opts.buffer)
+    elseif opts.file_path or opts.buffer then
+        local file_path
+        if opts.file_path then
+            file_path = state.resolve_file_path(opts.file_path)
+        elseif opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
+            file_path = vim.api.nvim_buf_get_name(opts.buffer)
+        end
+
         if file_path ~= nil then
+            local scoped_tags = M.tags(scope_)
             for key, tag in pairs(scoped_tags) do
                 if tag.file_path == file_path then
                     tag_key = key
