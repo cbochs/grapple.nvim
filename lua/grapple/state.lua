@@ -52,10 +52,11 @@ end
 ---@return string | nil
 function M.resolve_path(path)
     local expanded_path = Path:new(path):expand()
-    if not M.path_exists(path) then
+    local absolute_path = Path:new(expanded_path):absolute()
+    if not M.path_exists(absolute_path) then
         return nil
     end
-    return expanded_path
+    return absolute_path
 end
 
 return M
