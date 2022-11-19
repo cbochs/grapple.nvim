@@ -165,7 +165,7 @@ function M.select(tag)
         return
     end
 
-    if not state.file_exists(tag.file_path) then
+    if not state.path_exists(tag.file_path) then
         log.warn("Tagged file does not exist.")
         return
     end
@@ -283,7 +283,7 @@ end
 
 ---@param save_path string
 function M.load(save_path)
-    if state.file_exists(save_path) then
+    if state.path_exists(save_path) then
         _tags = state.load(save_path)
     end
 end
