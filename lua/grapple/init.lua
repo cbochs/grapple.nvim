@@ -64,7 +64,7 @@ end
 
 ---@param opts? Grapple.Options
 function M.exists(opts)
-    return M.find(opts) ~= nil
+    return M.key(opts) ~= nil
 end
 
 ---@param opts? Grapple.Options
