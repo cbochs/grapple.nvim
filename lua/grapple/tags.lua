@@ -96,7 +96,7 @@ function M.tag(scope_, opts)
     local cursor
 
     if opts.file_path then
-        file_path = state.resolve_file_path(opts.file_path)
+        file_path = state.resolve_path(opts.file_path)
         if file_path == nil then
             log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
             error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
@@ -199,7 +199,7 @@ function M.key(scope_, opts)
     elseif opts.file_path or opts.buffer then
         local file_path
         if opts.file_path then
-            file_path = state.resolve_file_path(opts.file_path)
+            file_path = state.resolve_path(opts.file_path)
         elseif opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
             file_path = vim.api.nvim_buf_get_name(opts.buffer)
         end

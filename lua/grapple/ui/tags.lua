@@ -1,3 +1,4 @@
+local Path = require("plenary.path")
 local log = require("grapple.log")
 local popup = require("grapple.ui.popup")
 local scope = require("grapple.scope")
@@ -29,18 +30,15 @@ end
 ---@return Grapple.Serializer<Grapple.PopupTag>
 local function create_serializer(scope_)
     local scope_path = scope.resolve(scope_)
-
-    if vim.fn.isdirectory(scope_path) == 1 then
-        scope_path = string.gsub(scope_path .. "/", "%p", "%%%1")
-    else
+    if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
 
     ---@param popup_tag Grapple.PopupTag
     ---@return string
     return function(popup_tag)
-        local relative_path = string.gsub(popup_tag.tag.file_path, "^" .. scope_path, "")
-        local text = " [" .. popup_tag.key .. "] " .. relative_path
+        local relative_path = Path:new(popup_tag.tag.file_path):make_relative(scope_path)
+        local text = " [" .. popup_tag.key .. "] " .. tostring(relative_path)
         return text
     end
 end
@@ -61,22 +59,22 @@ local function create_parser(scope_)
         end
 
         local pattern = "%[(.*)%] +(.*)"
-        local key, relative_path = string.match(line, pattern)
-        if key == nil or relative_path == nil then
+        local key, parsed_path = string.match(line, pattern)
+        if key == nil or parsed_path == nil then
             log.warn(("Unable to parse line into tag key. Line: %s"):format(line))
             return nil
         end
 
         local file_path
-        if string.sub(relative_path, 1, 1) == "/" then
-            file_path = relative_path
+        if Path:new(parsed_path):is_absolute() then
+            file_path = parsed_path
         else
-            file_path = scope_path .. "/" .. relative_path
+            file_path = Path:new(scope_path) / parsed_path
         end
 
         ---@type Grapple.PartialTag
         local partial_tag = {
-            file_path = file_path,
+            file_path = tostring(file_path),
             key = tonumber(key) or key,
         }
 
