@@ -20,7 +20,8 @@ To get started, [install](#installation) the plugin using your preferred package
 ## Requirements
 
 * [Neovim >= 0.5](https://github.com/neovim/neovim/releases/tag/v0.5.0)
-* Neovim >= 0.9 - OPTIONAL for popup title
+* Neovim >= 0.9 - (Optional, for [floating window title](https://github.com/neovim/neovim/issues/17458))
+* [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 
 ## Installation
 
@@ -29,6 +30,9 @@ To get started, [install](#installation) the plugin using your preferred package
 ```lua
 use {
     "cbochs/grapple.nvim",
+    requires = {
+        "nvim-lua/plenary.nvim"
+    }
     config = function()
         require("grapple").setup({
             -- Your configuration goes here
