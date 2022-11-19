@@ -143,6 +143,8 @@ function M.untag(scope_, opts)
     local tag_key = M.key(scope_, opts)
     if tag_key ~= nil then
         _unset(scope_, tag_key)
+    else
+        log.debug("Unable to untag. Options: " .. vim.inspect(opts))
     end
 end
 
@@ -155,6 +157,8 @@ function M.update(scope_, tag, cursor)
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
         _update(scope_, new_tag, tag_key)
+    else
+        log.debug("Unable to update tag. Tag: " .. vim.inspect(tag))
     end
 end
 
