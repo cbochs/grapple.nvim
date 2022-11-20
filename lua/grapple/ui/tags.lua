@@ -133,7 +133,7 @@ local function resolve(scope_, popup_, parser)
     end
 
     -- Fill any "holes" that were made from deletion and updating
-    tags.reorder(scope_)
+    tags.compact(scope_)
 end
 
 ---@param scope_ Grapple.Scope

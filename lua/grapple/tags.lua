@@ -83,6 +83,13 @@ function M.tags(scope_)
     return vim.deepcopy(_scoped_tags(scope_))
 end
 
+---@private
+---@param scope_ Grapple.Scope
+---@return integer
+function M.count(scope_)
+    return #_scoped_tags(scope_)
+end
+
 ---@param scope_ Grapple.Scope
 function M.reset(scope_)
     local scope_path = scope.resolve(scope_)
@@ -134,7 +141,16 @@ function M.tag(scope_, opts)
         M.untag(scope_, { file_path = file_path })
     end
 
-    _set(scope_, tag, opts.key)
+    -- Key validation must be performed AFTER the old tag is removed to ensure
+    -- we correctly count the number of tags
+    local key = opts.key
+    if type(key) == "number" then
+        -- Clamp the key between [1, #tags + 1], inclusive
+        key = math.min(M.count(scope_) + 1, key)
+        key = math.max(1, key)
+    end
+
+    _set(scope_, tag, key)
 end
 
 ---@param scope_ Grapple.Scope
@@ -234,7 +250,7 @@ function M.scopes()
 end
 
 ---@param scope_ Grapple.Scope
-function M.reorder(scope_)
+function M.compact(scope_)
     local numbered_keys = vim.tbl_filter(function(key)
         return type(key) == "number"
     end, M.keys(scope_))
