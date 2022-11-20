@@ -1,3 +1,5 @@
+local Path = require("plenary.path")
+
 local M = {}
 
 ---Serialize a lua table as json idempotently.
@@ -26,46 +28,33 @@ end
 ---@return nil
 function M.save(save_path, state)
     local serialized_state = M.serialize(state)
-    local file = io.open(save_path, "w")
-    if file ~= nil then
-        file:write(serialized_state)
-        file:close()
-    end
+    Path:new(save_path):write(serialized_state, "w")
 end
 
 ---Load a lua table from a given file.
 ---@param save_path string
 ---@return table
 function M.load(save_path)
-    local file = io.open(save_path, "r")
-    if file ~= nil then
-        local serialized_state = file:read("*all")
-        local state = M.deserialize(serialized_state)
-        return state
-    end
-    return {}
+    local serialized_state = Path:new(save_path):read()
+    local state = M.deserialize(serialized_state)
+    return state
 end
 
 ---Check whether a file exists.
----@param file_path string
+---@param path string
 ---@return boolean
-function M.file_exists(file_path)
-    local save_dir = vim.fs.dirname(file_path)
-    local save_name = vim.fs.basename(file_path)
-    local found_files = vim.fs.find(save_name, { path = save_dir })
-    return #found_files > 0
+function M.path_exists(path)
+    return Path:new(path):exists()
 end
 
 ---Attempt to convert a file path into its absolute counterpart.
----@param file_path string
+---@param path string
 ---@return string | nil
-function M.resolve_file_path(file_path)
-    local absolute_path = vim.fn.expand(file_path)
-    if string.sub(absolute_path, 1, 1) ~= "/" then
-        absolute_path = vim.fn.getcwd() .. "/" .. absolute_path
-    end
-    if not M.file_exists(absolute_path) then
-        return
+function M.resolve_path(path)
+    local expanded_path = Path:new(path):expand()
+    local absolute_path = Path:new(expanded_path):absolute()
+    if not M.path_exists(absolute_path) then
+        return nil
     end
     return absolute_path
 end

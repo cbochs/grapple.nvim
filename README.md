@@ -20,7 +20,8 @@ To get started, [install](#installation) the plugin using your preferred package
 ## Requirements
 
 * [Neovim >= 0.5](https://github.com/neovim/neovim/releases/tag/v0.5.0)
-* Neovim >= 0.9 - OPTIONAL for popup title
+* Neovim >= 0.9 - (Optional, for [floating window title](https://github.com/neovim/neovim/issues/17458))
+* [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 
 ## Installation
 
@@ -29,6 +30,9 @@ To get started, [install](#installation) the plugin using your preferred package
 ```lua
 use {
     "cbochs/grapple.nvim",
+    requires = {
+        "nvim-lua/plenary.nvim"
+    },
     config = function()
         require("grapple").setup({
             -- Your configuration goes here
@@ -214,6 +218,10 @@ Conditionally tag or untag a file or buffer based on whether the tag already exi
 * buffer: `integer` (optional, default: `0`)
 * file_path: `string` (optional, overrides `buffer`)
 * key: [`Grapple.TagKey`](#grappletagkey) (optional, default: inherited from [tag](#taggg-a-file) and [untag](#removing-a-tag-on-a-file))
+
+**Note**: If a key is a number, it will be clamped between `[1, #tags + 1]`, inclusive. For example,
+* passing a `key` of `0`, the tag will be inserted at position `1`;
+* passing a `key` of `10` when there are only three tags, the tag will be appended at the end of the table (index `4`)
 
 ```lua
 -- Toggle a tag on the current buffer

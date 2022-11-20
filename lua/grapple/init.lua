@@ -37,7 +37,7 @@ end
 
 ---@param opts? Grapple.Options
 function M.untag(opts)
-    opts = opts or { buffer = 0 }
+    opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     tags.untag(config.scope, opts)
 end
 
@@ -52,13 +52,13 @@ end
 
 ---@param opts? Grapple.Options
 function M.find(opts)
-    opts = opts or { buffer = 0 }
+    opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     return tags.find(config.scope, opts)
 end
 
 ---@param opts? Grapple.Options
 function M.key(opts)
-    opts = opts or { buffer = 0 }
+    opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     return tags.key(config.scope, opts)
 end
 

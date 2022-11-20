@@ -83,6 +83,13 @@ function M.tags(scope_)
     return vim.deepcopy(_scoped_tags(scope_))
 end
 
+---@private
+---@param scope_ Grapple.Scope
+---@return integer
+function M.count(scope_)
+    return #_scoped_tags(scope_)
+end
+
 ---@param scope_ Grapple.Scope
 function M.reset(scope_)
     local scope_path = scope.resolve(scope_)
@@ -96,7 +103,7 @@ function M.tag(scope_, opts)
     local cursor
 
     if opts.file_path then
-        file_path = state.resolve_file_path(opts.file_path)
+        file_path = state.resolve_path(opts.file_path)
         if file_path == nil then
             log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
             error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
@@ -134,7 +141,16 @@ function M.tag(scope_, opts)
         M.untag(scope_, { file_path = file_path })
     end
 
-    _set(scope_, tag, opts.key)
+    -- Key validation must be performed AFTER the old tag is removed to ensure
+    -- we correctly count the number of tags
+    local key = opts.key
+    if type(key) == "number" then
+        -- Clamp the key between [1, #tags + 1], inclusive
+        key = math.min(M.count(scope_) + 1, key)
+        key = math.max(1, key)
+    end
+
+    _set(scope_, tag, key)
 end
 
 ---@param scope_ Grapple.Scope
@@ -143,6 +159,8 @@ function M.untag(scope_, opts)
     local tag_key = M.key(scope_, opts)
     if tag_key ~= nil then
         _unset(scope_, tag_key)
+    else
+        log.debug("Unable to untag. Options: " .. vim.inspect(opts))
     end
 end
 
@@ -155,6 +173,8 @@ function M.update(scope_, tag, cursor)
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
         _update(scope_, new_tag, tag_key)
+    else
+        log.debug("Unable to update tag. Tag: " .. vim.inspect(tag))
     end
 end
 
@@ -165,7 +185,7 @@ function M.select(tag)
         return
     end
 
-    if not state.file_exists(tag.file_path) then
+    if not state.path_exists(tag.file_path) then
         log.warn("Tagged file does not exist.")
         return
     end
@@ -199,7 +219,7 @@ function M.key(scope_, opts)
     elseif opts.file_path or opts.buffer then
         local file_path
         if opts.file_path then
-            file_path = state.resolve_file_path(opts.file_path)
+            file_path = state.resolve_path(opts.file_path)
         elseif opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
             file_path = vim.api.nvim_buf_get_name(opts.buffer)
         end
@@ -230,7 +250,7 @@ function M.scopes()
 end
 
 ---@param scope_ Grapple.Scope
-function M.reorder(scope_)
+function M.compact(scope_)
     local numbered_keys = vim.tbl_filter(function(key)
         return type(key) == "number"
     end, M.keys(scope_))
@@ -283,7 +303,7 @@ end
 
 ---@param save_path string
 function M.load(save_path)
-    if state.file_exists(save_path) then
+    if state.path_exists(save_path) then
         _tags = state.load(save_path)
     end
 end
