@@ -32,7 +32,7 @@ use {
     "cbochs/grapple.nvim",
     requires = {
         "nvim-lua/plenary.nvim"
-    }
+    },
     config = function()
         require("grapple").setup({
             -- Your configuration goes here
