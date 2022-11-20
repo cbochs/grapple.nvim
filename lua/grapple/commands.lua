@@ -31,7 +31,7 @@ function M.create_commands()
     vim.api.nvim_create_user_command("GrappleReset", function(opts)
         local scope = opts.fargs[1] or nil
         require("grapple").reset(scope)
-    end, { desc = "Reset tags for a given scope or the current scope" })
+    end, { desc = "Reset scoped tags" })
 
     vim.api.nvim_create_user_command("GrapplePopup", function(opts)
         local menu_type = opts.fargs[1]
@@ -40,9 +40,9 @@ function M.create_commands()
         elseif menu_type == "scopes" then
             require("grapple").popup_scopes()
         else
-            error("Incorrect popup type. Only 'tags' or 'scopes' is supported.")
+            error("Incorrect popup type. Must be one of 'tags' or 'scopes'")
         end
-    end, { desc = "Opens a popup menu for tags within the current scope or all scope paths" })
+    end, { desc = "Opens the grapple popup menu", nargs = "*" })
 end
 
 return M
