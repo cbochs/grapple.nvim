@@ -121,6 +121,11 @@ require("grapple").setup({
     scope = "directory"
 })
 
+-- Configure using a bultin root directory resolver
+require("grapple").setup({
+    scope = require("grapple.scope").root({ ".git " })
+})
+
 -- Configure using a custom scope resolver
 require("grapple").setup({
     scope = function()

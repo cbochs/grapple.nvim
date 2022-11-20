@@ -26,6 +26,19 @@ M.Scope = {
 
 local static_directory = vim.fn.getcwd()
 
+---@param root_names string[]
+---return Grapple.ScopeResolver
+function M.root(root_names)
+    root_names = root_names or { ".git" }
+    return function()
+        local root_files = vim.fs.find(root_names, { upward = true })
+        if #root_files > 0 then
+            return vim.fs.dirname(root_files[1])
+        end
+        return nil
+    end
+end
+
 ---@param scope Grapple.Scope
 ---@return string
 function M.resolve(scope)
