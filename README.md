@@ -219,6 +219,10 @@ Conditionally tag or untag a file or buffer based on whether the tag already exi
 * file_path: `string` (optional, overrides `buffer`)
 * key: [`Grapple.TagKey`](#grappletagkey) (optional, default: inherited from [tag](#taggg-a-file) and [untag](#removing-a-tag-on-a-file))
 
+**Note**: If a key is a number, it will be clamped between `[1, #tags + 1]`, inclusive. For example,
+* passing a `key` of `0`, the tag will be inserted at position `1`;
+* passing a `key` of `10` when there are only three tags, the tag will be appended at the end of the table (index `4`)
+
 ```lua
 -- Toggle a tag on the current buffer
 require("grapple").toggle()
