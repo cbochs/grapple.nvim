@@ -19,7 +19,7 @@ local _tags = {}
 ---@private
 ---@param scope_ Grapple.Scope
 local function _scoped_tags(scope_)
-    local scope_path = scope.resolve(scope_)
+    local scope_path = scope.get(scope_)
     _tags[scope_path] = _tags[scope_path] or {}
     return _tags[scope_path]
 end
@@ -92,7 +92,7 @@ end
 
 ---@param scope_ Grapple.Scope
 function M.reset(scope_)
-    local scope_path = scope.resolve(scope_)
+    local scope_path = scope.get(scope_)
     _tags[scope_path] = nil
 end
 
@@ -276,7 +276,7 @@ function M.next(scope_, start_index, direction)
     end
 
     local step = 1
-    if direction == types.Direction.BACKWARD then
+    if direction == types.direction.backward then
         step = -1
     end
 

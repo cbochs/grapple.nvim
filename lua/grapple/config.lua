@@ -1,5 +1,3 @@
-local scope = require("grapple.scope")
-
 ---@type Grapple.Config
 local M = {}
 
@@ -10,7 +8,7 @@ local DEFAULT_CONFIG = {
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.Scope
-    scope = scope.Scope.GLOBAL,
+    scope = require("grapple.scope").static,
 
     ---The save location for tags
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",

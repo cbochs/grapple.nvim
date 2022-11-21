@@ -3,7 +3,6 @@ local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
-local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 local ui = require("grapple.ui")
@@ -21,12 +20,19 @@ function M.setup(opts)
     log.new({ level = config.log_level })
     highlight.load()
 
-    if config.scope ~= scope.Scope.NONE and not config.integrations.resession then
+    if config.scope ~= types.scope.none and not config.integrations.resession then
         tags.load(config.save_path)
     end
 
     autocmds.create_autocmds()
     commands.create_commands()
+end
+
+function M.save()
+    if config.scope == types.scope.none or config.integrations.resession then
+        return
+    end
+    tags.save(config.save_path)
 end
 
 ---@param opts? Grapple.Options
@@ -88,12 +94,12 @@ end
 
 ---@param opts? Grapple.Options
 function M.cycle_backward(opts)
-    M.cycle(opts, types.Direction.BACKWARD)
+    M.cycle(opts, types.direction.backward)
 end
 
 ---@param opts? Grapple.Options
 function M.cycle_forward(opts)
-    M.cycle(opts, types.Direction.FORWARD)
+    M.cycle(opts, types.direction.forward)
 end
 
 ---@param scope_? Grapple.Scope

@@ -29,7 +29,7 @@ end
 ---@param scope_ Grapple.Scope
 ---@return Grapple.Serializer<Grapple.PopupTag>
 local function create_serializer(scope_)
-    local scope_path = scope.resolve(scope_)
+    local scope_path = scope.get(scope_)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
@@ -46,7 +46,7 @@ end
 ---@param scope_ Grapple.Scope
 ---@return Grapple.Parser<Grapple.PartialTag>
 local function create_parser(scope_)
-    local scope_path = scope.resolve(scope_)
+    local scope_path = scope.get(scope_)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
@@ -166,7 +166,7 @@ end
 ---@param window_options table
 function M.open(scope_, window_options)
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = scope.resolve(scope_)
+        window_options.title = scope.get(scope_)
         window_options.title_pos = "center"
     end
 

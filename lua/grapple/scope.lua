@@ -1,33 +1,63 @@
 local log = require("grapple.log")
+local types = require("grapple.types")
 
 local M = {}
 
----@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver | string
+---@alias Grapple.ScopePath string
 
----@alias Grapple.ScopeResolver fun(): string
+---@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver
 
----@enum Grapple.ScopeType
-M.Scope = {
-    ---Tags are ephemeral and are deleted on exit
-    NONE = "none",
+---@alias Grapple.ScopeResolver fun(): Grapple.ScopePath | nil
 
-    ---Use a global namespace for tags
-    GLOBAL = "global",
-
-    ---Use the working directory set at startup
-    STATIC = "static",
-
-    ---Use the current working directory as the tag namespace
-    DIRECTORY = "directory",
-
-    ---Use the reported "root_dir" from LSP clients as the tag namespace
-    LSP = "lsp",
+---@type table<Grapple.ScopeType, Grapple.ScopeResolver>
+M.resolvers = {
+    [types.scope.none] = function()
+        return "__none__"
+    end,
+    [types.scope.global] = function()
+        return "__global__"
+    end,
+    [types.scope.static] = function()
+        return vim.fn.getcwd()
+    end,
+    [types.scope.directory] = function()
+        return vim.fn.getcwd()
+    end,
+    [types.scope.git] = function()
+        return M.root({ ".git" })
+    end,
+    [types.scope.lsp] = function()
+        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        if #clients > 0 then
+            local client = clients[1]
+            return client.config.root_dir
+        end
+    end,
 }
 
-local static_directory = vim.fn.getcwd()
+---@type Grapple.ScopeResolver
+local current_scope = nil
+
+---@type table<Grapple.ScopeResolver, Grapple.ScopePath>
+local cached_paths = {}
+
+---@param scope Grapple.Scope | nil
+---@return Grapple.ScopeResolver
+local function find_resolver(scope)
+    if scope == nil and current_scope ~= nil then
+        return current_scope
+    end
+    if type(scope) == "function" then
+        return scope
+    end
+    if M.resolvers[scope] ~= nil then
+        return M.resolvers[scope]
+    end
+    error("Unable to find scope resolver. Scope: " .. tostring(scope))
+end
 
 ---@param root_names string[]
----return Grapple.ScopeResolver
+---@return Grapple.ScopeResolver
 function M.root(root_names)
     root_names = root_names or { ".git" }
     return function()
@@ -39,56 +69,45 @@ function M.root(root_names)
     end
 end
 
+---@param scope? Grapple.Scope
+---@return Grapple.ScopePath | nil
+function M.get(scope)
+    scope = find_resolver(scope)
+    if cached_paths[scope] ~= nil then
+        return cached_paths[scope]
+    end
+    return M.update(scope)
+end
+
 ---@param scope Grapple.Scope
----@return string
-function M.resolve(scope)
-    local scope_key
+function M.set(scope)
+    current_scope = find_resolver(scope)
+end
 
-    -- Perform scope resolution
-    if scope == M.Scope.NONE then
-        scope_key = "none"
-    elseif scope == M.Scope.GLOBAL then
-        scope_key = "global"
-    elseif scope == M.Scope.DIRECTORY then
-        scope_key = vim.fn.getcwd()
-    elseif scope == M.Scope.STATIC then
-        scope_key = static_directory
-    elseif scope == M.Scope.LSP then
-        -- This scope is falliable
-        --
-        -- There's no good way to disambiguate which client to use when multiple
-        -- are present. For that reason, we choose to take the first active
-        -- client that is attached to the current buffer.
-        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
-        if #clients > 0 then
-            local client = clients[1]
-            scope_key = client.config.root_dir
-        end
-    elseif type(scope) == "function" then
-        -- This scope is falliable
-        local resolved_scope = scope()
-        if type(resolved_scope) == "string" then
-            scope_key = resolved_scope
-        else
-            log.warn("Unable to resolve custom scope to a scope path. Resolved to: " .. tostring(resolved_scope))
-        end
-    elseif type(scope) == "string" then
-        if vim.fn.isdirectory(scope) == 0 then
-            log.warn("The resolved scope path does not exist as a directory. Path: " .. scope)
-        end
-        scope_key = scope
+---@param scope? Grapple.Scope
+function M.update(scope)
+    scope = find_resolver(scope)
+    cached_paths[scope] = M.resolve(scope)
+    return cached_paths[scope]
+end
+
+---@param scope_resolver Grapple.ScopeResolver
+---@return Grapple.ScopePath | nil
+function M.resolve(scope_resolver)
+    local ok, scope_path = pcall(scope_resolver)
+    if not ok or type(scope_path) ~= "string" then
+        log.warn("Unable to resolve scope. Resolved to: " .. tostring(scope_path))
     end
+    return scope_path
+end
 
-    -- Fallback to the DIRECTORY scope when necessary
-    if scope_key == nil then
-        scope_key = M.resolve(M.Scope.DIRECTORY)
+---@param scope? Grapple.Scope
+function M.invalidate(scope)
+    if scope == nil then
+        cached_paths = {}
     end
-
-    -- By this point, scope_key is guaranteed to have been resolved
-    ---@type string
-    scope_key = scope_key
-
-    return scope_key
+    scope = find_resolver(scope)
+    cached_paths[scope] = nil
 end
 
 return M
