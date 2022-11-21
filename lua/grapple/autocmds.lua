@@ -18,7 +18,7 @@ function M.create_autocmds()
         pattern = "*",
         callback = function()
             local config = require("grapple.config")
-            local tag = require("grapple.tags").find()
+            local tag = require("grapple").find()
             if tag ~= nil then
                 local cursor = vim.api.nvim_win_get_cursor(0)
                 require("grapple.tags").update(config.scope, tag, cursor)
