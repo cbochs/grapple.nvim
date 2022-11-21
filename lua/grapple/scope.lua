@@ -53,6 +53,9 @@ local function find_resolver(scope)
     if M.resolvers[scope] ~= nil then
         return M.resolvers[scope]
     end
+    if vim.tbl_contains(vim.tbl_values(cached_paths), scope) then
+        return scope
+    end
     error("Unable to find scope resolver. Scope: " .. tostring(scope))
 end
 
