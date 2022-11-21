@@ -70,7 +70,7 @@ end
 
 ---@param opts? Grapple.Options
 function M.exists(opts)
-    return M.key(opts) ~= nil
+    return M.key(config.scope, opts or {}) ~= nil
 end
 
 ---@param opts? Grapple.Options
