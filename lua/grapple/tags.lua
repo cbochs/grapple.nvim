@@ -17,9 +17,22 @@ local M = {}
 local _tags = {}
 
 ---@private
----@param scope_ Grapple.Scope
+---@param scope_ Grapple.Scope | Grapple.ScopePath
+---@return Grapple.ScopePath
+local function _resolve_scope(scope_)
+    local scope_path
+    if type(scope_) == "string" and _tags[scope_] then
+        scope_path = scope_
+    else
+        scope_path = scope.get(scope_)
+    end
+    return scope_path
+end
+
+---@private
+---@param scope_ Grapple.Scope | Grapple.ScopePath
 local function _scoped_tags(scope_)
-    local scope_path = scope.get(scope_)
+    local scope_path = _resolve_scope(scope_)
     _tags[scope_path] = _tags[scope_path] or {}
     return _tags[scope_path]
 end
@@ -92,7 +105,7 @@ end
 
 ---@param scope_ Grapple.Scope
 function M.reset(scope_)
-    local scope_path = scope.get(scope_)
+    local scope_path = _resolve_scope(scope_)
     _tags[scope_path] = nil
 end
 

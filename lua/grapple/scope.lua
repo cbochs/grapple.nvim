@@ -5,7 +5,7 @@ local M = {}
 
 ---@alias Grapple.ScopePath string
 
----@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver | Grapple.ScopePath
+---@alias Grapple.Scope Grapple.ScopeType | Grapple.ScopeResolver
 
 ---@alias Grapple.ScopeResolver fun(): Grapple.ScopePath | nil
 
@@ -42,7 +42,7 @@ local current_scope = nil
 local cached_paths = {}
 
 ---@param scope Grapple.Scope | nil
----@return Grapple.ScopeResolver | nil
+---@return Grapple.ScopeResolver
 local function find_resolver(scope)
     if scope == nil and current_scope ~= nil then
         return current_scope
@@ -53,6 +53,10 @@ local function find_resolver(scope)
     if M.resolvers[scope] ~= nil then
         return M.resolvers[scope]
     end
+    if vim.tbl_contains(vim.tbl_values(cached_paths), scope) then
+        return scope
+    end
+    error("Unable to find scope resolver. Scope: " .. tostring(scope))
 end
 
 ---@param root_names string[]
@@ -75,23 +79,12 @@ function M.get(scope)
     if cached_paths[scope_resolver] ~= nil then
         return cached_paths[scope_resolver]
     end
-
-    if scope_resolver == nil then
-        if vim.tbl_contains(vim.tbl_values(cached_paths), scope) then
-            return scope
-        end
-        error("Unable to get scope path. Scope: " .. tostring(scope))
-    end
-
     return M.update(scope)
 end
 
 ---@param scope Grapple.Scope
 function M.set(scope)
     local scope_resolver = find_resolver(scope)
-    if scope_resolver == nil then
-        error("Unable to set scope. Scope: " .. tostring(scope))
-    end
     current_scope = scope_resolver
 end
 
