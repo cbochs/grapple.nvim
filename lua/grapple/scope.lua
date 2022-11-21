@@ -35,18 +35,12 @@ M.resolvers = {
     end,
 }
 
----@type Grapple.ScopeResolver
-local current_scope = nil
-
 ---@type table<Grapple.ScopeResolver, Grapple.ScopePath>
 local cached_paths = {}
 
 ---@param scope Grapple.Scope | nil
 ---@return Grapple.ScopeResolver
 local function find_resolver(scope)
-    if scope == nil and current_scope ~= nil then
-        return current_scope
-    end
     if type(scope) == "function" then
         return scope
     end
@@ -80,12 +74,6 @@ function M.get(scope)
         return cached_paths[scope_resolver]
     end
     return M.update(scope)
-end
-
----@param scope Grapple.Scope
-function M.set(scope)
-    local scope_resolver = find_resolver(scope)
-    current_scope = scope_resolver
 end
 
 ---@param scope? Grapple.Scope
