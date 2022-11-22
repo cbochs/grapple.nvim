@@ -1,4 +1,5 @@
 local Path = require("plenary.path")
+local config = require("grapple.config")
 
 local M = {}
 
@@ -24,7 +25,7 @@ end
 ---Serialize a lua table as json idempotently.
 ---@param state table | string
 ---@return string
-function M.serialize(state)
+local function serialize(state)
     if type(state) == "string" then
         return state
     end
@@ -34,33 +35,35 @@ end
 ---Deserialize a json blob into a lua table idempotently.
 ---@param serialized_state table | string
 ---@return table
-function M.deserialize(serialized_state)
+local function deserialize(serialized_state)
     if type(serialized_state) ~= "string" then
         return serialized_state
     end
     return vim.fn.json_decode(serialized_state)
 end
 
----@param save_path string
 ---@param state_key
+---@param save_path? string
 ---@return table
-function M.load(save_path, state_key)
-    local state_path = Path:new(save_path) / encode(state_key)
+function M.load(state_key, save_path)
+    save_path = Path:new(save_path or config.save_path)
+
+    local state_path = save_path / encode(state_key)
     if not state_path:exists() then
         return
     end
 
     local serialized_state = Path:new(state_path):read()
-    local state = M.deserialize(serialized_state)
+    local state = deserialize(serialized_state)
 
     return state
 end
 
----@param save_path string
 ---@param state table
+---@param save_path? string
 ---@return nil
-function M.save(save_path, state)
-    save_path = Path:new(save_path)
+function M.save(state, save_path)
+    save_path = Path:new(save_path or config.save_path)
     if not save_path:exists() then
         save_path:mkdir()
     end
@@ -71,15 +74,15 @@ function M.save(save_path, state)
         if vim.tbl_isempty(sub_state) and state_path:exists() then
             state_path:rm()
         else
-            local serialized_state = M.serialize(sub_state)
+            local serialized_state = serialize(sub_state)
             state_path:write(serialized_state, "w")
         end
     end
 end
 
----@param save_path string
+---@param save_path? string
 function M.available(save_path)
-    save_path = Path:new(save_path)
+    save_path = Path:new(save_path or config.save_path)
     if not save_path:exists() then
         return 0
     end

@@ -328,8 +328,8 @@ function M.next(scope_, start_index, direction)
 end
 
 ---@param save_path string
-function M.save(save_path)
-    state.save(save_path, _prune(_tags))
+function M.save()
+    state.save(_prune(_tags))
 end
 
 ---@private

@@ -17,12 +17,9 @@ local M = {}
 ---@param opts? Grapple.Config
 function M.setup(opts)
     config.load(opts)
+
     log.new({ level = config.log_level })
     highlight.load()
-
-    if config.scope ~= types.scope.none and not config.integrations.resession then
-        tags.load(config.save_path)
-    end
 
     autocmds.create_autocmds()
     commands.create_commands()
@@ -32,7 +29,7 @@ function M.save()
     if config.scope == types.scope.none or config.integrations.resession then
         return
     end
-    tags.save(config.save_path)
+    tags.save()
 end
 
 ---@param opts? Grapple.Options
