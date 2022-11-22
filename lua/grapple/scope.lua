@@ -50,6 +50,7 @@ local function find_resolver(scope)
     if vim.tbl_contains(vim.tbl_values(cached_paths), scope) then
         return scope
     end
+    log.error("Unable to find scope resolver. Scope: " .. tostring(scope))
     error("Unable to find scope resolver. Scope: " .. tostring(scope))
 end
 
@@ -93,11 +94,8 @@ function M.resolve(scope_resolver)
     return scope_path
 end
 
----@param scope? Grapple.Scope
+---@param scope Grapple.Scope
 function M.invalidate(scope)
-    if scope == nil then
-        cached_paths = {}
-    end
     scope = find_resolver(scope)
     cached_paths[scope] = nil
 end

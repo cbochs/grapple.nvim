@@ -31,7 +31,7 @@ function M.create_autocmds()
         group = "Grapple",
         callback = function()
             local types = require("grapple.types")
-            require("grapple.scope").update(types.scope.static)
+            require("grapple.scope").invalidate(types.scope.static)
         end,
     })
 
@@ -40,7 +40,7 @@ function M.create_autocmds()
         group = "Grapple",
         callback = function()
             local types = require("grapple.types")
-            require("grapple.scope").update(types.scope.directory)
+            require("grapple.scope").invalidate(types.scope.directory)
         end,
     })
 
@@ -49,7 +49,7 @@ function M.create_autocmds()
         group = "Grapple",
         callback = function()
             local types = require("grapple.types")
-            require("grapple.scope").update(types.scope.lsp)
+            require("grapple.scope").invalidate(types.scope.lsp)
         end,
     })
 end
