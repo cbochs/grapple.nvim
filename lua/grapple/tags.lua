@@ -1,3 +1,4 @@
+local Path = require("plenary.path")
 local log = require("grapple.log")
 local scope = require("grapple.scope")
 local state = require("grapple.state")
@@ -17,6 +18,18 @@ local M = {}
 local _tags = {}
 
 ---@private
+---@param path string
+---@return string | nil
+local function _resolve_path(path)
+    local expanded_path = Path:new(path):expand()
+    local absolute_path = Path:new(expanded_path):absolute()
+    if not Path:new(absolute_path):exists() then
+        return nil
+    end
+    return absolute_path
+end
+
+---@private
 ---@param scope_ Grapple.Scope | Grapple.ScopePath
 ---@return Grapple.ScopePath
 local function _resolve_scope(scope_)
@@ -33,7 +46,7 @@ end
 ---@param scope_ Grapple.Scope | Grapple.ScopePath
 local function _scoped_tags(scope_)
     local scope_path = _resolve_scope(scope_)
-    _tags[scope_path] = _tags[scope_path] or {}
+    _tags[scope_path] = _tags[scope_path] or state.load(scope_path) or {}
     return _tags[scope_path]
 end
 
@@ -81,12 +94,12 @@ local function _unset(scope_, key)
 end
 
 ---@private
-local function _prune()
-    for _, scope_path in ipairs(vim.tbl_keys(_tags)) do
-        if vim.tbl_isempty(_tags[scope_path]) then
-            _tags[scope_path] = nil
-        end
-    end
+---@param tags table
+---@return table
+local function _prune(tags)
+    local copied_tags = vim.deepcopy(tags)
+    copied_tags[types.scope.none] = nil
+    return copied_tags
 end
 
 ---@private
@@ -116,7 +129,7 @@ function M.tag(scope_, opts)
     local cursor
 
     if opts.file_path then
-        file_path = state.resolve_path(opts.file_path)
+        file_path = _resolve_path(opts.file_path)
         if file_path == nil then
             log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
             error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
@@ -198,7 +211,7 @@ function M.select(tag)
         return
     end
 
-    if not state.path_exists(tag.file_path) then
+    if not Path:new(tag.file_path):exists() then
         log.warn("Tagged file does not exist.")
         return
     end
@@ -232,7 +245,7 @@ function M.key(scope_, opts)
     elseif opts.file_path or opts.buffer then
         local file_path
         if opts.file_path then
-            file_path = state.resolve_path(opts.file_path)
+            file_path = _resolve_path(opts.file_path)
         elseif opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
             file_path = vim.api.nvim_buf_get_name(opts.buffer)
         end
@@ -315,16 +328,8 @@ function M.next(scope_, start_index, direction)
 end
 
 ---@param save_path string
-function M.load(save_path)
-    if state.path_exists(save_path) then
-        _tags = state.load(save_path)
-    end
-end
-
----@param save_path string
 function M.save(save_path)
-    _prune()
-    state.save(save_path, _tags)
+    state.save(save_path, _prune(_tags))
 end
 
 ---@private
@@ -336,8 +341,7 @@ end
 ---@private
 ---@return table<string, Grapple.Tag[]>
 function M._raw_save()
-    _prune()
-    return _tags
+    return _prune(_tags)
 end
 
 return M

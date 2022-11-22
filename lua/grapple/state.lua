@@ -2,6 +2,25 @@ local Path = require("plenary.path")
 
 local M = {}
 
+---Reference: https://github.com/golgote/neturl/blob/master/lib/net/url.lua
+---@param str string
+---@return string
+local function encode(str)
+    return (
+        str:gsub("([^%w])", function(v)
+            return string.upper(string.format("%%%02x", string.byte(v)))
+        end)
+    )
+end
+
+---@param str string
+---@return string
+local function decode(str)
+    return (str:gsub("%%(%x%x)", function(c)
+        return string.char(tonumber(c, 16))
+    end))
+end
+
 ---Serialize a lua table as json idempotently.
 ---@param state table | string
 ---@return string
@@ -22,41 +41,55 @@ function M.deserialize(serialized_state)
     return vim.fn.json_decode(serialized_state)
 end
 
----Save a lua table to a given file.
+---@param save_path string
+---@param state_key
+---@return table
+function M.load(save_path, state_key)
+    local state_path = Path:new(save_path) / encode(state_key)
+    if not state_path:exists() then
+        return
+    end
+
+    local serialized_state = Path:new(state_path):read()
+    local state = M.deserialize(serialized_state)
+
+    return state
+end
+
 ---@param save_path string
 ---@param state table
 ---@return nil
 function M.save(save_path, state)
-    local serialized_state = M.serialize(state)
-    Path:new(save_path):write(serialized_state, "w")
-end
-
----Load a lua table from a given file.
----@param save_path string
----@return table
-function M.load(save_path)
-    local serialized_state = Path:new(save_path):read()
-    local state = M.deserialize(serialized_state)
-    return state
-end
-
----Check whether a file exists.
----@param path string
----@return boolean
-function M.path_exists(path)
-    return Path:new(path):exists()
-end
-
----Attempt to convert a file path into its absolute counterpart.
----@param path string
----@return string | nil
-function M.resolve_path(path)
-    local expanded_path = Path:new(path):expand()
-    local absolute_path = Path:new(expanded_path):absolute()
-    if not M.path_exists(absolute_path) then
-        return nil
+    save_path = Path:new(save_path)
+    if not save_path:exists() then
+        save_path:mkdir()
     end
-    return absolute_path
+
+    for state_key, sub_state in pairs(state) do
+        -- todo(cbochs): sync state properly instead of just overwriting it
+        local state_path = save_path / encode(state_key)
+        if vim.tbl_isempty(sub_state) and state_path:exists() then
+            state_path:rm()
+        else
+            local serialized_state = M.serialize(sub_state)
+            state_path:write(serialized_state, "w")
+        end
+    end
+end
+
+---@param save_path string
+function M.available(save_path)
+    save_path = Path:new(save_path)
+    if not save_path:exists() then
+        return 0
+    end
+
+    local available = {}
+    for encoded_key, _ in vim.fs.dir(tostring(save_path)) do
+        table.insert(available, decode(encoded_key))
+    end
+
+    return available
 end
 
 return M

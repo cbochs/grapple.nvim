@@ -1,3 +1,5 @@
+local Path = require("plenary.path")
+
 ---@type Grapple.Config
 local M = {}
 
@@ -11,7 +13,8 @@ local DEFAULT_CONFIG = {
     scope = require("grapple.scope").static,
 
     ---The save location for tags
-    save_path = vim.fn.stdpath("data") .. "/" .. "grapple.json",
+    ---@type string
+    save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
 
     ---Window options used for the popup menu
     popup_options = {
