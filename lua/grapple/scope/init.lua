@@ -88,6 +88,7 @@ function M.resolver(scope_function, opts)
     local scope_resolver = {
         key = scope_key,
         resolve = scope_function,
+        invalidates = opts.invalidates,
         autocmd = nil,
     }
 
