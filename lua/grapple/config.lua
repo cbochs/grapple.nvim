@@ -1,4 +1,5 @@
 local Path = require("plenary.path")
+local types = require("grapple.types")
 
 ---@type Grapple.Config
 local M = {}
@@ -9,8 +10,8 @@ local DEFAULT_CONFIG = {
     log_level = "warn",
 
     ---The scope used when creating, selecting, and deleting tags
-    ---@type Grapple.Scope
-    scope = require("grapple.scope").builtin.static,
+    ---@type Grapple.ScopeKey | Grapple.ScopeResolver
+    scope = types.scope.static,
 
     ---The save location for tags
     ---@type string

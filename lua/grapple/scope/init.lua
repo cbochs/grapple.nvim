@@ -17,84 +17,42 @@ local M = {}
 ---@field resolve Grapple.ScopeFunction
 ---@field autocmd integer | nil
 
----@alias Grapple.ScopeType Grapple.ScopePath | Grapple.ScopeResolver
+---@alias Grapple.ScopeType Grapple.ScopeKey | Grapple.ScopeResolver
+
+---@alias Grapple.Scope Grapple.ScopePath | Grapple.ScopeType
 
 ---@type table<Grapple.ScopeKey, Grapple.ScopePath>
 local cached_paths = {}
 
 ---@type table<Grapple.ScopeKey, Grapple.ScopeResolver>
-local resolvers = {}
+M.resolvers = {}
 
----@type table<string, Grapple.ScopeResolver>
-M.builtin = {
-    ---Tags are ephemeral and are deleted on exit
-    none = M.resolver(function()
-        return "__none__"
-    end, {}),
+---@param scope_type Grapple.ScopeType
+---@return Grapple.ScopeResolver
+local function find_resolver(scope_type)
+    if M.resolvers[scope_type] ~= nil then
+        return M.resolvers[scope_type]
+    end
 
-    ---Use a global namespace for tags
-    global = M.resolver(function()
-        return "__global__"
-    end, {}),
-
-    ---Use the working directory set at startup
-    static = M.resolver(function()
-        return vim.fn.getcwd()
-    end, {}),
-
-    ---Use the current working directory as the tag namespace
-    directory = M.resolver(function()
-        return vim.fn.getcwd()
-    end, { invalidates = "DirChanged" }),
-
-    ---Use the reported "root_dir" from LSP clients as the tag namespace
-    lsp = M.resolver(function()
-        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
-        if #clients > 0 then
-            local client = clients[1]
-            return client.config.root_dir
+    if type(scope_type) == "table" then
+        if scope_type.key == nil or scope_type.resolve == nil then
+            log.error("Invalid scope resolver. Resolver: " .. vim.inspect(scope_type))
+            error("Invalid scope resolver. Resolver: " .. vim.inspect(scope_type))
         end
-    end, { invalidates = { "LspAttach", "LspDetach" } }),
-}
-
----@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
----@return Grapple.ScopeResolver | Grapple.ScopePath
-local function find_resolver(scope_resolver)
-    -- The scope type is a scope resolver
-    if type(scope_resolver) == "table" then
-        if scope_resolver.key == nil or scope_resolver.resolve == nil then
-            log.error("Invalid scope resolver. Resolver: " .. vim.inspect(scope_resolver))
-            error("Invalid scope resolver. Resolver: " .. vim.inspect(scope_resolver))
-        end
-        return scope_resolver
+        return scope_type
     end
 
-    -- The scope type is a known scope resolver
-    if resolvers[scope_resolver] ~= nil then
-        return resolvers[scope_resolver]
-    end
-
-    log.error("Unable to find scope resolver. Scope: " .. tostring(scope_resolver))
-    error("Unable to find scope resolver. Scope: " .. tostring(scope_resolver))
-end
-
----@param maybe_scope_path any
----@return boolean
-local function is_scope_path(maybe_scope_path)
-    if type(maybe_scope_path) ~= "string" then
-        return false
-    end
-    if vim.tbl_contains(vim.tbl_values(cached_paths), maybe_scope_path) then
-        return true
-    end
-    return false
+    log.error("Unable to find scope resolver. Scope: " .. tostring(scope_type))
+    error("Unable to find scope resolver. Scope: " .. tostring(scope_type))
 end
 
 ---@param scope_function Grapple.ScopeFunction
----@param opts Grapple.ScopeOptions
+---@param opts? Grapple.ScopeOptions
 ---@return Grapple.ScopeResolver
 function M.resolver(scope_function, opts)
-    if opts.key and resolvers[opts.key] ~= nil then
+    opts = opts or {}
+
+    if opts.key and M.resolvers[opts.key] ~= nil then
         -- todo(cbochs): demote this to a warning and properly clear scope resolver
         -- and its autocommands to make way for the new resolver. In addition,
         -- the scope must be invalidated
@@ -102,7 +60,7 @@ function M.resolver(scope_function, opts)
         error("Scope resolvers cannot be overridden.")
     end
 
-    local scope_key = opts.key or (#resolvers + 1)
+    local scope_key = opts.key or (#M.resolvers + 1)
 
     local autocmd
     if opts.invalidates ~= nil then
@@ -122,7 +80,7 @@ function M.resolver(scope_function, opts)
         autocmd = autocmd,
     }
 
-    resolvers[scope_key] = scope_resolver
+    M.resolvers[scope_key] = scope_resolver
 
     return scope_resolver
 end
@@ -144,7 +102,7 @@ function M.root(root_names, opts)
 end
 
 ---@param ... Grapple.ScopeResolver[]
----@return Grapple.ScopePath | nil
+---@return Grapple.ScopeResolver
 function M.fallback(...)
     local scope_resolvers = { ... }
     return M.resolver(function()
@@ -157,31 +115,21 @@ function M.fallback(...)
     end, {})
 end
 
----@param scope_type Grapple.ScopeType
+---@param scope_type Grapple.Scope
 ---@return Grapple.ScopePath | nil
 function M.get(scope_type)
-    if is_scope_path(scope_type) then
-        return scope_type
-    end
-
     local scope_resolver = find_resolver(scope_type)
     if cached_paths[scope_resolver] ~= nil then
         return cached_paths[scope_resolver]
     end
-
     return M.update(scope_type)
 end
 
 ---@param scope_type Grapple.ScopeType
 ---@return Grapple.ScopePath | nil
 function M.update(scope_type)
-    if is_scope_path(scope_type) then
-        return scope_type
-    end
-
     local scope_resolver = find_resolver(scope_type)
     cached_paths[scope_resolver.key] = M.resolve(scope_resolver.resolve)
-
     return cached_paths[scope_type]
 end
 

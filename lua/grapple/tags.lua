@@ -30,7 +30,7 @@ local function _resolve_path(path)
 end
 
 ---@private
----@param scope_ Grapple.Scope | Grapple.ScopePath
+---@param scope_ Grapple.Scope
 ---@return Grapple.ScopePath
 local function _resolve_scope(scope_)
     local scope_path
@@ -43,7 +43,7 @@ local function _resolve_scope(scope_)
 end
 
 ---@private
----@param scope_ Grapple.Scope | Grapple.ScopePath
+---@param scope_ Grapple.Scope
 local function _scoped_tags(scope_)
     local scope_path = _resolve_scope(scope_)
     _tags[scope_path] = _tags[scope_path] or state.load(scope_path) or {}
@@ -98,7 +98,7 @@ end
 ---@return table
 local function _prune(tags)
     local copied_tags = vim.deepcopy(tags)
-    copied_tags[scope.get(scope.builtin.none)] = nil
+    copied_tags[scope.get(types.scope.none)] = nil
     return copied_tags
 end
 

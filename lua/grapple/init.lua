@@ -1,9 +1,9 @@
 local autocmds = require("grapple.autocmds")
+local builtin = require("grapple.scope.builtin")
 local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
-local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 local ui = require("grapple.ui")
@@ -22,12 +22,13 @@ function M.setup(opts)
     log.new({ level = config.log_level })
     highlight.load()
 
+    builtin.create_resolvers()
     autocmds.create_autocmds()
     commands.create_commands()
 end
 
 function M.save()
-    if config.scope == scope.builtin.none or config.integrations.resession then
+    if config.scope == types.scope.none or config.integrations.resession then
         return
     end
     tags.save()
