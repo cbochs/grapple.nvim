@@ -39,6 +39,12 @@ local function _resolve_scope(scope_)
     else
         scope_path = scope.get(scope_)
     end
+
+    if scope_path == nil then
+        log.error("Unable to determine scope path. Scope: " .. vim.inspect(scope_))
+        error("Unable to determine scope path. Scope: " .. vim.inspect(scope_))
+    end
+
     return scope_path
 end
 
