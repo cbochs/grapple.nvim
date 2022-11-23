@@ -126,24 +126,24 @@ function M.fallback(...)
     end, {})
 end
 
----@param scope_type Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolver
 ---@return Grapple.ScopePath | nil
-function M.get(scope_type)
-    local scope_resolver = find_resolver(scope_type)
+function M.get(scope_resolver)
+    scope_resolver = find_resolver(scope_resolver)
     if cached_paths[scope_resolver] ~= nil then
         return cached_paths[scope_resolver]
     end
-    return M.update(scope_type)
+    return M.update(scope_resolver)
 end
 
----@param scope_type Grapple.ScopeKey | Grapple.ScopeResolver
+---@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
 ---@return Grapple.ScopePath | nil
-function M.update(scope_type)
-    local scope_resolver = find_resolver(scope_type)
+function M.update(scope_resolver)
+    scope_resolver = find_resolver(scope_resolver)
     scope_resolver = update_autocmd(scope_resolver)
 
     cached_paths[scope_resolver.key] = M.resolve(scope_resolver.resolve)
-    return cached_paths[scope_type]
+    return cached_paths[scope_resolver.key]
 end
 
 ---@param scope_function Grapple.ScopeFunction
