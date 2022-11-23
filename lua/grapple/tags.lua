@@ -161,18 +161,19 @@ function M.tag(scope_, opts)
     local old_key = M.key(scope_, { file_path = file_path })
     if old_key ~= nil then
         log.debug(
-            "Replacing tag. Old key: "
-                .. old_key
-                .. ". New key: "
-                .. (opts.key or "[tbd]")
-                .. ". Path: "
-                .. tag.file_path
+            string.format(
+                "Replacing tag. Old key: %s. New key: %s. Path: %s",
+                old_key,
+                (opts.key or "[tbd]"),
+                tag.file_path
+            )
         )
         local old_tag = M.find(scope_, { key = old_key })
         tag.cursor = old_tag.cursor
         M.untag(scope_, { file_path = file_path })
     end
 
+    -- todo(cbochs): negative indices should probably be permitted
     -- Key validation must be performed AFTER the old tag is removed to ensure
     -- we correctly count the number of tags
     local key = opts.key
@@ -202,11 +203,12 @@ end
 function M.update(scope_, tag, cursor)
     local tag_key = M.key(scope_, { file_path = tag.file_path })
     if tag_key ~= nil then
+        log.debug(string.format("Updating tag cursor. Tag: %s. New cursor: %s", vim.inspect(tag), vim.inspect(cursor)))
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
         _update(scope_, new_tag, tag_key)
     else
-        log.debug("Unable to update tag. Tag: " .. vim.inspect(tag))
+        log.debug(string.format("Unable to update tag. Tag: %s", vim.inspect(tag)))
     end
 end
 
@@ -291,6 +293,7 @@ function M.compact(scope_)
     local index = 1
     for _, key in ipairs(numbered_keys) do
         if key ~= index then
+            log.debug(string.format("Found hole in scoped tags. Tag key: %s. Expected index: %s", key, index))
             M.tag(scope_, { file_path = _get(scope_, key).file_path, key = index })
         end
         index = index + 1

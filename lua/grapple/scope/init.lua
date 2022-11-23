@@ -142,6 +142,8 @@ function M.update(scope_resolver)
     scope_resolver = find_resolver(scope_resolver)
     scope_resolver = update_autocmd(scope_resolver)
 
+    log.debug("Updating scope cache. Cache key: " .. tostring(scope_resolver.key))
+
     cached_paths[scope_resolver.key] = M.resolve(scope_resolver.resolve)
     return cached_paths[scope_resolver.key]
 end
@@ -160,6 +162,7 @@ end
 ---@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
 function M.invalidate(scope_resolver)
     scope_resolver = find_resolver(scope_resolver)
+    log.debug("Invalidating scope cache. Cache key: " .. tostring(scope_resolver.key))
     cached_paths[scope_resolver.key] = nil
 end
 
