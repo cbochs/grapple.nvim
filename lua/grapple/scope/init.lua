@@ -131,8 +131,8 @@ end
 ---@return Grapple.ScopePath | nil
 function M.get(scope_resolver)
     scope_resolver = find_resolver(scope_resolver)
-    if cached_paths[scope_resolver] ~= nil then
-        return cached_paths[scope_resolver]
+    if cached_paths[scope_resolver.key] ~= nil then
+        return cached_paths[scope_resolver.key]
     end
     return M.update(scope_resolver)
 end
