@@ -98,7 +98,7 @@ end
 ---@return table
 local function _prune(tags)
     local copied_tags = vim.deepcopy(tags)
-    copied_tags[types.scope.none] = nil
+    copied_tags[scope.get(scope.builtin.none)] = nil
     return copied_tags
 end
 

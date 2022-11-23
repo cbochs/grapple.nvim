@@ -25,33 +25,6 @@ function M.create_autocmds()
             end
         end,
     })
-
-    -- Update the "static" scope when entering nvim
-    vim.api.nvim_create_autocmd({ "VimEnter" }, {
-        group = "Grapple",
-        callback = function()
-            local types = require("grapple.types")
-            require("grapple.scope").invalidate(types.scope.static)
-        end,
-    })
-
-    -- Update the "directory" scope when the directory changes
-    vim.api.nvim_create_autocmd({ "DirChanged" }, {
-        group = "Grapple",
-        callback = function()
-            local types = require("grapple.types")
-            require("grapple.scope").invalidate(types.scope.directory)
-        end,
-    })
-
-    -- Update the "lsp" scope when LSP changes
-    vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
-        group = "Grapple",
-        callback = function()
-            local types = require("grapple.types")
-            require("grapple.scope").invalidate(types.scope.lsp)
-        end,
-    })
 end
 
 return M

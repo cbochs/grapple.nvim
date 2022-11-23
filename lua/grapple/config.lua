@@ -10,7 +10,7 @@ local DEFAULT_CONFIG = {
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.Scope
-    scope = require("grapple.scope").static,
+    scope = require("grapple.scope").builtin.static,
 
     ---The save location for tags
     ---@type string
