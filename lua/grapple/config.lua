@@ -11,7 +11,7 @@ local DEFAULT_CONFIG = {
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.ScopeKey | Grapple.ScopeResolver
-    scope = types.scope.static,
+    scope = types.scope.global,
 
     ---The save location for tags
     ---@type string

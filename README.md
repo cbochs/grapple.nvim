@@ -30,7 +30,16 @@ To get started, [install](#installation) the plugin using your preferred package
 ```lua
 use {
     "cbochs/grapple.nvim",
-    requires = { "nvim-lua/plenary.nvim" },
+    requires = {
+        "nvim-lua/plenary.nvim"
+    },
+    config = function()
+        require("grapple").setup({
+            -- Your configuration goes here
+            -- Leave empty to use the default configuration
+            -- Please see the Configuration section below for more information
+        })
+    end
 }
 ```
 
@@ -42,7 +51,7 @@ Plug "cbochs/grapple.nvim"
 
 ## Configuration
 
-Below is the default configuration. Setup is **not required**, but may be overridden by invoking `require("grapple").setup`.
+The following is the default configuration. All configuration options may be overridden during plugin setup by passing them as arguments to the `grapple#setup` function.
 
 ```lua
 require("grapple").setup({
@@ -51,7 +60,7 @@ require("grapple").setup({
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.ScopeKey | Grapple.ScopeResolver
-    scope = "static",
+    scope = "global",
 
     ---The save location for tags
     save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
@@ -110,12 +119,12 @@ A **scope path** is determined by means of a **[scope resolver](#grapplescoperes
 ```lua
 -- Setup using a scope resolver's name
 require("grapple").setup({
-    scope = "global"
+    scope = "static"
 })
 
 -- Or, using the scope resolver itself
 require("grapple").setup({
-    scope = require("grapple.scope").resolvers.global
+    scope = require("grapple.scope").resolvers.static
 })
 ```
 
