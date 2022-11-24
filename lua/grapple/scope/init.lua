@@ -98,7 +98,7 @@ function M.resolver(scope_function, opts)
 
     local scope_cache = true
     if opts.scope ~= nil then
-        scope_cache = scope_cache
+        scope_cache = opts.scope
     end
 
     ---@type Grapple.ScopeResolver
