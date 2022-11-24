@@ -95,12 +95,13 @@ function M.resolver(scope_function, opts)
     end
 
     local scope_key = opts.key or (#M.resolvers + 1)
+    local scope_cache = opts.cache ~= nil and opts.cache or true
 
     ---@type Grapple.ScopeResolver
     local scope_resolver = {
         key = scope_key,
         resolve = scope_function,
-        cache = opts.cache or true,
+        cache = scope_cache,
         autocmd = nil,
     }
 
@@ -136,7 +137,7 @@ function M.fallback(...)
                 return scope_path
             end
         end
-    end, {})
+    end, { cache = false })
 end
 
 ---@param scope Grapple.Scope
@@ -150,6 +151,7 @@ function M.get(scope)
     if cached_paths[scope.key] ~= nil then
         return cached_paths[scope.key]
     end
+
     return M.update(scope)
 end
 
