@@ -8,7 +8,10 @@ function M.create_autocmds()
     vim.api.nvim_create_autocmd({ "VimLeave" }, {
         group = "Grapple",
         callback = function()
-            require("grapple").save()
+            local ok, _ = pcall(require("grapple").save)
+            if not ok then
+                require("grapple.log").warn("Unable to save tags when exiting neovim")
+            end
         end,
     })
 
@@ -18,7 +21,11 @@ function M.create_autocmds()
         pattern = "*",
         callback = function()
             local config = require("grapple.config")
-            local tag = require("grapple").find()
+            local ok, tag = pcall(require("grapple").find)
+            if not ok then
+                require("grapple.log").warn("Failed to lookup tag for current buffer on BufLeave")
+                return
+            end
             if tag ~= nil then
                 local cursor = vim.api.nvim_win_get_cursor(0)
                 require("grapple.tags").update(config.scope, tag, cursor)
