@@ -76,6 +76,12 @@ local function update_autocmd(scope_resolver)
     return scope_resolver
 end
 
+function M.reset()
+    vim.api.nvim_create_augroup("GrappleScope", { clear = true })
+    M.resolvers = {}
+    cached_paths = {}
+end
+
 ---@param scope_function Grapple.ScopeFunction
 ---@param opts? Grapple.ScopeOptions
 ---@return Grapple.ScopeResolver

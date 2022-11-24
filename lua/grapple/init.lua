@@ -4,6 +4,7 @@ local commands = require("grapple.commands")
 local config = require("grapple.config")
 local highlight = require("grapple.highlight")
 local log = require("grapple.log")
+local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 local ui = require("grapple.ui")
@@ -17,6 +18,7 @@ local M = {}
 
 ---@param opts? Grapple.Config
 function M.setup(opts)
+    scope.reset()
     builtin.create_resolvers()
     autocmds.create_autocmds()
     commands.create_commands()
