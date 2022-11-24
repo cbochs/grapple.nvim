@@ -445,7 +445,6 @@ The **tags popup menu** opens a floating window containing all the tags within a
 * **Reordering**: an [anonymous tag](#anonymous-tags) (or tags) can be reordered by moving them up or down within the popup menu. Ordering is determined by the tags position within the popup menu: top (first index) to bottom (last index)
 * **Renaming**: a [named tag](#named-tags) can be renamed by editing its key value between the `[` square brackets `]`
 
-
 **Command**: `:GrapplePopup tags`
 
 **API**: `require("grapple").popup_tags(scope)`
@@ -479,7 +478,7 @@ require("grapple").popup_scopes()
 
 ## Persistent Tag State
 
-
+**todo!(cbochs)**
 
 ## Suggested Keymaps
 
@@ -567,33 +566,20 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 
 **Type**: `table`
 
-#### `options.buffer`
-
-**Type**: `integer`
-
-#### `options.file_path`
-
-**Type**: `string`
-
-#### `options.key`
-
-**Type**: [`Grapple.TagKey`](#grappletagkey)
+* **`buffer`**: `integer`
+* **`file_path`**: `string`
+* **`key`**: [`Grapple.TagKey`](#grappletagkey)
 
 ---
 
 ### `Grapple.Tag`
 
-A tag contains two pieces of information: the absolute `file_path` of the tagged file, and the last known `cursor` location. A tag is stored in a tag table with a [`Grapple.TagKey`](#grappletagkey), but can only be deterministically identified by its `file_path`.
+A tag contains two pieces of information: the absolute `file_path` of the tagged file, and the last known `cursor` location. A tag is stored in a tag table keyed with a [`Grapple.TagKey`](#grappletagkey), but can only be deterministically identified by its `file_path`.
 
 **Type**: `table`
 
-#### `tag.file_path`
-
-**Type**: `string`
-
-#### `tag.cursor`
-
-**Type**: `integer[2]` (row, column)
+* **`file_path`**: `string`
+* **`cursor`**: `integer[2]` (row, column)
 
 ---
 
@@ -607,29 +593,54 @@ A tag may be referenced as an [anonymous tag](#anonymous-tags) by its index (`in
 
 ### `Grapple.ScopeOptions`
 
+Options available when creating custom scope resolvers. Giving a scope resolver a `key` will allow it to be identified within the `require("grapple.scope").resolvers` table. In addition, a scope may also be cached. The `cache` option may be one of the following:
+* `cache = true`: scope path is resolved once and cached until explicitly invalidated
+* `cache = false` scope path is never cached and must always be resolved
+* `cache = string | string[]` scope path is cached and invalidated when a given autocommand event is triggered (see: [`:h autocmd`](https://neovim.io/doc/user/autocmd.html))
+
+**Type**: `table`
+
+* **`key`**: `string`
+* **`cache`**: `boolean` | `string` | `string[]`
+
 ---
 
 ### `Grapple.ScopeKey`
+
+A **[scope resolver](#grapplescoperesolver-1)** is identified by its **scope key** in the `require("grapple.scope").resolvers` table. When not explicitly set in [`Grapple.ScopeOptions`](#grapplescopeoptions), a scope resolver will be appended to the end of the `resolvers` table and the resolver's key will be given that index.
+
+**Type**: `string` | `integer`
 
 ---
 
 ### `Grapple.ScopePath`
 
+**Type**: `string`
+
 ---
 
 ### `Grapple.ScopeFunction`
+
+**Type**: `fun(): Grapple.ScopePath | nil`
 
 ---
 
 ### `Grapple.ScopeResolver`
 
+**Type**: `table`
+
+* **`key`**: [`Grapple.ScopeKey`](#grapplescopekey)
+* **`resolve`**: [`Grapple.ScopeFunction`](#grapplescopefunction)
+* **`cache`**: `boolean` | `string` | `string[]`
+* **`autocmd`**: `number` | `nil`
+
 ---
 
 ### `Grapple.Scope`
 
-A scope determines how tags are separated for a given project. There are several builtin options available as [`Grapple.ScopeType`](#grapplescopetype). If the builtin options don't suit a particular use-case, a [`Grapple.ScopeResolver`](#grapplescoperesolver) is also permitted for finer control. Finally, a scope can also be a `string` directory path.
+A scope determines how tags are separated for a given project.
 
-**Type**: [`Grapple.ScopeType`](#grapplescopetype) | [`Grapple.ScopeResolver`](#grapplescoperesolver) | `string`
+**Type**: [`Grapple.ScopeKey`](#grapplescopekey) | [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
 
 </details>
 
