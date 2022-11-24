@@ -161,10 +161,9 @@ function M.update(scope_resolver)
     scope_resolver = find_resolver(scope_resolver)
     scope_resolver = update_autocmd(scope_resolver)
 
-    log.debug("Updating scope cache. Cache key: " .. tostring(scope_resolver.key))
-
     local scope_path = M.resolve(scope_resolver.resolve)
     if scope_resolver.cache ~= false then
+        log.debug("Updating scope cache. Cache key: " .. tostring(scope_resolver.key))
         cached_paths[scope_resolver.key] = scope_path
     end
 

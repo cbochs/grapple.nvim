@@ -17,14 +17,13 @@ local M = {}
 
 ---@param opts? Grapple.Config
 function M.setup(opts)
-    config.load(opts)
-
-    log.new({ level = config.log_level })
-    highlight.load()
-
     builtin.create_resolvers()
     autocmds.create_autocmds()
     commands.create_commands()
+    highlight.load()
+
+    config.load(opts)
+    log.new({ level = config.log_level })
 end
 
 ---@param opts? Grapple.Options
