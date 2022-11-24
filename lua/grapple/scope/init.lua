@@ -95,7 +95,11 @@ function M.resolver(scope_function, opts)
     end
 
     local scope_key = opts.key or (#M.resolvers + 1)
-    local scope_cache = opts.cache ~= nil and opts.cache or true
+
+    local scope_cache = true
+    if opts.scope ~= nil then
+        scope_cache = scope_cache
+    end
 
     ---@type Grapple.ScopeResolver
     local scope_resolver = {
