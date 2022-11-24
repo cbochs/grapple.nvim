@@ -27,13 +27,6 @@ function M.setup(opts)
     commands.create_commands()
 end
 
-function M.save()
-    if config.scope == types.scope.none or config.integrations.resession then
-        return
-    end
-    tags.save()
-end
-
 ---@param opts? Grapple.Options
 function M.tag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
@@ -56,6 +49,14 @@ function M.toggle(opts)
 end
 
 ---@param opts? Grapple.Options
+function M.select(opts)
+    local tag = M.find(opts)
+    if tag ~= nil then
+        tags.select(tag)
+    end
+end
+
+---@param opts? Grapple.Options
 function M.find(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     return tags.find(config.scope, opts)
@@ -70,14 +71,6 @@ end
 ---@param opts? Grapple.Options
 function M.exists(opts)
     return M.key(opts) ~= nil
-end
-
----@param opts? Grapple.Options
-function M.select(opts)
-    local tag = M.find(opts)
-    if tag ~= nil then
-        tags.select(tag)
-    end
 end
 
 ---@param opts? Grapple.Options
@@ -116,6 +109,13 @@ end
 function M.popup_scopes()
     local window_options = vim.deepcopy(config.popup_options)
     ui.popup_scopes(window_options)
+end
+
+function M.save()
+    if config.scope == types.scope.none or config.integrations.resession then
+        return
+    end
+    tags.save()
 end
 
 return M

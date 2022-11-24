@@ -26,7 +26,7 @@ function M.create_resolvers()
     ---Uses the current working directory as the tag namespace
     scope.resolver(function()
         return vim.fn.getcwd()
-    end, { key = types.scope.directory, invalidates = "DirChanged" })
+    end, { key = types.scope.directory, cache = "DirChanged" })
 
     ---Scope: "lsp"
     ---Uses the reported "root_dir" from LSP clients as the tag namespace
@@ -37,7 +37,7 @@ function M.create_resolvers()
                 local client = clients[1]
                 return client.config.root_dir
             end
-        end, { key = types.scope.lsp, invalidates = { "LspAttach", "LspDetach" } }),
+        end, { key = types.scope.lsp, cache = { "LspAttach", "LspDetach" } }),
         types.scope.static
     )
 end

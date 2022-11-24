@@ -4,7 +4,7 @@ local M = {}
 
 ---@class Grapple.ScopeOptions
 ---@field key string
----@field invalidates string | string[] | nil
+---@field cache boolean | string | string[]
 
 ---@alias Grapple.ScopeKey string | integer
 
@@ -15,7 +15,7 @@ local M = {}
 ---@class Grapple.ScopeResolver
 ---@field key Grapple.ScopeKey
 ---@field resolve Grapple.ScopeFunction
----@field invalidates string | string[] | nil
+---@field cache boolean | string | string[]
 ---@field autocmd number | nil
 
 ---@alias Grapple.Scope Grapple.ScopePath | Grapple.ScopeKey | Grapple.ScopeResolver
@@ -26,35 +26,47 @@ local cached_paths = {}
 ---@type table<Grapple.ScopeKey, Grapple.ScopeResolver>
 M.resolvers = {}
 
----@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
+---@param scope Grapple.Scope
+---@return boolean
+local function is_scope_path(scope)
+    return vim.tbl_contains(vim.tbl_values(cached_paths), scope)
+end
+
+---@param scope Grapple.Scope
+---@return boolean
+local function is_scope_key(scope)
+    return M.resolvers[scope] ~= nil
+end
+
+---@param scope Grapple.Scope
+---@return boolean
+local function is_scope_resolver(scope)
+    return type(scope) == "table" and type(scope.resolve) == "function" and scope.key ~= nil
+end
+
+---@param scope Grapple.ScopeKey | Grapple.ScopeResolver
 ---@return Grapple.ScopeResolver
-local function find_resolver(scope_resolver)
-    if M.resolvers[scope_resolver] ~= nil then
-        return M.resolvers[scope_resolver]
+local function find_resolver(scope)
+    if is_scope_key(scope) then
+        return M.resolvers[scope]
     end
-
-    if type(scope_resolver) == "table" then
-        if scope_resolver.key == nil or scope_resolver.resolve == nil then
-            log.error("Invalid scope resolver. Resolver: " .. vim.inspect(scope_resolver))
-            error("Invalid scope resolver. Resolver: " .. vim.inspect(scope_resolver))
-        end
-        return scope_resolver
+    if is_scope_resolver(scope) then
+        return scope
     end
-
-    log.error("Unable to find scope resolver. Scope: " .. tostring(scope_resolver))
-    error("Unable to find scope resolver. Scope: " .. tostring(scope_resolver))
+    log.error("Unable to find scope resolver. Scope: " .. tostring(scope))
+    error("Unable to find scope resolver. Scope: " .. tostring(scope))
 end
 
 ---@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
 ---@return Grapple.ScopeResolver
 local function update_autocmd(scope_resolver)
     scope_resolver = find_resolver(scope_resolver)
-    if scope_resolver.invalidates == nil or scope_resolver.autocmd ~= nil then
+    if type(scope_resolver.cache) == "boolean" or scope_resolver.autocmd ~= nil then
         return scope_resolver
     end
 
     local group = vim.api.nvim_create_augroup("GrappleScope", { clear = false })
-    scope_resolver.autocmd = vim.api.nvim_create_autocmd(scope_resolver.invalidates, {
+    scope_resolver.autocmd = vim.api.nvim_create_autocmd(scope_resolver.cache, {
         group = group,
         callback = function()
             M.invalidate(scope_resolver.key)
@@ -88,7 +100,7 @@ function M.resolver(scope_function, opts)
     local scope_resolver = {
         key = scope_key,
         resolve = scope_function,
-        invalidates = opts.invalidates,
+        cache = opts.cache or true,
         autocmd = nil,
     }
 
@@ -102,7 +114,7 @@ end
 ---@return Grapple.ScopeResolver
 function M.root(root_names, opts)
     root_names = type(root_names) == "string" and { root_names } or root_names
-    opts = vim.tbl_extend("force", { invalidates = "DirChanged" }, opts or {})
+    opts = vim.tbl_extend("force", { cache = "DirChanged" }, opts or {})
 
     return M.resolver(function()
         local root_files = vim.fs.find(root_names, { upward = true })
@@ -127,14 +139,18 @@ function M.fallback(...)
     end, {})
 end
 
----@param scope_resolver Grapple.ScopeResolver
+---@param scope Grapple.Scope
 ---@return Grapple.ScopePath | nil
-function M.get(scope_resolver)
-    scope_resolver = find_resolver(scope_resolver)
-    if cached_paths[scope_resolver.key] ~= nil then
-        return cached_paths[scope_resolver.key]
+function M.get(scope)
+    if is_scope_path(scope) then
+        return scope
     end
-    return M.update(scope_resolver)
+
+    scope = find_resolver(scope)
+    if cached_paths[scope.key] ~= nil then
+        return cached_paths[scope.key]
+    end
+    return M.update(scope)
 end
 
 ---@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
@@ -145,8 +161,12 @@ function M.update(scope_resolver)
 
     log.debug("Updating scope cache. Cache key: " .. tostring(scope_resolver.key))
 
-    cached_paths[scope_resolver.key] = M.resolve(scope_resolver.resolve)
-    return cached_paths[scope_resolver.key]
+    local scope_path = M.resolve(scope_resolver.resolve)
+    if scope_resolver.cache ~= false then
+        cached_paths[scope_resolver.key] = scope_path
+    end
+
+    return scope_path
 end
 
 ---@param scope_function Grapple.ScopeFunction
