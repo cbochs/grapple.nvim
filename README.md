@@ -402,11 +402,16 @@ require("grapple.scope").root(".git")
 
 Create a scope resolver that generates a scope path by attempting to get the scope path of other scope resolvers, in order.
 
-**API**: `require("grapple.scope").fallback(...)`
+**API**: `require("grapple.scope").fallback(scope_resolvers, opts)`
 
 **`returns`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
 
-**`...`**: [`Grapple.ScopeResolver[]`](#grapplescoperesolver-1)
+**`scope_resolvers`**: [`Grapple.ScopeResolver[]`](#grapplescoperesolver-1)
+
+**`opts?`**: [`Grapple.ScopeOptions[]`](#grapplescopeoptions)
+
+* **`key?`**: `string`
+* **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
 
 **Example**
 
