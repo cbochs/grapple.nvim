@@ -236,7 +236,6 @@ describe("scope", function()
             test_resolvers()
         end)
 
-        it("creates a fallback scope resolver", function() end)
         it("resolves a scope path in the fallback order", function()
             local resolver = require("grapple.scope").fallback({ "bad_nil", "basic", "cached_counter" })
             assert.equals("__basic__", require("grapple.scope").get(resolver))
