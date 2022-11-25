@@ -390,12 +390,21 @@ Create a scope resolver that generates a scope path by looking upwards for direc
 * **`key?`**: `string`
 * **`cache?`**: `boolean` | `string` | `string[]` (default: `"DirChanged"`)
 
+**Note**: it is recommended to use this with a **[fallback scope resolver](#grapplscopefallback)** to guarantee that a scope is found.
+
 **Example**
 
 ```lua
 -- Create a root scope resolver that looks for a directory containing
 -- a ".git" folder
 require("grapple.scope").root(".git")
+
+-- Create a root scope resolver that falls back to using the initial working
+-- directory for your neovim session
+require("grapple.scope").fallback({
+    require("grapple.scope").root(".git"),
+    require("grapple.scope").resolvers.static,
+})
 ```
 
 #### `grapple.scope#fallback`
@@ -419,11 +428,11 @@ Create a scope resolver that generates a scope path by attempting to get the sco
 -- Create a fallback scope resolver that first tries to use the LSP for a scope
 -- path, then looks for a ".git" repository, and finally falls back on using
 -- the initial working directory that neovim was started in
-require("grapple.scope").fallback(
+require("grapple.scope").fallback({
     require("grapple.scope").resolvers.lsp,
     require("grapple.scope").root(".git"),
     require("grapple.scope").resolvers.static
-)
+}, { key = "my_fallback" })
 ```
 
 #### `grapple.scope#invalidate`
