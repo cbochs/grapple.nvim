@@ -1,6 +1,9 @@
 local Path = require("plenary.path")
 local types = require("grapple.types")
 
+---@type Grapple.Settings
+local settings = {}
+
 ---@class Grapple.Settings
 local DEFAULT_SETTINGS = {
     ---@type "debug" | "info" | "warn" | "error"
@@ -31,11 +34,17 @@ local DEFAULT_SETTINGS = {
 }
 
 ---@type Grapple.Settings
-local settings = vim.deepcopy(DEFAULT_SETTINGS)
+local _settings = vim.deepcopy(DEFAULT_SETTINGS)
 
 ---@param overrides? Grapple.Settings
 function settings.update(overrides)
-    settings = vim.tbl_deep_extend("force", DEFAULT_SETTINGS, overrides or {})
+    _settings = vim.tbl_deep_extend("force", DEFAULT_SETTINGS, overrides or {})
 end
+
+setmetatable(settings, {
+    __index = function(_, index)
+        return _settings[index]
+    end,
+})
 
 return settings
