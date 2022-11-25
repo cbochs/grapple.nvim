@@ -136,10 +136,10 @@ function scope.root(root_names, opts)
     end, opts)
 end
 
----@param ... Grapple.ScopeResolver[]
+---@param scope_resolvers Grapple.ScopeResolver[]
+---@param opts? string
 ---@return Grapple.ScopeResolver
-function scope.fallback(...)
-    local scope_resolvers = { ... }
+function scope.fallback(scope_resolvers, opts)
     return scope.resolver(function()
         for _, scope_resolver in ipairs(scope_resolvers) do
             local scope_path = scope.get(scope_resolver)
@@ -147,7 +147,7 @@ function scope.fallback(...)
                 return scope_path
             end
         end
-    end, { cache = false })
+    end, vim.tbl_extend("force", { cache = false }, opts or {}))
 end
 
 ---@param scope_type Grapple.Scope

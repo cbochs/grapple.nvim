@@ -1,3 +1,5 @@
+local Path = require("plenary.path")
+
 local function test_resolvers()
     require("grapple.scope").resolver(function()
         return "__basic__"
@@ -57,6 +59,17 @@ describe("scope", function()
         it("gets a scope path that has been cached", function()
             require("grapple.scope").get("cached_counter")
             assert.equals("1", require("grapple.scope").get("cached_counter"))
+        end)
+
+        it("errors when the scope resolver does not exist", function()
+            local ok, _ = pcall(require("grapple.scope").get, "not a scope key")
+            assert.is_false(ok)
+        end)
+
+        it("errors when the scope resolver is not valid", function()
+            local not_a_resolver = function() end
+            local ok, _ = pcall(require("grapple.scope").get, not_a_resolver)
+            assert.is_false(ok)
         end)
     end)
 
@@ -190,8 +203,48 @@ describe("scope", function()
         end)
     end)
 
-    describe("#root", function() end)
-    describe("#fallback", function() end)
+    describe("#root", function()
+        before_each(function()
+            require("grapple.scope").reset()
+        end)
+
+        it("creates a root scope resolver", function()
+            local resolver = require("grapple.scope").root(".git")
+            assert.is_table(resolver)
+            assert.equals("DirChanged", resolver.cache)
+        end)
+
+        it("resolves a scope path when a root file exists", function()
+            local root_dir = vim.fn.getcwd()
+            local root_file = Path:new(root_dir) / "some_file"
+            root_file:touch()
+
+            local resolver = require("grapple.scope").root("some_file")
+            assert.equals(root_dir, require("grapple.scope").get(resolver))
+
+            root_file:rm()
+        end)
+
+        it("does not resolve a scope path when no root files are present", function()
+            local resolver = require("grapple.scope").root("some_file")
+            assert.is_nil(require("grapple.scope").get(resolver))
+        end)
+    end)
+
+    describe("#fallback", function()
+        before_each(function()
+            test_resolvers()
+        end)
+
+        it("creates a fallback scope resolver", function() end)
+        it("resolves a scope path in the fallback order", function()
+            local resolver = require("grapple.scope").fallback({ "bad_nil", "basic", "cached_counter" })
+            assert.equals("__basic__", require("grapple.scope").get(resolver))
+            assert.is_true(require("grapple.scope").cached("basic"))
+            assert.is_false(require("grapple.scope").cached("cached_counter"))
+            assert.is_false(require("grapple.scope").cached(resolver))
+        end)
+    end)
 
     describe("builtin", function()
         before_each(function()
