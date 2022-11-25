@@ -9,13 +9,15 @@ local types = require("grapple.types")
 ---@field cursor table
 
 ---@alias Grapple.TagKey string | integer
+
 ---@alias Grapple.TagTable table<Grapple.TagKey, Grapple.Tag>
+
 ---@alias Grapple.Cursor table
 
-local M = {}
+local tags = {}
 
----@type table<string, Grapple.Tag[]>
-local _tags = {}
+---@type table<string, Grapple.TagTable>
+local tag_state = {}
 
 ---@private
 ---@param path string
@@ -34,7 +36,7 @@ end
 ---@return Grapple.ScopePath
 local function _resolve_scope(scope_)
     local scope_path
-    if type(scope_) == "string" and _tags[scope_] then
+    if type(scope_) == "string" and tag_state[scope_] then
         scope_path = scope_
     else
         scope_path = scope.get(scope_)
@@ -52,8 +54,8 @@ end
 ---@param scope_ Grapple.Scope
 local function _scoped_tags(scope_)
     local scope_path = _resolve_scope(scope_)
-    _tags[scope_path] = _tags[scope_path] or state.load(scope_path) or {}
-    return _tags[scope_path]
+    tag_state[scope_path] = tag_state[scope_path] or state.load(scope_path) or {}
+    return tag_state[scope_path]
 end
 
 ---@private
@@ -100,10 +102,10 @@ local function _unset(scope_, key)
 end
 
 ---@private
----@param tags table
+---@param tag_state_ table<string, Grapple.TagTable>
 ---@return table
-local function _prune(tags)
-    local copied_tags = vim.deepcopy(tags)
+local function _prune(tag_state_)
+    local copied_tags = vim.deepcopy(tag_state_)
     copied_tags[scope.get(types.scope.none)] = nil
     return copied_tags
 end
@@ -111,26 +113,26 @@ end
 ---@private
 ---@param scope_ Grapple.Scope
 ---@ereturn Grapple.TagTable
-function M.tags(scope_)
+function tags.tags(scope_)
     return vim.deepcopy(_scoped_tags(scope_))
 end
 
 ---@private
 ---@param scope_ Grapple.Scope
 ---@return integer
-function M.count(scope_)
+function tags.count(scope_)
     return #_scoped_tags(scope_)
 end
 
 ---@param scope_ Grapple.Scope
-function M.reset(scope_)
+function tags.reset(scope_)
     local scope_path = _resolve_scope(scope_)
-    _tags[scope_path] = nil
+    tag_state[scope_path] = nil
 end
 
 ---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
-function M.tag(scope_, opts)
+function tags.tag(scope_, opts)
     local file_path
     local cursor
 
@@ -158,7 +160,7 @@ function M.tag(scope_, opts)
         cursor = cursor,
     }
 
-    local old_key = M.key(scope_, { file_path = file_path })
+    local old_key = tags.key(scope_, { file_path = file_path })
     if old_key ~= nil then
         log.debug(
             string.format(
@@ -168,9 +170,9 @@ function M.tag(scope_, opts)
                 tag.file_path
             )
         )
-        local old_tag = M.find(scope_, { key = old_key })
+        local old_tag = tags.find(scope_, { key = old_key })
         tag.cursor = old_tag.cursor
-        M.untag(scope_, { file_path = file_path })
+        tags.untag(scope_, { file_path = file_path })
     end
 
     -- todo(cbochs): negative indices should probably be permitted
@@ -179,7 +181,7 @@ function M.tag(scope_, opts)
     local key = opts.key
     if type(key) == "number" then
         -- Clamp the key between [1, #tags + 1], inclusive
-        key = math.min(M.count(scope_) + 1, key)
+        key = math.min(tags.count(scope_) + 1, key)
         key = math.max(1, key)
     end
 
@@ -188,8 +190,8 @@ end
 
 ---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
-function M.untag(scope_, opts)
-    local tag_key = M.key(scope_, opts)
+function tags.untag(scope_, opts)
+    local tag_key = tags.key(scope_, opts)
     if tag_key ~= nil then
         _unset(scope_, tag_key)
     else
@@ -200,8 +202,8 @@ end
 ---@param scope_ Grapple.Scope
 ---@param tag Grapple.Tag
 ---@param cursor Grapple.Cursor
-function M.update(scope_, tag, cursor)
-    local tag_key = M.key(scope_, { file_path = tag.file_path })
+function tags.update(scope_, tag, cursor)
+    local tag_key = tags.key(scope_, { file_path = tag.file_path })
     if tag_key ~= nil then
         log.debug(string.format("Updating tag cursor. Tag: %s. New cursor: %s", vim.inspect(tag), vim.inspect(cursor)))
         local new_tag = vim.deepcopy(tag)
@@ -213,7 +215,7 @@ function M.update(scope_, tag, cursor)
 end
 
 ---@param tag Grapple.Tag
-function M.select(tag)
+function tags.select(tag)
     if tag.file_path == vim.api.nvim_buf_get_name(0) then
         log.debug("Tagged file is already the currently selected buffer.")
         return
@@ -233,8 +235,8 @@ end
 ---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
 ---@return Grapple.Tag | nil
-function M.find(scope_, opts)
-    local tag_key = M.key(scope_, opts)
+function tags.find(scope_, opts)
+    local tag_key = tags.key(scope_, opts)
     if tag_key ~= nil then
         return _get(scope_, tag_key)
     else
@@ -245,7 +247,7 @@ end
 ---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
 ---@return Grapple.TagKey | nil
-function M.key(scope_, opts)
+function tags.key(scope_, opts)
     local tag_key = nil
 
     if opts.key then
@@ -259,7 +261,7 @@ function M.key(scope_, opts)
         end
 
         if file_path ~= nil then
-            local scoped_tags = M.tags(scope_)
+            local scoped_tags = tags.tags(scope_)
             for key, tag in pairs(scoped_tags) do
                 if tag.file_path == file_path then
                     tag_key = key
@@ -274,27 +276,27 @@ end
 
 ---@param scope_ Grapple.Scope
 ---@return Grapple.TagKey[]
-function M.keys(scope_)
+function tags.keys(scope_)
     return vim.tbl_keys(_scoped_tags(scope_))
 end
 
 ---@return string[]
-function M.scopes()
-    return vim.tbl_keys(_tags)
+function tags.scopes()
+    return vim.tbl_keys(tag_state)
 end
 
 ---@param scope_ Grapple.Scope
-function M.compact(scope_)
+function tags.compact(scope_)
     local numbered_keys = vim.tbl_filter(function(key)
         return type(key) == "number"
-    end, M.keys(scope_))
+    end, tags.keys(scope_))
     table.sort(numbered_keys)
 
     local index = 1
     for _, key in ipairs(numbered_keys) do
         if key ~= index then
             log.debug(string.format("Found hole in scoped tags. Tag key: %s. Expected index: %s", key, index))
-            M.tag(scope_, { file_path = _get(scope_, key).file_path, key = index })
+            tags.tag(scope_, { file_path = _get(scope_, key).file_path, key = index })
         end
         index = index + 1
     end
@@ -304,8 +306,8 @@ end
 ---@param start_index integer
 ---@param direction Grapple.Direction
 ---@return Grapple.Tag | nil
-function M.next(scope_, start_index, direction)
-    local scoped_tags = M.tags(scope_)
+function tags.next(scope_, start_index, direction)
+    local scoped_tags = tags.tags(scope_)
     if #scoped_tags == 0 then
         return nil
     end
@@ -337,20 +339,20 @@ function M.next(scope_, start_index, direction)
 end
 
 ---@param save_path string
-function M.save()
-    state.save(_prune(_tags))
+function tags.save()
+    state.save(_prune(tag_state))
 end
 
 ---@private
 ---@param data table<string, Grapple.Tag[]>
-function M._raw_load(data)
-    _tags = data
+function tags._raw_load(data)
+    tag_state = data
 end
 
 ---@private
 ---@return table<string, Grapple.Tag[]>
-function M._raw_save()
-    return _prune(_tags)
+function tags._raw_save()
+    return _prune(tag_state)
 end
 
-return M
+return tags

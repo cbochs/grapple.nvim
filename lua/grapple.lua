@@ -9,7 +9,9 @@ local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 
-local M = {}
+local grapple = {}
+
+local initialized = false
 
 --- @class Grapple.Options
 --- @field buffer integer
@@ -17,7 +19,12 @@ local M = {}
 --- @field key Grapple.TagKey
 
 ---@param opts? Grapple.Config
-function M.setup(opts)
+function grapple.setup(opts)
+    if initialized then
+        return
+    end
+    initialized = true
+
     scope.reset()
     builtin.create_resolvers()
     autocmds.create_autocmds()
@@ -28,55 +35,55 @@ function M.setup(opts)
 end
 
 ---@param opts? Grapple.Options
-function M.tag(opts)
+function grapple.tag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     tags.tag(config.scope, opts)
 end
 
 ---@param opts? Grapple.Options
-function M.untag(opts)
+function grapple.untag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     tags.untag(config.scope, opts)
 end
 
 ---@param opts? Grapple.Options
-function M.toggle(opts)
-    if M.exists(opts) then
-        M.untag(opts)
+function grapple.toggle(opts)
+    if grapple.exists(opts) then
+        grapple.untag(opts)
     else
-        M.tag(opts)
+        grapple.tag(opts)
     end
 end
 
 ---@param opts? Grapple.Options
-function M.select(opts)
-    local tag = M.find(opts)
+function grapple.select(opts)
+    local tag = grapple.find(opts)
     if tag ~= nil then
         tags.select(tag)
     end
 end
 
 ---@param opts? Grapple.Options
-function M.find(opts)
+function grapple.find(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     return tags.find(config.scope, opts)
 end
 
 ---@param opts? Grapple.Options
-function M.key(opts)
+function grapple.key(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
     return tags.key(config.scope, opts)
 end
 
 ---@param opts? Grapple.Options
-function M.exists(opts)
-    return M.key(opts) ~= nil
+function grapple.exists(opts)
+    return grapple.key(opts) ~= nil
 end
 
 ---@param opts? Grapple.Options
 ---@param direction Grapple.Direction
-function M.cycle(opts, direction)
-    local tag_key = M.key(opts)
+function grapple.cycle(opts, direction)
+    local tag_key = grapple.key(opts)
     local start_index = (type(tag_key) == "number") and tag_key or 0
     local tag = tags.next(config.scope, start_index, direction)
     if tag ~= nil then
@@ -85,37 +92,37 @@ function M.cycle(opts, direction)
 end
 
 ---@param opts? Grapple.Options
-function M.cycle_backward(opts)
-    M.cycle(opts, types.direction.backward)
+function grapple.cycle_backward(opts)
+    grapple.cycle(opts, types.direction.backward)
 end
 
 ---@param opts? Grapple.Options
-function M.cycle_forward(opts)
-    M.cycle(opts, types.direction.forward)
+function grapple.cycle_forward(opts)
+    grapple.cycle(opts, types.direction.forward)
 end
 
 ---@param scope_? Grapple.Scope
-function M.reset(scope_)
+function grapple.reset(scope_)
     tags.reset(scope_ or config.scope)
 end
 
 ---@param scope_? Grapple.Scope
-function M.popup_tags(scope_)
+function grapple.popup_tags(scope_)
     scope_ = scope_ or config.scope
     local window_options = vim.deepcopy(config.popup_options)
     popup_tags.open(scope_, window_options)
 end
 
-function M.popup_scopes()
+function grapple.popup_scopes()
     local window_options = vim.deepcopy(config.popup_options)
     popup_scope.open(window_options)
 end
 
-function M.save()
+function grapple.save()
     if config.scope == types.scope.none or config.integrations.resession then
         return
     end
     tags.save()
 end
 
-return M
+return grapple
