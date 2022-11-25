@@ -1,0 +1,5 @@
+describe("", function()
+    describe("#load", function() end)
+    describe("#save", function() end)
+    describe("#available", function() end)
+end)
