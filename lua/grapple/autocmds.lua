@@ -20,7 +20,7 @@ function M.create_autocmds()
         group = "Grapple",
         pattern = "*",
         callback = function()
-            local config = require("grapple.config")
+            local settings = require("grapple.settings")
             local ok, tag = pcall(require("grapple").find)
             if not ok then
                 require("grapple.log").warn("Failed to lookup tag for current buffer on BufLeave")
@@ -28,7 +28,7 @@ function M.create_autocmds()
             end
             if tag ~= nil then
                 local cursor = vim.api.nvim_win_get_cursor(0)
-                require("grapple.tags").update(config.scope, tag, cursor)
+                require("grapple.tags").update(settings.scope, tag, cursor)
             end
         end,
     })

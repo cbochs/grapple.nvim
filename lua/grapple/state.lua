@@ -1,5 +1,5 @@
 local Path = require("plenary.path")
-local config = require("grapple.config")
+local settings = require("grapple.settings")
 
 local M = {}
 
@@ -46,7 +46,7 @@ end
 ---@param save_path? string
 ---@return table
 function M.load(state_key, save_path)
-    save_path = Path:new(save_path or config.save_path)
+    save_path = Path:new(save_path or settings.save_path)
 
     local state_path = save_path / encode(state_key)
     if not state_path:exists() then
@@ -63,7 +63,7 @@ end
 ---@param save_path? string
 ---@return nil
 function M.save(state, save_path)
-    save_path = Path:new(save_path or config.save_path)
+    save_path = Path:new(save_path or settings.save_path)
     if not save_path:exists() then
         save_path:mkdir()
     end
@@ -82,7 +82,7 @@ end
 
 ---@param save_path? string
 function M.available(save_path)
-    save_path = Path:new(save_path or config.save_path)
+    save_path = Path:new(save_path or settings.save_path)
     if not save_path:exists() then
         return 0
     end
