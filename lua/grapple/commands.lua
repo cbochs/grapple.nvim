@@ -42,7 +42,7 @@ function M.create_commands()
         else
             error("Incorrect popup type. Must be one of 'tags' or 'scopes'")
         end
-    end, { desc = "Opens the grapple popup menu", nargs = "*" })
+    end, { desc = "Opens the grapple popup menu", nargs = "1" })
 end
 
 return M
