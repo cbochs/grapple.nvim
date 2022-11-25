@@ -192,6 +192,13 @@ function scope.resolve(scope_function)
 end
 
 ---@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
+---@return boolean
+function scope.cached(scope_resolver)
+    scope_resolver = find_resolver(scope_resolver)
+    return cached_paths[scope_resolver.key] ~= nil
+end
+
+---@param scope_resolver Grapple.ScopeKey | Grapple.ScopeResolver
 function scope.invalidate(scope_resolver)
     scope_resolver = find_resolver(scope_resolver)
     log.debug("Invalidating scope cache. Cache key: " .. tostring(scope_resolver.key))
