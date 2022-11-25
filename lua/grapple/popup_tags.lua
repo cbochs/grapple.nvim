@@ -1,6 +1,6 @@
 local Path = require("plenary.path")
 local log = require("grapple.log")
-local popup = require("grapple.ui.popup")
+local popup = require("grapple.popup")
 local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 

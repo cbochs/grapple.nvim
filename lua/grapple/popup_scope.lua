@@ -1,4 +1,4 @@
-local popup = require("grapple.ui.popup")
+local popup = require("grapple.popup")
 local tags = require("grapple.tags")
 
 local M = {}

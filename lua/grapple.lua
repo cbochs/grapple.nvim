@@ -1,13 +1,13 @@
 local autocmds = require("grapple.autocmds")
-local builtin = require("grapple.scope.builtin")
+local builtin = require("grapple.builtin")
 local commands = require("grapple.commands")
 local config = require("grapple.config")
-local highlight = require("grapple.highlight")
 local log = require("grapple.log")
+local popup_scope = require("grapple.popup_scope")
+local popup_tags = require("grapple.popup_tags")
 local scope = require("grapple.scope")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
-local ui = require("grapple.ui")
 
 local M = {}
 
@@ -22,7 +22,6 @@ function M.setup(opts)
     builtin.create_resolvers()
     autocmds.create_autocmds()
     commands.create_commands()
-    highlight.load()
 
     config.load(opts)
     log.new({ level = config.log_level })
@@ -104,12 +103,12 @@ end
 function M.popup_tags(scope_)
     scope_ = scope_ or config.scope
     local window_options = vim.deepcopy(config.popup_options)
-    ui.popup_tags(scope_, window_options)
+    popup_tags.open(scope_, window_options)
 end
 
 function M.popup_scopes()
     local window_options = vim.deepcopy(config.popup_options)
-    ui.popup_scopes(window_options)
+    popup_scope.open(window_options)
 end
 
 function M.save()
