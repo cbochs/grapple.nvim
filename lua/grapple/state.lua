@@ -1,7 +1,7 @@
 local Path = require("plenary.path")
 local settings = require("grapple.settings")
 
-local M = {}
+local state = {}
 
 ---Reference: https://github.com/golgote/neturl/blob/master/lib/net/url.lua
 ---@param str string
@@ -23,13 +23,13 @@ local function decode(str)
 end
 
 ---Serialize a lua table as json idempotently.
----@param state table | string
+---@param state_ table | string
 ---@return string
-local function serialize(state)
-    if type(state) == "string" then
-        return state
+local function serialize(state_)
+    if type(state_) == "string" then
+        return state_
     end
-    return vim.fn.json_encode(state)
+    return vim.fn.json_encode(state_)
 end
 
 ---Deserialize a json blob into a lua table idempotently.
@@ -45,7 +45,7 @@ end
 ---@param state_key
 ---@param save_path? string
 ---@return table
-function M.load(state_key, save_path)
+function state.load(state_key, save_path)
     save_path = Path:new(save_path or settings.save_path)
 
     local state_path = save_path / encode(state_key)
@@ -54,21 +54,21 @@ function M.load(state_key, save_path)
     end
 
     local serialized_state = Path:new(state_path):read()
-    local state = deserialize(serialized_state)
+    local loaded_state = deserialize(serialized_state)
 
-    return state
+    return loaded_state
 end
 
----@param state table
+---@param state_ table
 ---@param save_path? string
 ---@return nil
-function M.save(state, save_path)
+function state.save(state_, save_path)
     save_path = Path:new(save_path or settings.save_path)
     if not save_path:exists() then
         save_path:mkdir()
     end
 
-    for state_key, sub_state in pairs(state) do
+    for state_key, sub_state in pairs(state_) do
         -- todo(cbochs): sync state properly instead of just overwriting it
         local state_path = save_path / encode(state_key)
         if vim.tbl_isempty(sub_state) and state_path:exists() then
@@ -81,7 +81,7 @@ function M.save(state, save_path)
 end
 
 ---@param save_path? string
-function M.available(save_path)
+function state.available(save_path)
     save_path = Path:new(save_path or settings.save_path)
     if not save_path:exists() then
         return 0
@@ -95,4 +95,4 @@ function M.available(save_path)
     return available
 end
 
-return M
+return state
