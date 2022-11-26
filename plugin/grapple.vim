@@ -1,1 +1,1 @@
-lua require("grapple").setup()
+lua require("grapple").initialize()

@@ -1,35 +1,34 @@
-local types = require("grapple.types")
 local scope = require("grapple.scope")
 
 local M = {}
 
-function M.create_resolvers()
+function M.create()
     ---Scope: "none"
     ---Tags are ephemeral and are deleted on exit
     scope.resolver(function()
         return "__none__"
-    end, { key = types.scope.none })
+    end, { key = "none" })
 
     ---Scope: "global"
-    ---Uses a global namespace for tags
+    ---Uses a global keyspace for tags
     scope.resolver(function()
         return "__global__"
-    end, { key = types.scope.global })
+    end, { key = "global" })
 
     ---Scope: "static"
     ---Uses the working directory set at startup
     scope.resolver(function()
         return vim.fn.getcwd()
-    end, { key = types.scope.static })
+    end, { key = "static" })
 
     ---Scope: "directory"
-    ---Uses the current working directory as the tag namespace
+    ---Uses the current working directory as the tag keyspace
     scope.resolver(function()
         return vim.fn.getcwd()
-    end, { key = types.scope.directory, cache = "DirChanged" })
+    end, { key = "directory", cache = "DirChanged" })
 
     ---Scope: "lsp"
-    ---Uses the reported "root_dir" from LSP clients as the tag namespace
+    ---Uses the reported "root_dir" from LSP clients as the tag keyspace
     scope.fallback({
         scope.resolver(function()
             local clients = vim.lsp.get_active_clients({ bufnr = 0 })
@@ -39,7 +38,7 @@ function M.create_resolvers()
             end
         end, { cache = { "LspAttach", "LspDetach" } }),
         scope.resolvers.static,
-    }, { key = types.scope.lsp })
+    }, { key = "lsp" })
 end
 
 return M

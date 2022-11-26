@@ -1,7 +1,7 @@
 local M = {}
 
 ---Initialize autocommand groups and events
-function M.create_autocmds()
+function M.create()
     vim.api.nvim_create_augroup("Grapple", { clear = true })
 
     -- Save file tags when exiting

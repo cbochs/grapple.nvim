@@ -247,7 +247,7 @@ describe("scope", function()
 
     describe("builtin", function()
         before_each(function()
-            require("grapple.builtin").create_resolvers()
+            require("grapple.scope_resolvers").create()
         end)
 
         -- stylua: ignore start

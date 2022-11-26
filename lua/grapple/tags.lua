@@ -22,7 +22,7 @@ local tag_state = {}
 ---@private
 ---@param path string
 ---@return string | nil
-local function _resolve_path(path)
+local function resolve_file_path(path)
     local expanded_path = Path:new(path):expand()
     local absolute_path = Path:new(expanded_path):absolute()
     if not Path:new(absolute_path):exists() then
@@ -34,7 +34,7 @@ end
 ---@private
 ---@param scope_ Grapple.Scope
 ---@return Grapple.ScopePath
-local function _resolve_scope(scope_)
+local function resolve_scope_path(scope_)
     local scope_path
     if type(scope_) == "string" and tag_state[scope_] then
         scope_path = scope_
@@ -53,7 +53,7 @@ end
 ---@private
 ---@param scope_ Grapple.Scope
 local function _scoped_tags(scope_)
-    local scope_path = _resolve_scope(scope_)
+    local scope_path = resolve_scope_path(scope_)
     tag_state[scope_path] = tag_state[scope_path] or state.load(scope_path) or {}
     return tag_state[scope_path]
 end
@@ -126,7 +126,7 @@ end
 
 ---@param scope_ Grapple.Scope
 function tags.reset(scope_)
-    local scope_path = _resolve_scope(scope_)
+    local scope_path = resolve_scope_path(scope_)
     tag_state[scope_path] = nil
 end
 
@@ -137,7 +137,7 @@ function tags.tag(scope_, opts)
     local cursor
 
     if opts.file_path then
-        file_path = _resolve_path(opts.file_path)
+        file_path = resolve_file_path(opts.file_path)
         if file_path == nil then
             log.error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
             error("ArgumentError - file path does not exist. Path: " .. opts.file_path)
@@ -147,6 +147,7 @@ function tags.tag(scope_, opts)
             log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
             error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
         end
+        -- todo(cbochs): add guard to ensure file path exists
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
         cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
     else
@@ -255,7 +256,7 @@ function tags.key(scope_, opts)
     elseif opts.file_path or opts.buffer then
         local file_path
         if opts.file_path then
-            file_path = _resolve_path(opts.file_path)
+            file_path = resolve_file_path(opts.file_path)
         elseif opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
             file_path = vim.api.nvim_buf_get_name(opts.buffer)
         end

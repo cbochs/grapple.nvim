@@ -1,5 +1,4 @@
 local Path = require("plenary.path")
-local types = require("grapple.types")
 
 ---@type Grapple.Settings
 local settings = {}
@@ -11,7 +10,7 @@ local DEFAULT_SETTINGS = {
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.ScopeKey | Grapple.ScopeResolver
-    scope = types.scope.global,
+    scope = "global",
 
     ---The save location for tags
     ---@type string
@@ -34,7 +33,7 @@ local DEFAULT_SETTINGS = {
 }
 
 ---@type Grapple.Settings
-local _settings = vim.deepcopy(DEFAULT_SETTINGS)
+local _settings = DEFAULT_SETTINGS
 
 ---@param overrides? Grapple.Settings
 function settings.update(overrides)

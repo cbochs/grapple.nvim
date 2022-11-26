@@ -1,17 +1,17 @@
 local autocmds = require("grapple.autocmds")
-local builtin = require("grapple.builtin")
 local commands = require("grapple.commands")
 local log = require("grapple.log")
 local popup_scope = require("grapple.popup_scope")
 local popup_tags = require("grapple.popup_tags")
 local scope = require("grapple.scope")
+local scope_resolvers = require("grapple.scope_resolvers")
 local settings = require("grapple.settings")
 local tags = require("grapple.tags")
 local types = require("grapple.types")
 
 local grapple = {}
 
--- local initialized = false
+local initialized = false
 
 --- @class Grapple.Options
 --- @field buffer integer
@@ -19,11 +19,22 @@ local grapple = {}
 --- @field key Grapple.TagKey
 
 ---@param overrides? Grapple.Settings
-function grapple.setup(overrides)
+function grapple.initialize()
+    if initialized then
+        return
+    end
+    initialized = true
+
     scope.reset()
-    builtin.create_resolvers()
-    autocmds.create_autocmds()
-    commands.create_commands()
+    autocmds.create()
+    commands.create()
+    scope_resolvers.create()
+
+    log.new({ level = settings.log_level })
+end
+
+---@param overrides? Grapple.Settings
+function grapple.setup(overrides)
     settings.update(overrides)
     log.new({ level = settings.log_level })
 end
@@ -113,7 +124,11 @@ function grapple.popup_scopes()
 end
 
 function grapple.save()
-    if settings.scope == types.scope.none or settings.integrations.resession then
+    local scope_resolver = scope.find_resolver(settings.scope)
+    if scope_resolver.key == "none" then
+        return
+    end
+    if settings.integrations.resession then
         return
     end
     tags.save()
