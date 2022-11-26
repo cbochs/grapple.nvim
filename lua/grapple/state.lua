@@ -14,6 +14,7 @@ local function encode(str)
     )
 end
 
+-- luacheck: ignore
 ---@param str string
 ---@return string
 local function decode(str)
@@ -53,7 +54,7 @@ function state.load(state_key, save_path)
         return
     end
 
-    local serialized_state = Path:new(state_path):read()
+    local serialized_state = state_path:read()
     local loaded_state = deserialize(serialized_state)
 
     return loaded_state
@@ -80,19 +81,36 @@ function state.save(state_, save_path)
     end
 end
 
----@param save_path? string
-function state.available(save_path)
-    save_path = Path:new(save_path or settings.save_path)
-    if not save_path:exists() then
-        return 0
+---To be removed in later versions
+function state.migrate(save_path)
+    local new_save_path = Path:new(vim.fn.stdpath("data")) / "grapple"
+    local old_save_path = Path:new(vim.fn.stdpath("data")) / "grapple.json"
+    if not Path:new(old_save_path):exists() then
+        return
     end
 
-    local available = {}
-    for encoded_key, _ in vim.fs.dir(tostring(save_path)) do
-        table.insert(available, decode(encoded_key))
+    local log = require("grapple.log")
+    local logger = log.new({ log_level = "warn", use_console = true }, false)
+
+    if save_path ~= tostring(new_save_path) then
+        logger.warn(
+            "Migrating tags to their new home. "
+                .. "The save path in your grapple config is no longer valid. "
+                .. "For more information, "
+                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
+        )
+    else
+        logger.warn(
+            "Migrating tags to their new home. "
+                .. "For more information, "
+                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
+        )
     end
 
-    return available
+    local serialized_state = old_save_path:read()
+    local loaded_state = deserialize(serialized_state)
+    state.save(loaded_state, tostring(new_save_path))
+    Path:new(save_path):rm()
 end
 
 return state

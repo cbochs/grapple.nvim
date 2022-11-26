@@ -25,7 +25,6 @@ function grapple.initialize()
     end
     initialized = true
 
-    scope.reset()
     autocmds.create()
     commands.create()
     scope_resolvers.create()
@@ -35,8 +34,14 @@ end
 
 ---@param overrides? Grapple.Settings
 function grapple.setup(overrides)
+    scope.reset()
+    scope_resolvers.create()
+
     settings.update(overrides)
     log.new({ level = settings.log_level })
+
+    -- Give 1 month migration time
+    require("grapple.state").migrate(settings.save_path)
 end
 
 ---@param opts? Grapple.Options
