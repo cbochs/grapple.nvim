@@ -8,7 +8,7 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
-To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default configuration for the plugin can be found in the [configuration](#configuration) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
+To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default settings for the plugin can be found in the [settings](#default-settings) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
 
 ## Features
 
@@ -30,16 +30,7 @@ To get started, [install](#installation) the plugin using your preferred package
 ```lua
 use {
     "cbochs/grapple.nvim",
-    requires = {
-        "nvim-lua/plenary.nvim"
-    },
-    config = function()
-        require("grapple").setup({
-            -- Your configuration goes here
-            -- Leave empty to use the default configuration
-            -- Please see the Configuration section below for more information
-        })
-    end
+    requires = { "nvim-lua/plenary.nvim" },
 }
 ```
 
@@ -49,9 +40,9 @@ use {
 Plug "cbochs/grapple.nvim"
 ```
 
-## Configuration
+## Default Settings
 
-The following is the default configuration. All configuration options may be overridden during plugin setup by passing them as arguments to the `grapple#setup` function.
+The following are the default settings for Grapple. **Setup is not required**, but settings may be overridden by passing them as table arguments to the `grapple#setup` function.
 
 ```lua
 require("grapple").setup({
@@ -60,7 +51,7 @@ require("grapple").setup({
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.ScopeKey | Grapple.ScopeResolver
-    scope = "global",
+    scope = "git",
 
     ---The save location for tags
     save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
@@ -102,7 +93,7 @@ Named tags are useful if you want one or two keymaps to be used for tagging and 
 
 ### Tag Scopes
 
-A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are resolved into a file path, which - in turn - are used as the "root" location for a set of tags.
+A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are typically resolved into an absolute directory path (i.e. current working directory), which - in turn - is used as the "root" location for a set of tags.
 
 Scope paths are _cached by default_, and will only update when triggered by a provided autocommand event ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html)). For example, the `static` scope never updates once cached; the `directory` scope only updates on `DirChanged`; and the `lsp` scope updates on either `LspAttach` or `LspDetach`.
 
@@ -110,9 +101,10 @@ A **scope path** is determined by means of a **[scope resolver](#grapplescoperes
 
 * `none`: Tags are ephemeral and deleted on exit
 * `global`: Tags are scoped to a global namespace
-* `directory`: Tags are scoped to the current working directory
 * `static`: Tags are scoped to neovim's initial working directory
-* `lsp`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server
+* `directory`: Tags are scoped to the current working directory
+* `git`: Tags are scoped to the current git repository. Will fall back to `static` if a git repository is not found
+* `lsp`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server. Will fall back to `static` if an LSP server is not attached
 
 **Used during plugin setup**
 
@@ -501,7 +493,12 @@ require("grapple").popup_scopes()
 
 ## Persistent Tag State
 
-**todo!(cbochs)**
+Grapple saves all [tag scopes](#tag-scopes) to a common location, specified in the [settings](#default-settings). Each non-empty tag scope (contains at least one tagged file) will be saved as its individiual scope file, serialized as a JSON blob, and named using the resolved tag scope's path. Each tag in a tag scope will contain two pieces of information: the absolute `file path` of the tagged file and its last known `cursor` location.
+
+When a user loads Grapple, no tags are loaded initially. Instead, Grapple will wait until the user requests a tag scope (e.g. [tagging a file](#grappletag) or opening the [tags popup menu](#tag-popup-menu)). At that point, one of three things can occur:
+* the tag scope is **already loaded**, nothing is needed to be done
+* the tag scope has **not been loaded**, attempt to load tag scope from its associated scope file
+* the tag scope file was **not found**, initialize the tag scope as an empty table
 
 ## Suggested Keymaps
 
@@ -542,19 +539,11 @@ A simple lualine component called `grapple` is provided to show whether a buffer
 ```lua
 require("lualine").setup({
     sections = {
-        lualine_b = { "grapple" }
+        lualine_b = { require("grapple").key }
     }
 })
 ```
 
-**Highlight Groups**
-
-```lua
-M.groups = {
-    lualine_tag_active = "LualineGrappleTagActive",
-    lualine_tag_inactive = "LualineGrappleTagInactive",
-}
-```
 
 ### [resession.nvim](https://github.com/stevearc/resession.nvim)
 

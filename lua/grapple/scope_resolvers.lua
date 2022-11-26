@@ -27,7 +27,16 @@ function M.create()
         return vim.fn.getcwd()
     end, { key = "directory", cache = "DirChanged" })
 
+    ---Scope: "git"
+    ---Fallback: "static"
+    ---Uses the current git repository as the tag namespace.
+    scope.fallback({
+        scope.root(".git"),
+        scope.resolvers.static,
+    }, { key = "git" })
+
     ---Scope: "lsp"
+    ---Fallback: "static"
     ---Uses the reported "root_dir" from LSP clients as the tag keyspace
     scope.fallback({
         scope.resolver(function()

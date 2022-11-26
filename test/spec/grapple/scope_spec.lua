@@ -256,6 +256,7 @@ describe("scope", function()
             { key = "global",    cache = true,  path = "__global__" },
             { key = "static",    cache = true,  path = vim.fn.getcwd() },
             { key = "directory", cache = true,  path = vim.fn.getcwd() },
+            { key = "git",       cache = false, path = vim.fn.getcwd() },
             { key = "lsp",       cache = false, path = vim.fn.getcwd() },
         }
         -- stylua: ignore end

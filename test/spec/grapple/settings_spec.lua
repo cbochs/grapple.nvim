@@ -4,7 +4,7 @@ describe("settings", function()
     it("has correct default", function()
         local settings = require("grapple.settings")
         assert.equals("warn", settings.log_level)
-        assert.equals("global", settings.scope)
+        assert.equals("git", settings.scope)
         assert.equals(tostring(Path:new(vim.fn.stdpath("data")) / "grapple"), settings.save_path)
 
         assert.equals("editor", settings.popup_options.relative)

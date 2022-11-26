@@ -10,7 +10,7 @@ local DEFAULT_SETTINGS = {
 
     ---The scope used when creating, selecting, and deleting tags
     ---@type Grapple.ScopeKey | Grapple.ScopeResolver
-    scope = "global",
+    scope = "git",
 
     ---The save location for tags
     ---@type string
