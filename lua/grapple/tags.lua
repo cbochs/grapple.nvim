@@ -125,7 +125,6 @@ end
 function tags.quickfix(scope_)
     local quickfix_items = {}
     for tag_key, tag in pairs(_scoped_tags(scope_)) do
-        -- bufnr, filename, lnum, col, text
         local quickfix_item = {
             filename = tag.file_path,
             lnum = tag.cursor and tag.cursor[1] or 1,
