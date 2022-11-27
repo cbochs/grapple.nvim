@@ -586,7 +586,7 @@ Scope Usage
 **API**: `require("grapple.scope").invalidate(scooe_resolver)`
 
 **`scope_resolver`**: |grapple.nvim-`grapple.scopekey`| |
-|grapple.nvim-`grapple.scoperesolver[]`|
+|grapple.nvim-`grapple.scoperesolver`|
 
 **Example**
 
