@@ -8,7 +8,7 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
-To get started, [install](#installation) the plugin using your preferred package manager, setup the plugin, and give it a go! Default settings for the plugin can be found in the [settings](#default-settings) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
+To get started, [install](#installation) the plugin using your preferred package manager and give it a go! Default settings for the plugin can be found in the [settings](#default-settings) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
 
 ## Features
 
