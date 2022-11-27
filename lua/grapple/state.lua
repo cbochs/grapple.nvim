@@ -43,6 +43,36 @@ local function deserialize(serialized_state)
     return vim.fn.json_decode(serialized_state)
 end
 
+---@param state_ table
+---@param save_path? string
+function state.prune(state_, save_path)
+    save_path = Path:new(save_path or settings.save_path)
+    for state_key, sub_state in pairs(state_) do
+        local state_path = save_path / encode(state_key)
+        if vim.tbl_isempty(sub_state) and state_path:exists() then
+            state_path:rm()
+        end
+    end
+end
+
+---@param state_ table
+---@param save_path? string
+function state.save(state_, save_path)
+    save_path = Path:new(save_path or settings.save_path)
+    if not save_path:exists() then
+        save_path:mkdir()
+    end
+
+    for state_key, sub_state in pairs(state_) do
+        -- todo(cbochs): sync state properly instead of just overwriting it
+        local state_path = save_path / encode(state_key)
+        if not vim.tbl_isempty(sub_state) and state_key ~= "none" then
+            local serialized_state = serialize(sub_state)
+            state_path:write(serialized_state, "w")
+        end
+    end
+end
+
 ---@param state_key
 ---@param save_path? string
 ---@return table
@@ -60,31 +90,10 @@ function state.load(state_key, save_path)
     return loaded_state
 end
 
----@param state_ table
----@param save_path? string
----@return nil
-function state.save(state_, save_path)
-    save_path = Path:new(save_path or settings.save_path)
-    if not save_path:exists() then
-        save_path:mkdir()
-    end
-
-    for state_key, sub_state in pairs(state_) do
-        -- todo(cbochs): sync state properly instead of just overwriting it
-        local state_path = save_path / encode(state_key)
-        if vim.tbl_isempty(sub_state) and state_path:exists() then
-            state_path:rm()
-        else
-            local serialized_state = serialize(sub_state)
-            state_path:write(serialized_state, "w")
-        end
-    end
-end
-
----To be removed in later versions
-function state.migrate(save_path)
-    local new_save_path = Path:new(vim.fn.stdpath("data")) / "grapple"
-    local old_save_path = Path:new(vim.fn.stdpath("data")) / "grapple.json"
+---@param save_path string
+---@param old_save_path string
+---@param new_save_path string
+function state.migrate(save_path, old_save_path, new_save_path)
     if not Path:new(old_save_path):exists() then
         return
     end

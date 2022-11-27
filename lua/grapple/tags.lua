@@ -102,15 +102,6 @@ local function _unset(scope_, key)
 end
 
 ---@private
----@param tag_state_ table<string, Grapple.TagTable>
----@return table
-local function _prune(tag_state_)
-    local copied_tags = vim.deepcopy(tag_state_)
-    copied_tags[scope.get(types.scope.none)] = nil
-    return copied_tags
-end
-
----@private
 ---@param scope_ Grapple.Scope
 ---@ereturn Grapple.TagTable
 function tags.tags(scope_)
@@ -341,7 +332,8 @@ end
 
 ---@param save_path string
 function tags.save()
-    state.save(_prune(tag_state))
+    state.save(tag_state)
+    state.prune(tag_state)
 end
 
 ---@private
@@ -353,7 +345,7 @@ end
 ---@private
 ---@return table<string, Grapple.Tag[]>
 function tags._raw_save()
-    return _prune(tag_state)
+    return tag_state
 end
 
 return tags
