@@ -123,14 +123,14 @@ describe("", function()
     describe("#migrate", function()
         it("migrates the old grapple.json to the new save structure", function()
             with(temp_dir(), function(dir_path)
-                local old_save_path = Path:new(dir_path) / "grapple.json"
-                local new_save_path = Path:new(dir_path) / "grapple"
+                local old_save_path = tostring(Path:new(dir_path) / "grapple.json")
+                local new_save_path = tostring(Path:new(dir_path) / "grapple")
 
-                old_save_path:write(vim.json.encode(tag_state()), "w")
+                Path:new(old_save_path):write(vim.json.encode(tag_state()), "w")
                 require("grapple.state").migrate(old_save_path, old_save_path, new_save_path)
 
-                assert.is_true(vim.tbl_contains(files(tostring(new_save_path)), "project%5Fone"))
-                assert.is_true(vim.tbl_contains(files(tostring(new_save_path)), "project%5Ftwo"))
+                assert.is_true(vim.tbl_contains(files(new_save_path), "project%5Fone"))
+                assert.is_true(vim.tbl_contains(files(new_save_path), "project%5Ftwo"))
 
                 local project_one = require("grapple.state").load("project_one", new_save_path)
                 assert.equals("file_one", project_one.file_one.file_path)
