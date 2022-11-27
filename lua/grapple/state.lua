@@ -30,7 +30,7 @@ local function serialize(state_)
     if type(state_) == "string" then
         return state_
     end
-    return vim.fn.json_encode(state_)
+    return vim.json.encode(state_)
 end
 
 ---Deserialize a json blob into a lua table idempotently.
@@ -40,7 +40,7 @@ local function deserialize(serialized_state)
     if type(serialized_state) ~= "string" then
         return serialized_state
     end
-    return vim.fn.json_decode(serialized_state)
+    return vim.json.decode(serialized_state)
 end
 
 ---@param state_ table
