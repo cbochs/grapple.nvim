@@ -295,6 +295,8 @@ require("grapple").exists()
 
 Cycle through and select from the available tagged files in a scoped tag list.
 
+**Command**: `:GrappleCycle {direction}`
+
 **API**:
 
 * `require("grapple").cycle(direction)`

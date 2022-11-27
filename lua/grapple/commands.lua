@@ -33,6 +33,18 @@ function M.create()
         require("grapple").reset(scope)
     end, { desc = "Reset scoped tags" })
 
+    vim.api.nvim_create_user_command("GrappleCycle", function(opts)
+        local types = require("grapple.types")
+        local direction = opts.fargs[1]
+        if direction == types.direction.backward then
+            require("grapple").cycle_backward()
+        elseif direction == types.direction.forward then
+            require("grapple").cycle_forward()
+        else
+            error("Invalid direction. Must be either 'forward' or 'backward'")
+        end
+    end, { desc = "Cycles through scoped tags", nargs = "*" })
+
     vim.api.nvim_create_user_command("GrapplePopup", function(opts)
         local menu_type = opts.fargs[1]
         if menu_type == "tags" then
