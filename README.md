@@ -323,7 +323,7 @@ Clear all tags for a given tag scope.
 
 **API**: `require("grapple").reset(scope)`
 
-**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `config.scope`)
+**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `settings.scope`)
 
 **Examples**
 
@@ -464,7 +464,7 @@ The **tags popup menu** opens a floating window containing all the tags within a
 
 **API**: `require("grapple").popup_tags(scope)`
 
-**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `config.scope`)
+**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `settings.scope`)
 
 **Examples**
 
