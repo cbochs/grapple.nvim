@@ -591,6 +591,9 @@ meaning items can be selected, modified, reordered, or deleted with well-known
 vim motions. Currently, there are two available popup menus: one for
 |grapple.nvim-tags| and another for |grapple.nvim-scopes|.
 
+<img width="1073" alt="Screenshot 2022-11-27 at 05 59 52"
+src="https://user-images.githubusercontent.com/2467016/204136568-85100000-81fa-412e-8ca0-26df538cccee.png">
+
 TAG POPUP MENU ~
 
 The **tags popup menu** opens a floating window containing all the tags within
