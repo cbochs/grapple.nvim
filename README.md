@@ -104,7 +104,9 @@ A **scope path** is determined by means of a **[scope resolver](#grapplescoperes
 * `static`: Tags are scoped to neovim's initial working directory
 * `directory`: Tags are scoped to the current working directory
 * `git`: Tags are scoped to the current git repository. Will fall back to `static` if a git repository is not found
+* `git_fallback`: The same as `git`, but without a fallback. Useful for chaining when using [`grapple.scope#fallback`](#grapplescopefallback)
 * `lsp`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server. Will fall back to `static` if an LSP server is not attached
+* `lsp_fallback`: The same as `lsp`, but without a fallback. Useful for chaining when using [`grapple.scope#fallback`](#grapplescopefallback)
 
 **Used during plugin setup**
 
@@ -423,8 +425,8 @@ Create a scope resolver that generates a scope path by attempting to get the sco
 -- path, then looks for a ".git" repository, and finally falls back on using
 -- the initial working directory that neovim was started in
 require("grapple.scope").fallback({
-    require("grapple.scope").resolvers.lsp,
-    require("grapple.scope").root(".git"),
+    require("grapple.scope").resolvers.lsp_fallback,
+    require("grapple.scope").resolvers.git_fallback,
     require("grapple.scope").resolvers.static
 }, { key = "my_fallback" })
 ```

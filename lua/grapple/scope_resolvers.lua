@@ -27,25 +27,35 @@ function M.create()
         return vim.fn.getcwd()
     end, { key = "directory", cache = "DirChanged" })
 
+    ---Scope: "git_fallback"
+    ---Fallback: nil
+    ---Uses the current git repository as the tag namespace.
+    scope.root(".git", { key = "git_fallback" })
+
     ---Scope: "git"
     ---Fallback: "static"
     ---Uses the current git repository as the tag namespace.
     scope.fallback({
-        scope.root(".git"),
+        scope.resolvers.git_fallback,
         scope.resolvers.static,
     }, { key = "git" })
+
+    ---Scope: "lsp_fallback"
+    ---Fallback: nil
+    ---Uses the reported "root_dir" from LSP clients as the tag keyspace
+    scope.resolver(function()
+        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        if #clients > 0 then
+            local client = clients[1]
+            return client.config.root_dir
+        end
+    end, { key = "lsp_fallback", cache = { "LspAttach", "LspDetach" } })
 
     ---Scope: "lsp"
     ---Fallback: "static"
     ---Uses the reported "root_dir" from LSP clients as the tag keyspace
     scope.fallback({
-        scope.resolver(function()
-            local clients = vim.lsp.get_active_clients({ bufnr = 0 })
-            if #clients > 0 then
-                local client = clients[1]
-                return client.config.root_dir
-            end
-        end, { cache = { "LspAttach", "LspDetach" } }),
+        scope.resolvers.lsp_fallback,
         scope.resolvers.static,
     }, { key = "lsp" })
 end

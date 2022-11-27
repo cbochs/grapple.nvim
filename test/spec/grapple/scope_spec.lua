@@ -252,12 +252,14 @@ describe("scope", function()
 
         -- stylua: ignore start
         local default_scopes = {
-            { key = "none",      cache = true,  path = "__none__" },
-            { key = "global",    cache = true,  path = "__global__" },
-            { key = "static",    cache = true,  path = vim.fn.getcwd() },
-            { key = "directory", cache = true,  path = vim.fn.getcwd() },
-            { key = "git",       cache = false, path = vim.fn.getcwd() },
-            { key = "lsp",       cache = false, path = vim.fn.getcwd() },
+            { key = "none",         cache = true,  path = "__none__" },
+            { key = "global",       cache = true,  path = "__global__" },
+            { key = "static",       cache = true,  path = vim.fn.getcwd() },
+            { key = "directory",    cache = true,  path = vim.fn.getcwd() },
+            { key = "git_fallback", cache = true,  path = vim.fn.getcwd() },
+            { key = "git",          cache = false, path = vim.fn.getcwd() },
+            { key = "lsp_fallback", cache = false, path = nil },
+            { key = "lsp",          cache = false, path = vim.fn.getcwd() },
         }
         -- stylua: ignore end
         for _, scope in ipairs(default_scopes) do
