@@ -447,7 +447,7 @@ Clear the cached scope path, forcing the next call to `grapple.scope#get` to res
 
 **API**: `require("grapple.scope").invalidate(scooe_resolver)`
 
-**`scope_resolver`**: [`Grapple.ScopeKey`](#grapplescopekey) | [`Grapple.ScopeResolver[]`](#grapplescoperesolver-1)
+**`scope_resolver`**: [`Grapple.ScopeKey`](#grapplescopekey) | [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
 
 **Example**
 
