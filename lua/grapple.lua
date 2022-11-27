@@ -40,7 +40,7 @@ function grapple.setup(overrides)
     settings.update(overrides)
     log.new({ level = settings.log_level })
 
-    -- Give 1 month migration time
+    -- Give 2 weeks migration time. Delete 12-12-2022
     require("grapple.state").migrate(settings.save_path)
 end
 
