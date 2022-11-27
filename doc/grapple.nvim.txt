@@ -464,6 +464,28 @@ exists for the given file or buffer, it will be overridden with the new tag.
 <
 
 
+                                              *grapple.nvim-`grapplequickfix`*
+
+`grapplequickfix`                      Open the quickfix menu and populate the
+                                       quickfix list with a project scope’s
+                                       tags.
+
+
+**API**: `require("grapple").quickfix(scope)`
+
+**`scope?`**: |grapple.nvim-`grapple.scope`| (default: `settings.scope`)
+
+**Examples**
+
+>
+    -- Open the quickfix menu for the current scope
+    require("grapple").quickfix()
+    
+    -- Open the quickfix menu for a specified scope
+    require("grapple").quickfix("global")
+<
+
+
 SCOPE USAGE ~
 
 <details open>
@@ -623,7 +645,9 @@ and VISUAL `d`) **Reordering**: an |grapple.nvim-anonymous-tag| (or tags) can
 be reordered by moving them up or down within the popup menu. Ordering is
 determined by the tags position within the popup menu: top (first index) to
 bottom (last index) **Renaming**: a |grapple.nvim-named-tag| can be renamed by
-editing its key value between the `[` square brackets `]`
+editing its key value between the `[` square brackets `]` **Quickfix
+(`<c-q>`)**: all tags will be |grapple.nvim-sent-to-the-quickfix-list|, the
+popup menu closed, and the quickfix menu opened
 
 **Command**: `:GrapplePopup tags`
 
