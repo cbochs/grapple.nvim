@@ -243,6 +243,14 @@ describe("scope", function()
             assert.is_false(require("grapple.scope").cached("cached_counter"))
             assert.is_false(require("grapple.scope").cached(resolver))
         end)
+
+        it("resolves nested fallback scopes", function()
+            local resolver = require("grapple.scope").fallback({
+                require("grapple.scope").fallback({ "bad_nil", "bad_error" }),
+                require("grapple.scope").fallback({ "basic" }),
+            })
+            assert.equals("__basic__", require("grapple.scope").get(resolver))
+        end)
     end)
 
     describe("builtin", function()
