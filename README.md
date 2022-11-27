@@ -1,6 +1,6 @@
 # Grapple.nvim
 
-![grapple_showcase_tagging](https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif)
+https://user-images.githubusercontent.com/2467016/204135078-c1c59f19-49b8-4c38-a76d-2892903816db.mov
 
 _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
