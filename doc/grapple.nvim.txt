@@ -432,7 +432,7 @@ exists for the given file or buffer, it will be overridden with the new tag.
 
 **API**: `require("grapple").reset(scope)`
 
-**`scope?`**: |grapple.nvim-`grapple.scope`| (default: `config.scope`)
+**`scope?`**: |grapple.nvim-`grapple.scope`| (default: `settings.scope`)
 
 **Examples**
 
@@ -607,7 +607,7 @@ editing its key value between the `[` square brackets `]`
 
 **API**: `require("grapple").popup_tags(scope)`
 
-**`scope?`**: |grapple.nvim-`grapple.scope`| (default: `config.scope`)
+**`scope?`**: |grapple.nvim-`grapple.scope`| (default: `settings.scope`)
 
 **Examples**
 
