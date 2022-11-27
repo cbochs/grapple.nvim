@@ -163,8 +163,8 @@ The builtin options are as follows:
 - `global`: Tags are scoped to a global namespace
 - `static`: Tags are scoped to neovim’s initial working directory
 - `directory`: Tags are scoped to the current working directory
-- `git`: Tags are scoped to the current git repository. Fallback: `static`
-- `lsp`: Tags are scoped using the `root_dir` of the current buffer’s attached LSP server. Fallback: `static`
+- `git`: Tags are scoped to the current git repository. **Fallback**: `static`
+- `lsp`: Tags are scoped using the `root_dir` of the current buffer’s attached LSP server. **Fallback**: `static`
 
 
 There are two additional scope resolvers which should be preferred when
@@ -177,7 +177,7 @@ fallbacks.
 - `lsp_fallback`: The same as `lsp`, but without a fallback
 
 
-**Used during plugin setup**
+**Examples**
 
 >
     -- Setup using a scope resolver's name
