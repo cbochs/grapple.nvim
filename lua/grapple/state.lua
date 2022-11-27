@@ -110,7 +110,8 @@ function state.migrate(save_path)
     local serialized_state = old_save_path:read()
     local loaded_state = deserialize(serialized_state)
     state.save(loaded_state, tostring(new_save_path))
-    Path:new(save_path):rm()
+
+    old_save_path:rm()
 end
 
 return state
