@@ -129,8 +129,8 @@ function tags.quickfix(scope_)
         local quickfix_item = {
             filename = tag.file_path,
             lnum = tag.cursor and tag.cursor[1] or 1,
-            col = tag.cursor and tag.cursor[2] or 0,
-            text = string.format("[%s] %s", tag_key, tag.file_path),
+            col = tag.cursor and (tag.cursor[2] + 1) or 1,
+            text = string.format(" [%s] ", tag_key, tag.file_path),
         }
         table.insert(quickfix_items, quickfix_item)
     end
