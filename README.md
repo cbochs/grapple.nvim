@@ -103,13 +103,13 @@ A **scope path** is determined by means of a **[scope resolver](#grapplescoperes
 * `global`: Tags are scoped to a global namespace
 * `static`: Tags are scoped to neovim's initial working directory
 * `directory`: Tags are scoped to the current working directory
-* `git`: Tags are scoped to the current git repository. Will fall back to `static` if a git repository is not found
-* `lsp`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server. Will fall back to `static` if an LSP server is not attached
+* `git`: Tags are scoped to the current git repository. Fallback: `static`
+* `lsp`: Tags are scoped using the `root_dir` of the current buffer's attached LSP server. Fallback: `static`
 
-There are two additional scope resolvers that should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)**. These resolvers act identically as their similarly named counterparts, but do not have default fallbacks.
+There are two additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
 
-* `git_fallback`: The same as `git`, but without a fallback.
-* `lsp_fallback`: The same as `lsp`, but without a fallback.
+* `git_fallback`: The same as `git`, but without a fallback
+* `lsp_fallback`: The same as `lsp`, but without a fallback
 
 **Used during plugin setup**
 
@@ -122,6 +122,13 @@ require("grapple").setup({
 -- Or, using the scope resolver itself
 require("grapple").setup({
     scope = require("grapple.scope").resolvers.static
+})
+
+-- Or, a custom scope resolver
+require("grapple").setup({
+    scope = require("grapple.scope").resolver(function()
+        return vim.fn.getcwd()
+    end, { cache = "DirChanged" })
 })
 ```
 
