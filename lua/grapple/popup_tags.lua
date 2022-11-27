@@ -163,6 +163,17 @@ local function action_select(scope_, popup_, parser)
 end
 
 ---@param scope_ Grapple.Scope
+---@param popup_ Grapple.Popup
+---@param parser Grapple.Parser<Grapple.PartialTag>
+local function action_quickfix(scope_, popup_, parser)
+    return function()
+        resolve(scope_, popup_, parser)
+        popup.close(popup_)
+        tags.quickfix(scope_)
+    end
+end
+
+---@param scope_ Grapple.Scope
 ---@param window_options table
 function M.open(scope_, window_options)
     if vim.fn.has("nvim-0.9") == 1 then
@@ -184,11 +195,13 @@ function M.open(scope_, window_options)
 
     local close = action_close(scope_, popup_, parser)
     local select = action_select(scope_, popup_, parser)
+    local quickfix = action_quickfix(scope_, popup_, parser)
 
     local keymap_options = { buffer = popup_.buffer, nowait = true }
     vim.keymap.set("n", "q", close, keymap_options)
     vim.keymap.set("n", "<esc>", close, keymap_options)
     vim.keymap.set("n", "<cr>", select, keymap_options)
+    vim.keymap.set("n", "<c-q>", quickfix, keymap_options)
     popup.on_leave(popup_, close)
 end
 
