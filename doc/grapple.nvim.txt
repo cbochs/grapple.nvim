@@ -20,10 +20,8 @@ Table of Contents                             *grapple.nvim-table-of-contents*
 ==============================================================================
 1. Grapple.nvim                                    *grapple.nvim-grapple.nvim*
 
-<div class="figure">
-<img src="https://user-images.githubusercontent.com/2467016/199631923-e03fad69-b664-4883-83b6-1e9ff6222d81.gif" title="fig:"/>
-<p class="caption">grapple_showcase_tagging</p>
-</div>
+
+https://user-images.githubusercontent.com/2467016/204135078-c1c59f19-49b8-4c38-a76d-2892903816db.mov
 
 _Theme: catppuccin <https://github.com/catppuccin/nvim>_
 
