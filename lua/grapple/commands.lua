@@ -11,7 +11,7 @@ local function parse_options(fargs)
     return options
 end
 
-function M.create_commands()
+function M.create()
     vim.api.nvim_create_user_command("GrappleTag", function(opts)
         require("grapple").tag(parse_options(opts.fargs))
     end, { desc = "Tag a buffer", nargs = "*" })

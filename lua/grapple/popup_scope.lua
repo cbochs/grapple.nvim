@@ -1,4 +1,4 @@
-local popup = require("grapple.ui.popup")
+local popup = require("grapple.popup")
 local tags = require("grapple.tags")
 
 local M = {}
@@ -61,7 +61,7 @@ end
 ---@param window_options table
 function M.open(window_options)
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = "All Scopes"
+        window_options.title = "Loaded Scopes"
         window_options.title_pos = "center"
     end
 
