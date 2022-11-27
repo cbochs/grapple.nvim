@@ -349,6 +349,24 @@ require("grapple").reset()
 require("grapple").reset("global")
 ```
 
+#### `grapple#quickfix`
+
+Open the quickfix menu and populate the quickfix list with a project scope's tags.
+
+**API**: `require("grapple").quickfix(scope)`
+
+**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `settings.scope`)
+
+**Examples**
+
+```lua
+-- Open the quickfix menu for the current scope
+require("grapple").quickfix()
+
+-- Open the quickfix menu for a specified scope
+require("grapple").quickfix("global")
+```
+
 </details>
 
 ### Scope Usage
@@ -475,6 +493,7 @@ The **tags popup menu** opens a floating window containing all the tags within a
 * **Deletion**: a tag (or tags) can be removed by deleting them from the popup menu (i.e. NORMAL `dd` and VISUAL `d`)
 * **Reordering**: an [anonymous tag](#anonymous-tags) (or tags) can be reordered by moving them up or down within the popup menu. Ordering is determined by the tags position within the popup menu: top (first index) to bottom (last index)
 * **Renaming**: a [named tag](#named-tags) can be renamed by editing its key value between the `[` square brackets `]`
+* **Quickfix (`<c-q>`)**: all tags will be [sent to the quickfix list](#grapplequickfix), the popup menu closed, and the quickfix menu opened
 
 **Command**: `:GrapplePopup tags`
 

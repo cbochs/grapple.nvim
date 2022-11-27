@@ -120,7 +120,7 @@ function scope.root(root_names, opts)
 end
 
 ---@param scope_resolvers Grapple.ScopeResolver[]
----@param opts? string
+---@param opts? Grapple.Options
 ---@return Grapple.ScopeResolver
 function scope.fallback(scope_resolvers, opts)
     return scope.resolver(function()

@@ -122,6 +122,23 @@ function tags.reset(scope_)
 end
 
 ---@param scope_ Grapple.Scope
+function tags.quickfix(scope_)
+    local quickfix_items = {}
+    for tag_key, tag in pairs(_scoped_tags(scope_)) do
+        local quickfix_item = {
+            filename = tag.file_path,
+            lnum = tag.cursor and tag.cursor[1] or 1,
+            col = tag.cursor and (tag.cursor[2] + 1) or 1,
+            text = string.format(" [%s] ", tag_key, tag.file_path),
+        }
+        table.insert(quickfix_items, quickfix_item)
+    end
+    vim.fn.setqflist(quickfix_items, "r")
+    vim.fn.setqflist({}, "a", { title = scope.get(scope_) })
+    vim.api.nvim_cmd({ cmd = "copen" }, {})
+end
+
+---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
 function tags.tag(scope_, opts)
     local file_path

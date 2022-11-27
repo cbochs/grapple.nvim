@@ -122,6 +122,11 @@ function grapple.reset(scope_)
 end
 
 ---@param scope_? Grapple.Scope
+function grapple.quickfix(scope_)
+    tags.quickfix(scope_ or settings.scope)
+end
+
+---@param scope_? Grapple.Scope
 function grapple.popup_tags(scope_)
     scope_ = scope_ or settings.scope
     local window_options = vim.deepcopy(settings.popup_options)
