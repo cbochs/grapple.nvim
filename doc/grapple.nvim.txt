@@ -34,9 +34,9 @@ can be bound to a |grapple.nvim-keymap| or selected from within an editable
 |grapple.nvim-popup-menu|.
 
 To get started, |grapple.nvim-install| the plugin using your preferred package
-manager, setup the plugin, and give it a go! Default settings for the plugin
-can be found in the |grapple.nvim-settings| section below. The API provided by
-Grapple can be found in the |grapple.nvim-usage| section below.
+manager and give it a go! Default settings for the plugin can be found in the
+|grapple.nvim-settings| section below. The API provided by Grapple can be found
+in the |grapple.nvim-usage| section below.
 
 FEATURES                                               *grapple.nvim-features*
 
