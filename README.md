@@ -522,28 +522,24 @@ end, {})
 
 ## Integrations
 
-### [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim)
+### Statusline
 
-A simple lualine component called `grapple` is provided to show whether a buffer is tagged or not. When a buffer is tagged, the key of the tag will be displayed.
+A statusline component can be easily added to show whether a buffer is tagged or not by using either (or both) [`grapple#key`](#grapplekey) and [`grapple#find`](#grapplefind).
 
-**Untagged buffer**
-
-<img width="240" alt="Screen Shot 2022-11-01 at 07 02 09" src="https://user-images.githubusercontent.com/2467016/199238779-955bd8f3-f406-4a61-b027-ac64d049481a.png">
-
-**Tagged buffer**
-
-<img width="240" alt="Screen Shot 2022-11-01 at 07 02 38" src="https://user-images.githubusercontent.com/2467016/199238764-96678f97-8603-45d9-ba2e-9a512ce93727.png">
-
-**Usage**
+**Simple [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
 
 ```lua
 require("lualine").setup({
     sections = {
-        lualine_b = { require("grapple").key }
+        lualine_b = {
+            {
+                require("grapple").key,
+                cond = require("grapple").exists
+            }
+        }
     }
 })
 ```
-
 
 ### [resession.nvim](https://github.com/stevearc/resession.nvim)
 
