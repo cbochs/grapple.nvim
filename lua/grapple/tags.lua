@@ -136,6 +136,7 @@ function tags.quickfix(scope_)
     end
     vim.fn.setqflist(quickfix_items, "r")
     vim.fn.setqflist({}, "a", { title = scope.get(scope_) })
+    vim.api.nvim_cmd({ cmd = "copen" }, {})
 end
 
 ---@param scope_ Grapple.Scope

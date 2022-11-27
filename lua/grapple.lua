@@ -124,7 +124,6 @@ end
 ---@param scope_? Grapple.Scope
 function grapple.quickfix(scope_)
     tags.quickfix(scope_ or settings.scope)
-    vim.api.nvim_cmd({ cmd = "copen" }, {})
 end
 
 ---@param scope_? Grapple.Scope
