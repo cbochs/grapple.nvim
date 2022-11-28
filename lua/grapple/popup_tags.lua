@@ -202,6 +202,10 @@ function M.open(scope_, window_options)
     vim.keymap.set("n", "<esc>", close, keymap_options)
     vim.keymap.set("n", "<cr>", select, keymap_options)
     vim.keymap.set("n", "<c-q>", quickfix, keymap_options)
+    vim.keymap.set("n", "<c-v>", function()
+        vim.nvim_cmd({ cmd = "vsplit" })
+        select()
+    end, keymap_options)
     popup.on_leave(popup_, close)
 end
 
