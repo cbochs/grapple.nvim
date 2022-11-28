@@ -494,6 +494,7 @@ The **tags popup menu** opens a floating window containing all the tags within a
 * **Reordering**: an [anonymous tag](#anonymous-tags) (or tags) can be reordered by moving them up or down within the popup menu. Ordering is determined by the tags position within the popup menu: top (first index) to bottom (last index)
 * **Renaming**: a [named tag](#named-tags) can be renamed by editing its key value between the `[` square brackets `]`
 * **Quickfix (`<c-q>`)**: all tags will be [sent to the quickfix list](#grapplequickfix), the popup menu closed, and the quickfix menu opened
+* **Split (`<c-v>`)**: similar to tag selection, but the tagged file opened in a vertical split
 
 **Command**: `:GrapplePopup tags`
 
