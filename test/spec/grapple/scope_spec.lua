@@ -51,12 +51,12 @@ describe("scope", function()
             assert.equals("__basic__", require("grapple.scope").get(basic))
         end)
 
-        it("gets a scope path that has not been cached", function()
+        it("gets a scope that has not been cached", function()
             require("grapple.scope").invalidate("basic")
             assert.equals("__basic__", require("grapple.scope").get("basic"))
         end)
 
-        it("gets a scope path that has been cached", function()
+        it("gets a scope that has been cached", function()
             require("grapple.scope").get("cached_counter")
             assert.equals("1", require("grapple.scope").get("cached_counter"))
         end)
@@ -78,22 +78,26 @@ describe("scope", function()
             test_resolvers()
         end)
 
-        it("returns the resolved scope path", function()
-            assert.equals("__basic__", require("grapple.scope").update("basic"))
+        it("returns the resolved scope", function()
+            local basic = require("grapple.scope").resolvers.basic
+            assert.equals("__basic__", require("grapple.scope").update(basic))
         end)
 
         it("caches a caching scope resolver", function()
-            require("grapple.scope").update("basic")
+            local basic = require("grapple.scope").resolvers.basic
+            require("grapple.scope").update(basic)
             assert.is_true(require("grapple.scope").cached("basic"))
         end)
 
         it("caches an autocmd caching scope resolver", function()
-            require("grapple.scope").update("basic_autocmd")
+            local basic_autocmd = require("grapple.scope").resolvers.basic_autocmd
+            require("grapple.scope").update(basic_autocmd)
             assert.is_true(require("grapple.scope").cached("basic_autocmd"))
         end)
 
         it("does not cache a non-caching scope resolver", function()
-            require("grapple.scope").update("basic_uncached")
+            local basic_uncached = require("grapple.scope").resolvers.basic_uncached
+            require("grapple.scope").update(basic_uncached)
             assert.is_false(require("grapple.scope").cached("basic_uncached"))
         end)
 
@@ -127,17 +131,17 @@ describe("scope", function()
             test_resolvers()
         end)
 
-        it("resolves to a scope path", function()
+        it("resolves to a scope", function()
             local scope_resolver = require("grapple.scope").resolvers.basic
             assert.equals("__basic__", require("grapple.scope").resolve(scope_resolver.resolve))
         end)
 
-        it("does not resolve when the scope path is nil", function()
+        it("does not resolve when the scope is nil", function()
             local scope_resolver = require("grapple.scope").resolvers.bad_nil
             assert.is_nil(require("grapple.scope").resolve(scope_resolver.resolve))
         end)
 
-        it("does not resolve when the scope path is not a string", function()
+        it("does not resolve when the scope is not a string", function()
             local scope_resolver = require("grapple.scope").resolvers.bad_malformed
             assert.is_nil(require("grapple.scope").resolve(scope_resolver.resolve))
         end)
@@ -214,7 +218,7 @@ describe("scope", function()
             assert.equals("DirChanged", resolver.cache)
         end)
 
-        it("resolves a scope path when a root file exists", function()
+        it("resolves a scope when a root file exists", function()
             local root_dir = vim.fn.getcwd()
             local root_file = Path:new(root_dir) / "some_file"
             root_file:touch()
@@ -225,7 +229,7 @@ describe("scope", function()
             root_file:rm()
         end)
 
-        it("does not resolve a scope path when no root files are present", function()
+        it("does not resolve a scope when no root files are present", function()
             local resolver = require("grapple.scope").root("some_file")
             assert.is_nil(require("grapple.scope").get(resolver))
         end)
@@ -236,12 +240,17 @@ describe("scope", function()
             test_resolvers()
         end)
 
-        it("resolves a scope path in the fallback order", function()
+        it("creates a fallback scope resolver", function()
+            local resolver = require("grapple.scope").fallback({ "basic" })
+            assert.is_table(resolver)
+            assert.equals(false, resolver.cache)
+        end)
+
+        it("resolves a scope in the fallback order", function()
             local resolver = require("grapple.scope").fallback({ "bad_nil", "basic", "cached_counter" })
             assert.equals("__basic__", require("grapple.scope").get(resolver))
             assert.is_true(require("grapple.scope").cached("basic"))
             assert.is_false(require("grapple.scope").cached("cached_counter"))
-            assert.is_false(require("grapple.scope").cached(resolver))
         end)
 
         it("resolves nested fallback scopes", function()
@@ -250,6 +259,45 @@ describe("scope", function()
                 require("grapple.scope").fallback({ "basic" }),
             })
             assert.equals("__basic__", require("grapple.scope").get(resolver))
+        end)
+
+        it("does not cache the scope", function()
+            local resolver = require("grapple.scope").fallback({ "basic" })
+            require("grapple.scope").get(resolver)
+            assert.is_false(require("grapple.scope").cached(resolver))
+        end)
+    end)
+
+    describe("#suffix", function()
+        before_each(function()
+            test_resolvers()
+        end)
+
+        it("creates a suffix scope resolver", function()
+            local resolver = require("grapple.scope").suffix("basic", "basic")
+            assert.is_table(resolver)
+            assert.equals(false, resolver.cache)
+        end)
+
+        it("resolves a scope with a suffix", function()
+            local resolver = require("grapple.scope").suffix("basic", "basic")
+            assert.equals("__basic__#__basic__", require("grapple.scope").get(resolver))
+        end)
+
+        it("resolves a scope without a suffix", function()
+            local resolver = require("grapple.scope").suffix("basic", "bad_nil")
+            assert.equals("__basic__", require("grapple.scope").get(resolver))
+        end)
+
+        it("does not cache the scope", function()
+            local resolver = require("grapple.scope").suffix("basic", "basic")
+            require("grapple.scope").get(resolver)
+            assert.is_false(require("grapple.scope").cached(resolver))
+        end)
+
+        it("does not resolve when the scope path is nil", function()
+            local resolver = require("grapple.scope").suffix("bad_basic", "basic")
+            assert.is_nil(require("grapple.scope").get(resolver))
         end)
     end)
 
@@ -272,12 +320,12 @@ describe("scope", function()
         -- stylua: ignore end
         for _, scope in ipairs(default_scopes) do
             describe(scope.key, function()
-                it(string.format("resolves a scope path", scope.key), function()
+                it(string.format("resolves a scope", scope.key), function()
                     assert.equals(scope.path, require("grapple.scope").get(scope.key))
                 end)
 
                 local test_prefix = scope.cache and "caches" or "does not cache"
-                it(string.format("%s the scope path", test_prefix, scope.key), function()
+                it(string.format("%s the scope", test_prefix, scope.key), function()
                     require("grapple.scope").get(scope.key)
                     assert.equals(scope.cache, require("grapple.scope").cached(scope.key))
                 end)
