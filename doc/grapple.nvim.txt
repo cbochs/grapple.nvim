@@ -1,4 +1,4 @@
-*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 November 27
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 November 28
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -647,7 +647,8 @@ determined by the tags position within the popup menu: top (first index) to
 bottom (last index) **Renaming**: a |grapple.nvim-named-tag| can be renamed by
 editing its key value between the `[` square brackets `]` **Quickfix
 (`<c-q>`)**: all tags will be |grapple.nvim-sent-to-the-quickfix-list|, the
-popup menu closed, and the quickfix menu opened
+popup menu closed, and the quickfix menu opened **Split (`<c-v>`)**: similar to
+tag selection, but the tagged file opened in a vertical split
 
 **Command**: `:GrapplePopup tags`
 
