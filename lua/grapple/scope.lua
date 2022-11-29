@@ -5,6 +5,7 @@ local scope = {}
 ---@class Grapple.ScopeOptions
 ---@field key string
 ---@field cache boolean | string | string[]
+---@field persist boolean
 
 ---@alias Grapple.Scope string
 
@@ -14,6 +15,7 @@ local scope = {}
 ---@field key Grapple.ScopeKey
 ---@field resolve Grapple.ScopeFunction
 ---@field cache boolean | string | string[]
+---@field persist boolean | string | string[]
 ---@field autocmd number | nil
 
 ---@alias Grapple.ScopeKey string | integer
@@ -72,11 +74,19 @@ function scope.resolver(scope_function, opts)
         scope.resolvers[scope_resolver.key] = nil
     end
 
+    -- Scope resolver defaults
     local scope_key = opts.key or (#scope.resolvers + 1)
-
     local scope_cache = true
+    local scope_persist = true
+
+    if opts.key ~= nil then
+        scope_key = opts.key
+    end
     if opts.cache ~= nil then
         scope_cache = opts.cache
+    end
+    if opts.persist ~= nil then
+        scope_persist = opts.persist
     end
 
     ---@type Grapple.ScopeResolver
@@ -84,6 +94,7 @@ function scope.resolver(scope_function, opts)
         key = scope_key,
         resolve = scope_function,
         cache = scope_cache,
+        persist = scope_persist,
         autocmd = nil,
     }
 
@@ -114,7 +125,7 @@ end
 function scope.fallback(scope_resolvers, opts)
     return scope.resolver(function()
         for _, scope_resolver in ipairs(scope_resolvers) do
-            local scope_path = scope.get(scope_resolver)
+            local scope_path = scope.get_safe(scope_resolver)
             if scope_path ~= nil then
                 return scope_path
             end
@@ -124,20 +135,31 @@ end
 
 ---@param path_resolver Grapple.ScopeResolver
 ---@param suffix_resolver Grapple.ScopeResolver
-function scope.suffix(path_resolver, suffix_resolver)
+---@param opts Grapple.ScopeOptions
+---@return Grapple.ScopeResolver
+function scope.suffix(path_resolver, suffix_resolver, opts)
     return scope.resolver(function()
-        local scope_path = scope.get(path_resolver)
+        local scope_path = scope.get_safe(path_resolver)
         if scope_path == nil then
             return
         end
 
-        local scope_suffix = scope.get(suffix_resolver)
+        local scope_suffix = scope.get_safe(suffix_resolver)
         if scope_suffix == nil then
             return scope_path
         end
 
         return scope_path .. scope.separator .. scope_suffix
-    end, { cache = false })
+    end, vim.tbl_extend("force", { cache = false }, opts or {}))
+end
+
+---@param plain_string string
+---@param opts Grapple.ScopeOptions
+---@return Grapple.ScopeResolver
+function scope.static(plain_string, opts)
+    return scope.resolver(function()
+        return plain_string
+    end, vim.tbl_extend("force", { cache = false }, opts or {}))
 end
 
 ---@private
@@ -151,16 +173,27 @@ function scope.find_resolver(scope_resolver)
     if type(scope_resolver) == "string" then
         scope_resolver = scope.resolvers[scope_resolver]
         if scope_resolver == nil then
-            log.error("Unable to find scope resolver. Scope: " .. tostring(scope_resolver))
-            error("Unable to find scope resolver. Scope: " .. tostring(scope_resolver))
+            log.error("Unable to find scope resolver for key: " .. tostring(scope_resolver))
+            error("Unable to find scope resolver for key: " .. tostring(scope_resolver))
         end
     end
     return scope_resolver
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
----@return Grapple.Scope | nil
+---@return Grapple.Scope
 function scope.get(scope_resolver)
+    local scope_ = scope.get_safe(scope_resolver)
+    if scope_ == nil then
+        log.error("Unable to find scope for resolver: " .. vim.inspect(scope_resolver))
+        error("Unable to find scope for resolver: " .. vim.inspect(scope_resolver))
+    end
+    return scope_
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.Scope | nil
+function scope.get_safe(scope_resolver)
     scope_resolver = scope.find_resolver(scope_resolver)
     if cached_scopes[scope_resolver.key] ~= nil then
         return cached_scopes[scope_resolver.key]
@@ -178,7 +211,7 @@ end
 ---@param scope_resolver Grapple.ScopeResolverLike
 function scope.invalidate(scope_resolver)
     scope_resolver = scope.find_resolver(scope_resolver)
-    log.debug("Invalidating scope cache. Cache key: " .. tostring(scope_resolver.key))
+    log.debug("Invalidating scope cache for key: " .. tostring(scope_resolver.key))
     cached_scopes[scope_resolver.key] = nil
 end
 
@@ -190,7 +223,7 @@ function scope.update(scope_resolver)
 
     local resolved_scope = scope.resolve(scope_resolver.resolve)
     if scope_resolver.cache ~= false then
-        log.debug("Updating scope cache. Cache key: " .. tostring(scope_resolver.key))
+        log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
         cached_scopes[scope_resolver.key] = resolved_scope
     end
 

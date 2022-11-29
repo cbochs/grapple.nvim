@@ -231,7 +231,7 @@ describe("scope", function()
 
         it("does not resolve a scope when no root files are present", function()
             local resolver = require("grapple.scope").root("some_file")
-            assert.is_nil(require("grapple.scope").get(resolver))
+            assert.is_nil(require("grapple.scope").get_safe(resolver))
         end)
     end)
 
@@ -297,7 +297,20 @@ describe("scope", function()
 
         it("does not resolve when the scope path is nil", function()
             local resolver = require("grapple.scope").suffix("bad_basic", "basic")
-            assert.is_nil(require("grapple.scope").get(resolver))
+            assert.is_nil(require("grapple.scope").get_safe(resolver))
+        end)
+    end)
+
+    describe("#static", function()
+        it("creates a static scope resolver", function()
+            local resolver = require("grapple.scope").static("asdf")
+            assert.is_table(resolver)
+            assert.equals(false, resolver.cache)
+        end)
+
+        it("resolves a scope as a static string", function()
+            local resolver = require("grapple.scope").static("asdf")
+            assert.equals("asdf", require("grapple.scope").get(resolver))
         end)
     end)
 
@@ -321,12 +334,12 @@ describe("scope", function()
         for _, scope in ipairs(default_scopes) do
             describe(scope.key, function()
                 it(string.format("resolves a scope", scope.key), function()
-                    assert.equals(scope.path, require("grapple.scope").get(scope.key))
+                    assert.equals(scope.path, require("grapple.scope").get_safe(scope.key))
                 end)
 
                 local test_prefix = scope.cache and "caches" or "does not cache"
                 it(string.format("%s the scope", test_prefix, scope.key), function()
-                    require("grapple.scope").get(scope.key)
+                    require("grapple.scope").get_safe(scope.key)
                     assert.equals(scope.cache, require("grapple.scope").cached(scope.key))
                 end)
             end)

@@ -1,126 +1,179 @@
 local Path = require("plenary.path")
+local scope = require("grapple.scope")
 local settings = require("grapple.settings")
 
 local state = {}
 
+---@alias Grapple.StateKey string | integer
+
+---@alias Grapple.StateItem Grapple.Tag
+
+---@alias Grapple.StateTable table<Grapple.StateKey, Grapple.StateItem>
+
+---@type table<Grapple.Scope, Grapple.StateTable>
+local internal_state = {}
+
 ---Reference: https://github.com/golgote/neturl/blob/master/lib/net/url.lua
----@param str string
+---
+---@param plain_string string
 ---@return string
-local function encode(str)
-    return (
-        str:gsub("([^%w])", function(v)
-            return string.upper(string.format("%%%02x", string.byte(v)))
-        end)
-    )
+local function encode(plain_string)
+    return string.gsub(plain_string, "([^%w])", function(match)
+        return string.upper(string.format("%%%02x", string.byte(match)))
+    end)
 end
 
 -- luacheck: ignore
----@param str string
+---@param encoded_string string
 ---@return string
-local function decode(str)
-    return (str:gsub("%%(%x%x)", function(c)
-        return string.char(tonumber(c, 16))
-    end))
+local function decode(encoded_string)
+    return string.gsub(encoded_string, "%%(%x%x)", function(match)
+        return string.char(tonumber(match, 16))
+    end)
 end
 
----Serialize a lua table as json idempotently.
----@param state_ table | string
+---@param state_ table
 ---@return string
 local function serialize(state_)
-    if type(state_) == "string" then
-        return state_
+    local separated_state = {
+        __indexed = {},
+    }
+
+    for _, state_key in ipairs(vim.tbl_keys(state_)) do
+        if type(state_key) == "string" then
+            separated_state[state_key] = state_[state_key]
+        elseif type(state_key) == "number" then
+            table.insert(separated_state.__indexed, state_[state_key])
+        end
     end
-    return vim.json.encode(state_)
+
+    return vim.json.encode(separated_state)
 end
 
----Deserialize a json blob into a lua table idempotently.
----@param serialized_state table | string
+---@param serialized_state string
 ---@return table
 local function deserialize(serialized_state)
-    if type(serialized_state) ~= "string" then
-        return serialized_state
+    local separated_state = vim.json.decode(serialized_state)
+    local state_ = separated_state
+
+    for _, state_item in ipairs(separated_state.__indexed) do
+        table.insert(state_, state_item)
     end
-    return vim.json.decode(serialized_state)
+    state_.__indexed = nil
+
+    return state_
 end
 
----@param state_ table
----@param save_path? string
-function state.prune(state_, save_path)
-    save_path = Path:new(save_path or settings.save_path)
-    for state_key, sub_state in pairs(state_) do
-        local state_path = save_path / encode(state_key)
-        if vim.tbl_isempty(sub_state) and state_path:exists() then
-            state_path:rm()
+---@param scope_state Grapple.StateTable
+---@return boolean
+local function should_persist(scope_state)
+    return getmetatable(scope_state).__persist
+end
+
+---@param save_dir? string
+function state.save(save_dir)
+    save_dir = Path:new(save_dir or settings.save_path)
+    if not save_dir:exists() then
+        save_dir:mkdir()
+    end
+
+    for scope_, scope_state in pairs(internal_state) do
+        if vim.tbl_isempty(scope_state) then
+            goto continue
         end
+        if not should_persist(scope_state) then
+            goto continue
+        end
+
+        local save_path = save_dir / encode(scope_)
+        save_path:write(serialize(scope_state), "w")
+
+        ::continue::
     end
 end
 
----@param state_ table
----@param save_path? string
-function state.save(state_, save_path)
-    save_path = Path:new(save_path or settings.save_path)
+---@param scope_resolver Grapple.ScopeResolverLike
+---@param save_dir? string
+---@return Grapple.StateTable
+function state.load(scope_resolver, save_dir)
+    scope_resolver = scope.find_resolver(scope_resolver)
+    if not scope_resolver.persist then
+        return nil
+    end
+
+    local scope_ = scope.get(scope_resolver)
+
+    save_dir = Path:new(save_dir or settings.save_path)
+    local save_path = save_dir / encode(scope_)
     if not save_path:exists() then
-        save_path:mkdir()
+        return nil
     end
 
-    for state_key, sub_state in pairs(state_) do
-        -- todo(cbochs): sync state properly instead of just overwriting it
-        local state_path = save_path / encode(state_key)
-        if not vim.tbl_isempty(sub_state) and state_key ~= "none" then
-            local serialized_state = serialize(sub_state)
-            state_path:write(serialized_state, "w")
+    local serialized_state = save_path:read()
+
+    return deserialize(serialized_state)
+end
+
+---@param save_dir? string
+function state.prune(save_dir)
+    save_dir = Path:new(save_dir or settings.save_path)
+    for scope_, scope_state in pairs(internal_state) do
+        local save_path = save_dir / encode(scope_)
+        if vim.tbl_isempty(scope_state) and save_path:exists() then
+            save_path:rm()
         end
     end
 end
 
----@param state_key
----@param save_path? string
----@return table
-function state.load(state_key, save_path)
-    save_path = Path:new(save_path or settings.save_path)
+---@param scope_resolver Grapple.ScopeResolverLike
+function state.ensure_loaded(scope_resolver)
+    scope_resolver = scope.find_resolver(scope_resolver)
+    local scope_ = scope.get(scope_resolver)
 
-    local state_path = save_path / encode(state_key)
-    if not state_path:exists() then
+    if internal_state[scope_] ~= nil then
         return
     end
 
-    local serialized_state = state_path:read()
-    local loaded_state = deserialize(serialized_state)
-
-    return loaded_state
+    internal_state[scope_] = state.load(scope_) or {}
+    setmetatable(internal_state[scope_], {
+        __persist = scope_resolver.persist,
+    })
 end
 
----@param save_path string
----@param old_save_path string
----@param new_save_path string
-function state.migrate(save_path, old_save_path, new_save_path)
-    if not Path:new(old_save_path):exists() then
-        return
-    end
+---@param scope_resolver Grapple.ScopeResolverLike
+---@param key Grapple.StateKey
+---@return Grapple.StateItem | nil
+function state.get(scope_resolver, key)
+    local scope_ = scope.get(scope_resolver)
+    state.ensure_loaded(scope_)
+    return internal_state[scope_][key]
+end
 
-    local log = require("grapple.log")
-    local logger = log.new({ log_level = "warn", use_console = true }, false)
+---@param scope_resolver Grapple.ScopeResolverLike
+---@param data any
+---@param key? Grapple.StateKey
+function state.set(scope_resolver, data, key)
+    local scope_ = scope.get(scope_resolver)
+    state.ensure_loaded(scope_resolver)
 
-    if save_path ~= tostring(new_save_path) then
-        logger.warn(
-            "Migrating tags to their new home. "
-                .. "The save path in your grapple config is no longer valid. "
-                .. "For more information, "
-                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
-        )
+    key = key or (#internal_state[scope_resolver] + 1)
+    internal_state[scope_resolver][key] = data
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@param key Grapple.StateKey
+function state.unset(scope_resolver, key)
+    state.set(scope_resolver, nil, key)
+end
+
+---@param scope_resolver? Grapple.ScopeResolverLike
+function state.reset(scope_resolver)
+    if scope_resolver ~= nil then
+        local scope_ = scope.get(scope_resolver)
+        internal_state[scope_] = nil
     else
-        logger.warn(
-            "Migrating tags to their new home. "
-                .. "For more information, "
-                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
-        )
+        internal_state = {}
     end
-
-    local serialized_state = Path:new(old_save_path):read()
-    local loaded_state = deserialize(serialized_state)
-    state.save(loaded_state, tostring(new_save_path))
-
-    Path:new(old_save_path):rm()
 end
 
 return state
