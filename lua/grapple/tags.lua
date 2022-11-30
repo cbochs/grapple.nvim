@@ -25,45 +25,14 @@ local tag_state = {}
 local function resolve_file_path(path)
     local expanded_path = Path:new(path):expand()
     local absolute_path = Path:new(expanded_path):absolute()
-    if not Path:new(absolute_path):exists() then
-        return nil
-    end
     return absolute_path
 end
 
----@private
----@param scope_ Grapple.Scope
----@return Grapple.ScopePath
-local function resolve_scope_path(scope_)
-    local scope_path
-    if type(scope_) == "string" and tag_state[scope_] then
-        scope_path = scope_
-    else
-        scope_path = scope.get(scope_)
-    end
-
-    if scope_path == nil then
-        log.error("Unable to determine scope path. Scope: " .. vim.inspect(scope_))
-        error("Unable to determine scope path. Scope: " .. vim.inspect(scope_))
-    end
-
-    return scope_path
-end
-
----@private
----@param scope_ Grapple.Scope
-local function _scoped_tags(scope_)
-    local scope_path = resolve_scope_path(scope_)
-    tag_state[scope_path] = tag_state[scope_path] or state.load(scope_path) or {}
-    return tag_state[scope_path]
-end
-
----@private
 ---@param scope_ Grapple.Scope
 ---@param key Grapple.TagKey
 ---@return Grapple.Tag
 local function _get(scope_, key)
-    return _scoped_tags(scope_)[key]
+    return state.get(scope_, key)
 end
 
 ---@private
@@ -71,14 +40,7 @@ end
 ---@param tag Grapple.Tag
 ---@param key Grapple.TagKey | nil
 local function _set(scope_, tag, key)
-    local scoped_tags = _scoped_tags(scope_)
-    if key == nil then
-        table.insert(scoped_tags, tag)
-    elseif type(key) == "string" then
-        scoped_tags[key] = tag
-    elseif type(key) == "number" then
-        table.insert(scoped_tags, key, tag)
-    end
+    return state.set(scope_, tag, key)
 end
 
 ---@private
@@ -86,45 +48,39 @@ end
 ---@param tag Grapple.Tag
 ---@param key Grapple.TagKey
 local function _update(scope_, tag, key)
-    _scoped_tags(scope_)[key] = tag
+    return state.set(scope_, tag, key)
 end
 
 ---@private
 ---@param scope_ Grapple.Scope
 ---@param key Grapple.TagKey
 local function _unset(scope_, key)
-    local scoped_tags = _scoped_tags(scope_)
-    if type(key) == "string" then
-        scoped_tags[key] = nil
-    elseif type(key) == "number" then
-        table.remove(scoped_tags, key)
-    end
+    state.unset(scope_, key)
 end
 
 ---@private
 ---@param scope_ Grapple.Scope
 ---@ereturn Grapple.TagTable
 function tags.tags(scope_)
-    return vim.deepcopy(_scoped_tags(scope_))
+    return state.scope(scope_)
 end
 
 ---@private
 ---@param scope_ Grapple.Scope
 ---@return integer
 function tags.count(scope_)
-    return #_scoped_tags(scope_)
+    return state.count(scope_)
 end
 
 ---@param scope_ Grapple.Scope
 function tags.reset(scope_)
-    local scope_path = resolve_scope_path(scope_)
-    tag_state[scope_path] = nil
+    state.reset(scope_)
 end
 
 ---@param scope_ Grapple.Scope
 function tags.quickfix(scope_)
     local quickfix_items = {}
-    for tag_key, tag in pairs(_scoped_tags(scope_)) do
+    for tag_key, tag in pairs(state.scope(scope_)) do
         local quickfix_item = {
             filename = tag.file_path,
             lnum = tag.cursor and tag.cursor[1] or 1,
@@ -155,6 +111,7 @@ function tags.tag(scope_, opts)
             log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
             error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
         end
+
         -- todo(cbochs): add guard to ensure file path exists
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
         cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
@@ -175,7 +132,7 @@ function tags.tag(scope_, opts)
             string.format(
                 "Replacing tag. Old key: %s. New key: %s. Path: %s",
                 old_key,
-                (opts.key or "[tbd]"),
+                (opts.key or "[append]"),
                 tag.file_path
             )
         )
@@ -194,7 +151,7 @@ function tags.tag(scope_, opts)
         key = math.max(1, key)
     end
 
-    _set(scope_, tag, key)
+    return _set(scope_, tag, key)
 end
 
 ---@param scope_ Grapple.Scope
@@ -232,7 +189,6 @@ function tags.select(tag)
 
     if not Path:new(tag.file_path):exists() then
         log.warn("Tagged file does not exist.")
-        return
     end
 
     vim.api.nvim_cmd({ cmd = "edit", args = { tag.file_path } }, {})
@@ -286,7 +242,7 @@ end
 ---@param scope_ Grapple.Scope
 ---@return Grapple.TagKey[]
 function tags.keys(scope_)
-    return vim.tbl_keys(_scoped_tags(scope_))
+    return vim.tbl_keys(state.scope(scope_))
 end
 
 ---@return string[]
