@@ -1,15 +1,15 @@
 local popup = require("grapple.popup")
-local tags = require("grapple.tags")
+local state = require("grapple.state")
 
 local M = {}
 
----@return Grapple.Serializer<Grapple.Scope>
+---@return Grapple.Serializer<Grapple.ScopePair>
 local function create_serializer()
-    ---@param scope_path string
+    ---@param scope Grapple.Scope
     ---@return string
-    return function(scope_path)
-        local scoped_tags = tags.tags(scope_path)
-        local text = " [" .. #scoped_tags .. "] " .. scope_path
+    return function(scope)
+        local scope_resolver = state.resolver(scope)
+        local text = " [" .. state.count(scope_resolver) .. "]" .. scope
         return text
     end
 end
@@ -17,11 +17,11 @@ end
 ---@return Grapple.Parser<Grapple.Scope>
 local function create_parser()
     ---@param line string
-    ---@return string
+    ---@return Grapple.Scope
     return function(line)
         local pattern = "%] (.*)"
-        local scope_path = string.match(line, pattern)
-        return scope_path
+        local scope = string.match(line, pattern)
+        return scope
     end
 end
 
@@ -37,14 +37,15 @@ local function resolve(popup_, parser)
     -- Determine which scopes have been modified and which were deleted
     ---@type table<string, boolean>
     local remaining_scopes = {}
-    for _, scope_path in ipairs(scope_paths) do
-        remaining_scopes[scope_path] = true
+    for _, scope in ipairs(scope_paths) do
+        remaining_scopes[scope] = true
     end
 
     -- Reset scopes that were removed from the popup menu
-    for _, scope_path in ipairs(tags.scopes()) do
-        if not remaining_scopes[scope_path] then
-            tags.reset(scope_path)
+    for _, scope in ipairs(state.scopes()) do
+        if not remaining_scopes[scope] then
+            local scope_resolver = state.resolver(scope)
+            state.reset(scope_resolver)
         end
     end
 end
@@ -68,7 +69,7 @@ function M.open(window_options)
     local serializer = create_serializer()
     local parser = create_parser()
 
-    local lines = vim.tbl_map(serializer, tags.scopes())
+    local lines = vim.tbl_map(serializer, state.scopes())
     local popup_ = popup.open(window_options)
     popup.update(popup_, lines)
 
