@@ -156,7 +156,7 @@ end
 ---@return Grapple.StateItem | nil
 function state.get(scope_resolver, key)
     local scope_ = scope.get(scope_resolver)
-    state.ensure_loaded(scope_)
+    state.ensure_loaded(scope_resolver)
     return vim.deepcopy(internal_state[scope_][key])
 end
 
