@@ -9,22 +9,6 @@ local function test_resolvers()
     require("grapple.scope").static("project_five", { key = "project_five" })
 end
 
-local function test_state_table()
-    return {
-        project_one = {
-            { file_path = "file_one" },
-            keyed_tag = { file_path = "file_two" },
-        },
-        project_two = {
-            { file_path = "file_one" },
-        },
-        project_three = {
-            { file_path = "file_one" },
-        },
-        project_four = {},
-    }
-end
-
 local function test_state()
     test_resolvers()
 
@@ -226,29 +210,6 @@ describe("state", function()
             assert.not_nil(state_.project_three)
             assert.not_nil(state_.project_four)
             assert.is_nil(state_.project_five)
-        end)
-    end)
-
-    describe("#migrate", function()
-        it("migrates the old grapple.json to the new save structure", function()
-            with(temp_dir(), function(dir_path)
-                local old_save_path = tostring(Path:new(dir_path) / "grapple.json")
-                local new_save_path = tostring(Path:new(dir_path) / "grapple")
-
-                Path:new(old_save_path):write(vim.json.encode(test_state_table()), "w")
-                require("grapple.state").migrate(old_save_path, old_save_path, new_save_path)
-
-                assert.is_true(vim.tbl_contains(files(new_save_path), "project%5Fone"))
-                assert.is_true(vim.tbl_contains(files(new_save_path), "project%5Ftwo"))
-
-                local project_one = require("grapple.state").load("project_one", new_save_path)
-                -- vim.pretty_print(project_one)
-                assert.equals("file_one", project_one[1].file_path)
-                assert.equals("file_two", project_one.keyed_tag.file_path)
-
-                local project_two = require("grapple.state").load("project_two", new_save_path)
-                assert.equals("file_one", project_two[1].file_path)
-            end)
         end)
     end)
 end)

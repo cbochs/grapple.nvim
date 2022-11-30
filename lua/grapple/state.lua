@@ -17,16 +17,15 @@ local internal_state = {}
 ---
 ---@param plain_string string
 ---@return string
-local function encode(plain_string)
+function state.encode(plain_string)
     return string.gsub(plain_string, "([^%w])", function(match)
         return string.upper(string.format("%%%02x", string.byte(match)))
     end)
 end
 
--- luacheck: ignore
 ---@param encoded_string string
 ---@return string
-local function decode(encoded_string)
+function state.decode(encoded_string)
     return string.gsub(encoded_string, "%%(%x%x)", function(match)
         return string.char(tonumber(match, 16))
     end)
@@ -34,7 +33,7 @@ end
 
 ---@param state_ table
 ---@return string
-local function serialize(state_)
+function state.serialize(state_)
     local separated_state = {
         __indexed = {},
     }
@@ -52,7 +51,7 @@ end
 
 ---@param serialized_state string
 ---@return table
-local function deserialize(serialized_state)
+function state.deserialize(serialized_state)
     local separated_state = vim.json.decode(serialized_state)
     local state_ = separated_state
 
@@ -85,8 +84,8 @@ function state.save(save_dir)
             goto continue
         end
 
-        local save_path = save_dir / encode(scope_)
-        save_path:write(serialize(scope_state), "w")
+        local save_path = save_dir / state.encode(scope_)
+        save_path:write(state.serialize(scope_state), "w")
 
         ::continue::
     end
@@ -104,13 +103,13 @@ function state.load(scope_resolver, save_dir)
     local scope_ = scope.get(scope_resolver)
 
     save_dir = Path:new(save_dir or settings.save_path)
-    local save_path = save_dir / encode(scope_)
+    local save_path = save_dir / state.encode(scope_)
     if not save_path:exists() then
         return nil
     end
 
     local serialized_state = save_path:read()
-    local scope_state = deserialize(serialized_state)
+    local scope_state = state.deserialize(serialized_state)
 
     return scope_state
 end
@@ -119,7 +118,7 @@ end
 function state.prune(save_dir)
     save_dir = Path:new(save_dir or settings.save_path)
     for scope_, scope_state in pairs(internal_state) do
-        local save_path = save_dir / encode(scope_)
+        local save_path = save_dir / state.encode(scope_)
         if vim.tbl_isempty(scope_state) and save_path:exists() then
             save_path:rm()
         end
@@ -246,53 +245,6 @@ function state.reset(scope_resolver)
     else
         internal_state = {}
     end
-end
-
----@param save_path string
----@param old_save_path string
----@param new_save_path string
-function state.migrate(save_path, old_save_path, new_save_path)
-    if not Path:new(old_save_path):exists() then
-        return
-    end
-
-    local log = require("grapple.log")
-    local logger = log.new({ log_level = "warn", use_console = true }, false)
-
-    if save_path ~= tostring(new_save_path) then
-        logger.warn(
-            "Migrating tags to their new home. "
-                .. "The save path in your grapple config is no longer valid. "
-                .. "For more information, "
-                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
-        )
-    else
-        logger.warn(
-            "Migrating tags to their new home. "
-                .. "For more information, "
-                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
-        )
-    end
-
-    local serialized_state = Path:new(old_save_path):read()
-    local loaded_state = vim.json.decode(serialized_state)
-
-    for _, scope_state in pairs(loaded_state) do
-        for key, _ in pairs(scope_state) do
-            local new_key = tonumber(key) or key
-
-            if new_key ~= key then
-                scope_state[new_key] = scope_state[key]
-                scope_state[key] = nil
-            end
-        end
-    end
-
-    state.load_all(loaded_state, { persist = true })
-    state.save(tostring(new_save_path))
-    state.reset()
-
-    Path:new(old_save_path):rm()
 end
 
 return state
