@@ -173,8 +173,8 @@ function scope.find_resolver(scope_resolver)
     if type(scope_resolver) == "string" then
         scope_resolver = scope.resolvers[scope_resolver]
         if scope_resolver == nil then
-            log.error("Unable to find scope resolver for key: " .. tostring(scope_resolver))
-            error("Unable to find scope resolver for key: " .. tostring(scope_resolver))
+            log.error(string.format("Unable to find scope resolver for key: %s", scope_resolver))
+            error(string.format("Unable to find scope resolver for key: %s", scope_resolver))
         end
     end
     return scope_resolver
@@ -185,8 +185,8 @@ end
 function scope.get(scope_resolver)
     local scope_ = scope.get_safe(scope_resolver)
     if scope_ == nil then
-        log.error("Unable to find scope for resolver: " .. vim.inspect(scope_resolver))
-        error("Unable to find scope for resolver: " .. vim.inspect(scope_resolver))
+        log.error(string.format("Unable to find scope for resolver: %s", vim.inspect(scope_resolver)))
+        error(string.format("Unable to find scope for resolver: %s", vim.inspect(scope_resolver)))
     end
     return scope_
 end
@@ -221,7 +221,7 @@ end
 function scope.update(scope_resolver)
     scope_resolver = update_autocmd(scope_resolver)
 
-    local resolved_scope = scope.resolve(scope_resolver.resolve)
+    local resolved_scope = scope.resolve(scope_resolver)
     if scope_resolver.cache ~= false then
         log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
         cached_scopes[scope_resolver.key] = resolved_scope
@@ -231,12 +231,19 @@ function scope.update(scope_resolver)
 end
 
 ---@private
----@param scope_function Grapple.ScopeFunction
+---@param scope_resolver Grapple.ScopeResolver
 ---@return Grapple.Scope | nil
-function scope.resolve(scope_function)
-    local ok, scope_path = pcall(scope_function)
+function scope.resolve(scope_resolver)
+    local ok, scope_path = pcall(scope_resolver.resolve)
     if not ok or type(scope_path) ~= "string" then
-        log.warn("Unable to resolve scope. Ok: " .. tostring(ok) .. ". Result: " .. vim.inspect(scope_path))
+        log.debug(
+            string.format(
+                "Unable to resolve scope. ok: %s. result: %s. resolver: %s",
+                ok,
+                scope_path,
+                vim.inspect(scope_resolver)
+            )
+        )
         return nil
     end
     return scope_path

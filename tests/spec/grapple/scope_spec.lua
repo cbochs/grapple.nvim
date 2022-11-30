@@ -133,22 +133,22 @@ describe("scope", function()
 
         it("resolves to a scope", function()
             local scope_resolver = require("grapple.scope").resolvers.basic
-            assert.equals("__basic__", require("grapple.scope").resolve(scope_resolver.resolve))
+            assert.equals("__basic__", require("grapple.scope").resolve(scope_resolver))
         end)
 
         it("does not resolve when the scope is nil", function()
             local scope_resolver = require("grapple.scope").resolvers.bad_nil
-            assert.is_nil(require("grapple.scope").resolve(scope_resolver.resolve))
+            assert.is_nil(require("grapple.scope").resolve(scope_resolver))
         end)
 
         it("does not resolve when the scope is not a string", function()
             local scope_resolver = require("grapple.scope").resolvers.bad_malformed
-            assert.is_nil(require("grapple.scope").resolve(scope_resolver.resolve))
+            assert.is_nil(require("grapple.scope").resolve(scope_resolver))
         end)
 
         it("does not resolve when the resolver errors", function()
             local scope_resolver = require("grapple.scope").resolvers.bad_error
-            assert.is_nil(require("grapple.scope").resolve(scope_resolver.resolve))
+            assert.is_nil(require("grapple.scope").resolve(scope_resolver))
         end)
     end)
 
