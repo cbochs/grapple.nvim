@@ -230,7 +230,7 @@ function state.load_all(state_, opts)
 
     internal_state = state_
     for _, scope_state in pairs(internal_state) do
-        if getmetatable(scope_state).__persist == nil then
+        if getmetatable(scope_state) == nil then
             setmetatable(scope_state, {
                 __persist = opts.persist,
             })
@@ -246,6 +246,53 @@ function state.reset(scope_resolver)
     else
         internal_state = {}
     end
+end
+
+---@param save_path string
+---@param old_save_path string
+---@param new_save_path string
+function state.migrate(save_path, old_save_path, new_save_path)
+    if not Path:new(old_save_path):exists() then
+        return
+    end
+
+    local log = require("grapple.log")
+    local logger = log.new({ log_level = "warn", use_console = true }, false)
+
+    if save_path ~= tostring(new_save_path) then
+        logger.warn(
+            "Migrating tags to their new home. "
+                .. "The save path in your grapple config is no longer valid. "
+                .. "For more information, "
+                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
+        )
+    else
+        logger.warn(
+            "Migrating tags to their new home. "
+                .. "For more information, "
+                .. "please see https://github.com/cbochs/grapple.nvim/issues/39"
+        )
+    end
+
+    local serialized_state = Path:new(old_save_path):read()
+    local loaded_state = vim.json.decode(serialized_state)
+
+    for _, scope_state in pairs(loaded_state) do
+        for key, _ in pairs(scope_state) do
+            local new_key = tonumber(key) or key
+
+            if new_key ~= key then
+                scope_state[new_key] = scope_state[key]
+                scope_state[key] = nil
+            end
+        end
+    end
+
+    state.load_all(loaded_state, { persist = true })
+    state.save(tostring(new_save_path))
+    state.reset()
+
+    Path:new(old_save_path):rm()
 end
 
 return state
