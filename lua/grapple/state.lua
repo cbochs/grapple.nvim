@@ -8,9 +8,9 @@ local state = {}
 
 ---@alias Grapple.StateItem Grapple.Tag
 
----@alias Grapple.StateTable table<Grapple.StateKey, Grapple.StateItem>
+---@alias Grapple.ScopeState table<Grapple.StateKey, Grapple.StateItem>
 
----@type table<Grapple.Scope, Grapple.StateTable>
+---@type table<Grapple.Scope, Grapple.ScopeState>
 local internal_state = {}
 
 ---Reference: https://github.com/golgote/neturl/blob/master/lib/net/url.lua
@@ -64,7 +64,7 @@ local function deserialize(serialized_state)
     return state_
 end
 
----@param scope_state Grapple.StateTable
+---@param scope_state Grapple.ScopeState
 ---@return boolean
 local function should_persist(scope_state)
     return getmetatable(scope_state).__persist
@@ -94,7 +94,7 @@ end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param save_dir? string
----@return Grapple.StateTable
+---@return Grapple.ScopeState
 function state.load(scope_resolver, save_dir)
     scope_resolver = scope.find_resolver(scope_resolver)
     if not scope_resolver.persist then
@@ -110,8 +110,9 @@ function state.load(scope_resolver, save_dir)
     end
 
     local serialized_state = save_path:read()
+    local scope_state = deserialize(serialized_state)
 
-    return deserialize(serialized_state)
+    return scope_state
 end
 
 ---@param save_dir? string
@@ -159,7 +160,7 @@ function state.set(scope_resolver, data, key)
     local state_item = vim.deepcopy(data)
 
     key = key or (#internal_state[scope_resolver] + 1)
-    internal_state[scope_][key] = data
+    internal_state[scope_][key] = state_item
 
     return vim.deepcopy(state_item)
 end
@@ -171,7 +172,27 @@ function state.unset(scope_resolver, key)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
----@return Grapple.StateTable
+---@param key Grapple.StateKey
+---@return boolean
+function state.exists(scope_resolver, key)
+    return state.get(scope_resolver, key) ~= nil
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@param query table
+---@return Grapple.StateKey | nil
+function state.query(scope_resolver, query)
+    for key, item in pairs(state.scope(scope_resolver)) do
+        for attribute, value in pairs(query) do
+            if item[attribute] == value then
+                return key
+            end
+        end
+    end
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.ScopeState
 function state.scope(scope_resolver)
     local scope_ = scope.get(scope_resolver)
     state.ensure_loaded(scope_resolver)
@@ -179,10 +200,31 @@ function state.scope(scope_resolver)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
+---@return integer
 function state.count(scope_resolver)
     local scope_ = scope.get(scope_resolver)
     state.ensure_loaded(scope_resolver)
     return #internal_state[scope_]
+end
+
+---@return table<Grapple.Scope, Grapple.ScopeState>
+function state.state()
+    return vim.deepcopy(internal_state)
+end
+
+---@param state_
+---@param opts? { persist?: boolean }
+function state.load_all(state_, opts)
+    opts = opts or { persist = false }
+
+    internal_state = state_
+    for _, scope_state in pairs(internal_state) do
+        if getmetatable(scope_state).__persist == nil then
+            setmetatable(scope_state, {
+                __persist = opts.persist,
+            })
+        end
+    end
 end
 
 ---@param scope_resolver? Grapple.ScopeResolverLike
