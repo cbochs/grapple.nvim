@@ -146,7 +146,7 @@ end
 function state.get(scope_resolver, key)
     local scope_ = scope.get(scope_resolver)
     state.ensure_loaded(scope_)
-    return internal_state[scope_][key]
+    return vim.deepcopy(internal_state[scope_][key])
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
@@ -156,14 +156,33 @@ function state.set(scope_resolver, data, key)
     local scope_ = scope.get(scope_resolver)
     state.ensure_loaded(scope_resolver)
 
+    local state_item = vim.deepcopy(data)
+
     key = key or (#internal_state[scope_resolver] + 1)
-    internal_state[scope_resolver][key] = data
+    internal_state[scope_][key] = data
+
+    return vim.deepcopy(state_item)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param key Grapple.StateKey
 function state.unset(scope_resolver, key)
     state.set(scope_resolver, nil, key)
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.StateTable
+function state.scope(scope_resolver)
+    local scope_ = scope.get(scope_resolver)
+    state.ensure_loaded(scope_resolver)
+    return vim.deepcopy(internal_state[scope_])
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+function state.count(scope_resolver)
+    local scope_ = scope.get(scope_resolver)
+    state.ensure_loaded(scope_resolver)
+    return #internal_state[scope_]
 end
 
 ---@param scope_resolver? Grapple.ScopeResolverLike
