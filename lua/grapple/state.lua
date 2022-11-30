@@ -134,7 +134,7 @@ function state.ensure_loaded(scope_resolver)
         return
     end
 
-    internal_state[scope_] = state.load(scope_) or {}
+    internal_state[scope_] = state.load(scope_resolver) or {}
     setmetatable(internal_state[scope_], {
         __persist = scope_resolver.persist,
     })
@@ -158,7 +158,7 @@ function state.set(scope_resolver, data, key)
 
     local state_item = vim.deepcopy(data)
 
-    key = key or (#internal_state[scope_resolver] + 1)
+    key = key or (#internal_state[scope_] + 1)
     internal_state[scope_][key] = state_item
 
     return vim.deepcopy(state_item)
