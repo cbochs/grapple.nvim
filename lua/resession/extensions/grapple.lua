@@ -2,12 +2,12 @@ local M = {}
 
 ---@return table<string, Grapple.Tag[]>
 M.on_save = function()
-    return require("grapple.tags")._raw_save()
+    return require("grapple.state").state()
 end
 
 ---@param data table<string, Grapple.Tag[]>
 M.on_load = function(data)
-    require("grapple.tags")._raw_load(data)
+    require("grapple.state").load_all(data)
 end
 
 return M
