@@ -1,13 +1,4 @@
-local autocmds = require("grapple.autocmds")
-local commands = require("grapple.commands")
-local log = require("grapple.log")
-local popup_scope = require("grapple.popup_scope")
-local popup_tags = require("grapple.popup_tags")
-local scope = require("grapple.scope")
-local scope_resolvers = require("grapple.scope_resolvers")
 local settings = require("grapple.settings")
-local tags = require("grapple.tags")
-local types = require("grapple.types")
 
 local grapple = {}
 
@@ -25,22 +16,20 @@ function grapple.initialize()
     end
     initialized = true
 
-    autocmds.create()
-    commands.create()
-
-    scope.reset()
-    scope_resolvers.create()
-
-    log.new({ level = settings.log_level })
+    require("grapple.autocmds").create()
+    require("grapple.commands").create()
+    require("grapple.scope").reset()
+    require("grapple.scope_resolvers").create()
+    require("grapple.log").new({ level = settings.log_level })
 end
 
 ---@param overrides? Grapple.Settings
 function grapple.setup(overrides)
-    scope.reset()
-    scope_resolvers.create()
+    require("grapple.scope").reset()
+    require("grapple.scope_resolvers").create()
 
     settings.update(overrides)
-    log.new({ level = settings.log_level })
+    require("grapple.log").new({ level = settings.log_level })
 
     -- Give two weeks migration time. Delete 12-12-2022
     local Path = require("plenary.path")
@@ -57,13 +46,13 @@ end
 ---@param opts? Grapple.Options
 function grapple.tag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    tags.tag(settings.scope, opts)
+    require("grapple.tags").tag(settings.scope, opts)
 end
 
 ---@param opts? Grapple.Options
 function grapple.untag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    tags.untag(settings.scope, opts)
+    require("grapple.tags").untag(settings.scope, opts)
 end
 
 ---@param opts? Grapple.Options
@@ -79,20 +68,20 @@ end
 function grapple.select(opts)
     local tag = grapple.find(opts)
     if tag ~= nil then
-        tags.select(tag)
+        require("grapple.tags").select(tag)
     end
 end
 
 ---@param opts? Grapple.Options
 function grapple.find(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    return tags.find(settings.scope, opts)
+    return require("grapple.tags").find(settings.scope, opts)
 end
 
 ---@param opts? Grapple.Options
 function grapple.key(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    return tags.key(settings.scope, opts)
+    return require("grapple.tags").key(settings.scope, opts)
 end
 
 ---@param opts? Grapple.Options
@@ -105,53 +94,50 @@ end
 function grapple.cycle(opts, direction)
     local tag_key = grapple.key(opts)
     local start_index = (type(tag_key) == "number") and tag_key or 0
-    local tag = tags.next(settings.scope, start_index, direction)
+    local tag = require("grapple.tags").next(settings.scope, start_index, direction)
     if tag ~= nil then
-        tags.select(tag)
+        require("grapple.tags").select(tag)
     end
 end
 
 ---@param opts? Grapple.Options
 function grapple.cycle_backward(opts)
-    grapple.cycle(opts, types.direction.backward)
+    grapple.cycle(opts, "backward")
 end
 
 ---@param opts? Grapple.Options
 function grapple.cycle_forward(opts)
-    grapple.cycle(opts, types.direction.forward)
+    grapple.cycle(opts, "forward")
 end
 
 ---@param scope_? Grapple.Scope
 function grapple.reset(scope_)
-    tags.reset(scope_ or settings.scope)
+    require("grapple.tags").reset(scope_ or settings.scope)
 end
 
 ---@param scope_? Grapple.Scope
 function grapple.quickfix(scope_)
-    tags.quickfix(scope_ or settings.scope)
+    require("grapple.tags").quickfix(scope_ or settings.scope)
 end
 
 ---@param scope_? Grapple.Scope
 function grapple.popup_tags(scope_)
     scope_ = scope_ or settings.scope
     local window_options = vim.deepcopy(settings.popup_options)
-    popup_tags.open(scope_, window_options)
+    require("grapple.popup_tags").open(scope_, window_options)
 end
 
 function grapple.popup_scopes()
     local window_options = vim.deepcopy(settings.popup_options)
-    popup_scope.open(window_options)
+    require("grapple.popup_scopes").open(window_options)
 end
 
 function grapple.save()
-    local scope_resolver = scope.find_resolver(settings.scope)
-    if scope_resolver.key == "none" then
-        return
-    end
     if settings.integrations.resession then
         return
     end
-    tags.save()
+    require("grapple.state").save(settings.save_path)
+    require("grapple.state").prune(settings.save_path)
 end
 
 return grapple
