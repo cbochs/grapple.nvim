@@ -10,8 +10,6 @@ local function test_resolvers()
 end
 
 local function test_state()
-    test_resolvers()
-
     local state = require("grapple.state")
     state.set("project_one", { file_path = "file_one" })
     state.set("project_one", { file_path = "file_two" }, "keyed_tag")
@@ -40,6 +38,7 @@ end
 
 describe("state", function()
     before_each(function()
+        test_resolvers()
         test_state()
     end)
 
@@ -227,6 +226,17 @@ describe("state", function()
             assert.not_nil(state_.project_three)
             assert.not_nil(state_.project_four)
             assert.is_nil(state_.project_five)
+        end)
+    end)
+
+    describe("#reset", function()
+        it("resets a scope state to an empty table", function()
+            with(temp_dir(), function(dir_path)
+                require("grapple.state").save(dir_path)
+                require("grapple.state").reset("project_one")
+                assert.equals(0, #vim.tbl_keys(require("grapple.state").scope("project_one")))
+                assert.not_nil(require("grapple.state").resolver("project_one"))
+            end)
         end)
     end)
 end)

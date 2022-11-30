@@ -73,6 +73,16 @@ local function should_persist(scope_state)
     return getmetatable(scope_state).__persist
 end
 
+---@param scope_state Grapple.ScopeState
+---@param scope_resolver Grapple.ScopeResolver
+local function with_metatable(scope_state, scope_resolver)
+    setmetatable(scope_state, {
+        __persist = scope_resolver.persist,
+        __resolver = scope_resolver,
+    })
+    return scope_state
+end
+
 ---@param save_dir? string
 function state.save(save_dir)
     save_dir = Path:new(save_dir or settings.save_path)
@@ -138,11 +148,7 @@ function state.ensure_loaded(scope_resolver)
         return
     end
 
-    internal_state[scope_] = state.load(scope_resolver) or {}
-    setmetatable(internal_state[scope_], {
-        __persist = scope_resolver.persist,
-        __resolver = scope_resolver,
-    })
+    internal_state[scope_] = with_metatable(state.load(scope_resolver) or {}, scope_resolver)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
@@ -269,7 +275,7 @@ end
 function state.reset(scope_resolver)
     if scope_resolver ~= nil then
         local scope_ = scope.get(scope_resolver)
-        internal_state[scope_] = nil
+        internal_state[scope_] = with_metatable({}, scope_resolver)
     else
         internal_state = {}
     end
