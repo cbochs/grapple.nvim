@@ -63,7 +63,7 @@ function scope.resolver(scope_function, opts)
     opts = opts or {}
 
     if opts.key and scope.resolvers[opts.key] ~= nil then
-        log.warn("Overriding existing scope resolver. Key: " .. opts.key)
+        log.debug("Replacing existing scope resolver. key: " .. opts.key)
 
         local scope_resolver = scope.resolvers[opts.key]
         if scope_resolver.autocmd ~= nil then
