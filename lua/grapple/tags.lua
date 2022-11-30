@@ -197,7 +197,7 @@ end
 ---@param scope_ Grapple.Scope
 ---@return Grapple.TagKey[]
 function tags.keys(scope_)
-    return vim.tbl_keys(state.scope(scope_))
+    return state.keys(scope_)
 end
 
 ---@return string[]
