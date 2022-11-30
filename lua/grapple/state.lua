@@ -95,9 +95,11 @@ function state.save(save_dir)
     log.debug(string.format("Saving state. save_dir: %s", save_dir))
     for scope_, scope_state in pairs(internal_state) do
         if vim.tbl_isempty(scope_state) then
+            log.debug(string.format("Skipping save state. scope state is empty. scope: %s", scope_))
             goto continue
         end
         if not should_persist(scope_state) then
+            log.debug(string.format("Skipping save state. scope state should not persist. scope: %s", scope_))
             goto continue
         end
 
