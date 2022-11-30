@@ -10,14 +10,9 @@ local types = require("grapple.types")
 
 ---@alias Grapple.TagKey string | integer
 
----@alias Grapple.TagTable table<Grapple.TagKey, Grapple.Tag>
-
 ---@alias Grapple.Cursor table
 
 local tags = {}
-
----@type table<string, Grapple.TagTable>
-local tag_state = {}
 
 ---@private
 ---@param path string
@@ -26,36 +21,6 @@ local function resolve_file_path(path)
     local expanded_path = Path:new(path):expand()
     local absolute_path = Path:new(expanded_path):absolute()
     return absolute_path
-end
-
----@param scope_ Grapple.Scope
----@param key Grapple.TagKey
----@return Grapple.Tag
-local function _get(scope_, key)
-    return state.get(scope_, key)
-end
-
----@private
----@param scope_ Grapple.Scope
----@param tag Grapple.Tag
----@param key Grapple.TagKey | nil
-local function _set(scope_, tag, key)
-    return state.set(scope_, tag, key)
-end
-
----@private
----@param scope_ Grapple.Scope
----@param tag Grapple.Tag
----@param key Grapple.TagKey
-local function _update(scope_, tag, key)
-    return state.set(scope_, tag, key)
-end
-
----@private
----@param scope_ Grapple.Scope
----@param key Grapple.TagKey
-local function _unset(scope_, key)
-    state.unset(scope_, key)
 end
 
 ---@private
@@ -151,32 +116,34 @@ function tags.tag(scope_, opts)
         key = math.max(1, key)
     end
 
-    return _set(scope_, tag, key)
+    return state.set(scope_, tag, key)
 end
 
 ---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
 function tags.untag(scope_, opts)
     local tag_key = tags.key(scope_, opts)
-    if tag_key ~= nil then
-        _unset(scope_, tag_key)
-    else
-        log.debug("Unable to untag. Options: " .. vim.inspect(opts))
+    if tag_key == nil then
+        log.debug(string.format("Unable to remove tag. opts: ", vim.inspect(opts)))
+        return
     end
+    state.unset(scope_, tag_key)
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@param tag Grapple.Tag
 ---@param cursor Grapple.Cursor
-function tags.update(scope_, tag, cursor)
-    local tag_key = tags.key(scope_, { file_path = tag.file_path })
+function tags.update(scope_resolver, tag, cursor)
+    local tag_key = tags.key(scope_resolver, { file_path = tag.file_path })
     if tag_key ~= nil then
-        log.debug(string.format("Updating tag cursor. Tag: %s. New cursor: %s", vim.inspect(tag), vim.inspect(cursor)))
+        log.debug(string.format("Updating tag cursor. tag: %s. new cursor: %s", vim.inspect(tag), vim.inspect(cursor)))
+
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
-        _update(scope_, new_tag, tag_key)
+
+        return state.set(scope_resolver, new_tag, tag_key)
     else
-        log.debug(string.format("Unable to update tag. Tag: %s", vim.inspect(tag)))
+        log.debug(string.format("Unable to update tag. tag: %s", vim.inspect(tag)))
     end
 end
 
@@ -202,41 +169,29 @@ end
 ---@return Grapple.Tag | nil
 function tags.find(scope_, opts)
     local tag_key = tags.key(scope_, opts)
-    if tag_key ~= nil then
-        return _get(scope_, tag_key)
-    else
+    if tag_key == nil then
         return nil
     end
+    return state.get(scope_, tag_key)
 end
 
 ---@param scope_ Grapple.Scope
 ---@param opts Grapple.Options
 ---@return Grapple.TagKey | nil
 function tags.key(scope_, opts)
-    local tag_key = nil
-
-    if opts.key then
-        tag_key = opts.key
-    elseif opts.file_path or opts.buffer then
-        local file_path
-        if opts.file_path then
-            file_path = resolve_file_path(opts.file_path)
-        elseif opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
-            file_path = vim.api.nvim_buf_get_name(opts.buffer)
-        end
-
-        if file_path ~= nil then
-            local scoped_tags = tags.tags(scope_)
-            for key, tag in pairs(scoped_tags) do
-                if tag.file_path == file_path then
-                    tag_key = key
-                    break
-                end
-            end
-        end
+    if opts.key and state.exists(scope_, opts.key) then
+        return opts.key
     end
 
-    return tag_key
+    if opts.file_path then
+        local file_path = resolve_file_path(opts.file_path)
+        return state.query(scope_, { file_path = file_path })
+    end
+
+    if opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
+        local file_path = vim.api.nvim_buf_get_name(opts.buffer)
+        return state.query(scope_, { file_path = file_path })
+    end
 end
 
 ---@param scope_ Grapple.Scope
@@ -247,7 +202,7 @@ end
 
 ---@return string[]
 function tags.scopes()
-    return vim.tbl_keys(tag_state)
+    return state.scopes()
 end
 
 ---@param scope_ Grapple.Scope
@@ -261,7 +216,10 @@ function tags.compact(scope_)
     for _, key in ipairs(numbered_keys) do
         if key ~= index then
             log.debug(string.format("Found hole in scoped tags. Tag key: %s. Expected index: %s", key, index))
-            tags.tag(scope_, { file_path = _get(scope_, key).file_path, key = index })
+            tags.tag(scope_, {
+                file_path = tags.find(scope_, { key = key }).file_path,
+                key = index,
+            })
         end
         index = index + 1
     end
@@ -305,20 +263,8 @@ end
 
 ---@param save_path string
 function tags.save()
-    state.save(tag_state)
-    state.prune(tag_state)
-end
-
----@private
----@param data table<string, Grapple.Tag[]>
-function tags._raw_load(data)
-    tag_state = data
-end
-
----@private
----@return table<string, Grapple.Tag[]>
-function tags._raw_save()
-    return tag_state
+    state.save()
+    state.prune()
 end
 
 return tags

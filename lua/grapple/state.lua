@@ -191,6 +191,11 @@ function state.query(scope_resolver, query)
     end
 end
 
+---@return Grapple.Scope[]
+function state.scopes()
+    return vim.tbl_keys(internal_state)
+end
+
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.ScopeState
 function state.scope(scope_resolver)
