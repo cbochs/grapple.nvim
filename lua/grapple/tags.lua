@@ -72,6 +72,14 @@ function tags.tag(scope_resolver, opts)
             error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
         end
 
+        -- todo(cbochs): surface this as a setting for users
+        local excluded_filetypes = { "grapple" }
+        local buffer_filetype = vim.api.nvim_buf_get_option(opts.buffer, "filetype")
+        if vim.tbl_contains(excluded_filetypes, buffer_filetype) then
+            log.warn(string.format("Not tagging buffer, excluded filetype: %s", buffer_filetype))
+            return
+        end
+
         -- todo(cbochs): add guard to ensure file path exists
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
         cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
@@ -128,6 +136,7 @@ end
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param tag Grapple.Tag
 ---@param cursor Grapple.Cursor
+---@return boolean
 function tags.update(scope_resolver, tag, cursor)
     local tag_key = tags.key(scope_resolver, { file_path = tag.file_path })
     if tag_key ~= nil then
@@ -136,17 +145,21 @@ function tags.update(scope_resolver, tag, cursor)
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
 
-        return state.set(scope_resolver, new_tag, tag_key)
+        state.set(scope_resolver, new_tag, tag_key)
+
+        return true
     else
         log.debug(string.format("Unable to update tag. tag: %s", vim.inspect(tag)))
+        return false
     end
 end
 
 ---@param tag Grapple.Tag
+---@return boolean
 function tags.select(tag)
     if tag.file_path == vim.api.nvim_buf_get_name(0) then
         log.debug("Tagged file is already the currently selected buffer.")
-        return
+        return true
     end
 
     if not Path:new(tag.file_path):exists() then
@@ -157,6 +170,8 @@ function tags.select(tag)
     if tag.cursor then
         vim.api.nvim_win_set_cursor(0, tag.cursor)
     end
+
+    return true
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike

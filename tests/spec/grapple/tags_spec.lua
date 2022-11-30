@@ -4,7 +4,10 @@ local buffer_unnamed = vim.fn.bufnr()
 
 local buffer_one = vim.api.nvim_create_buf(true, false)
 vim.api.nvim_buf_set_name(buffer_one, "one")
-vim.api.nvim_win_set_buf(0, buffer_one)
+vim.api.nvim_buf_set_option(buffer_one, "filetype", "lua")
+
+local buffer_two = vim.api.nvim_create_buf(true, false)
+vim.api.nvim_buf_set_option(buffer_two, "filetype", "grapple")
 
 local dir_path = Path:new("/private/tmp") / string.gsub(vim.fn.tempname(), "%p", "")
 local file_two = dir_path / "two"
@@ -28,8 +31,13 @@ describe("tags", function()
 
     describe("#tag", function()
         it("creates a tag for a given buffer", function()
-            require("grapple.tags").tag("scope", { buffer = 0 })
-            assert.not_nil(require("grapple.tags").find("scope", { buffer = 0 }))
+            require("grapple.tags").tag("scope", { buffer = buffer_one })
+            assert.not_nil(require("grapple.tags").find("scope", { buffer = buffer_one }))
+        end)
+
+        it("does not tag buffers that have excluded filetypes", function()
+            require("grapple.tags").tag("scope", { buffer = buffer_two })
+            assert.is_nil(require("grapple.tags").find("scope", { buffer = buffer_two }))
         end)
 
         it("does not create duplicate tags for the same buffer", function()
