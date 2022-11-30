@@ -9,7 +9,7 @@ local function create_serializer()
     ---@return string
     return function(scope)
         local scope_resolver = state.resolver(scope)
-        local text = " [" .. state.count(scope_resolver) .. "]" .. scope
+        local text = " [" .. state.count(scope_resolver) .. "] " .. scope
         return text
     end
 end
