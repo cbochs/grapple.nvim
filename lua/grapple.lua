@@ -27,6 +27,8 @@ function grapple.initialize()
 
     autocmds.create()
     commands.create()
+
+    scope.reset()
     scope_resolvers.create()
 
     log.new({ level = settings.log_level })
