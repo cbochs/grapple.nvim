@@ -17,7 +17,7 @@ local tags = {}
 ---@param path string
 ---@return string
 local function resolve_file_path(path)
-    if path == "" then
+    if path == nil or path == "" then
         return ""
     end
 
