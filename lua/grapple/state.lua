@@ -10,6 +10,10 @@ local state = {}
 
 ---@alias Grapple.ScopeState table<Grapple.StateKey, Grapple.StateItem>
 
+---@class Grapple.ScopePair
+---@field scope Grapple.Scope
+---@field resolver Grapple.ScopeResolver
+
 ---@type table<Grapple.Scope, Grapple.ScopeState>
 local internal_state = {}
 
@@ -137,6 +141,7 @@ function state.ensure_loaded(scope_resolver)
     internal_state[scope_] = state.load(scope_resolver) or {}
     setmetatable(internal_state[scope_], {
         __persist = scope_resolver.persist,
+        __resolver = scope_resolver,
     })
 end
 
@@ -215,6 +220,29 @@ function state.count(scope_resolver)
     local scope_ = scope.get(scope_resolver)
     state.ensure_loaded(scope_resolver)
     return #internal_state[scope_]
+end
+
+---@return Grapple.ScopePair[]
+function state.scope_pairs()
+    local scope_pairs = {}
+    for scope_, scope_state in pairs(internal_state) do
+        table.insert(scope_pairs, {
+            scope = scope_,
+            resolver = getmetatable(scope_state).__resolver,
+        })
+    end
+    return scope_pairs
+end
+
+---@param Grapple.Scope
+---@return Grapple.ScopeResolver
+function state.resolver(scope_)
+    local scope_pairs = state.scope_pairs()
+    for _, scope_pair in pairs(scope_pairs) do
+        if scope_ == scope_pair.scope then
+            return scope_pair.resolver
+        end
+    end
 end
 
 ---@return table<Grapple.Scope, Grapple.ScopeState>

@@ -189,6 +189,23 @@ describe("state", function()
         end)
     end)
 
+    describe("#scope_pairs", function()
+        it("returns a list of (scope, scope_resolver) pairs", function()
+            local scope_pairs = require("grapple.state").scope_pairs()
+            assert.equals(4, #scope_pairs)
+            for _, scope_pair in pairs(scope_pairs) do
+                assert.not_nil(scope_pair.scope)
+                assert.not_nil(scope_pair.resolver)
+            end
+        end)
+    end)
+
+    describe("#resolver", function()
+        it("returns a scope resolver for a given scope", function()
+            assert.equals("project_one", require("grapple.state").resolver("project_one").key)
+        end)
+    end)
+
     describe("#state", function()
         it("returns the entire state", function()
             local state_ = require("grapple.state").state()
