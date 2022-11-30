@@ -121,21 +121,21 @@ function grapple.cycle_forward(opts)
     grapple.cycle(opts, "forward")
 end
 
----@param scope_? Grapple.Scope
-function grapple.reset(scope_)
-    require("grapple.tags").reset(scope_ or settings.scope)
+---@param scope? Grapple.ScopeResolverLike
+function grapple.reset(scope)
+    require("grapple.tags").reset(scope or settings.scope)
 end
 
----@param scope_? Grapple.Scope
-function grapple.quickfix(scope_)
-    require("grapple.tags").quickfix(scope_ or settings.scope)
+---@param scope? Grapple.ScopeResolverLike
+function grapple.quickfix(scope)
+    require("grapple.tags").quickfix(scope or settings.scope)
 end
 
----@param scope_? Grapple.Scope
-function grapple.popup_tags(scope_)
-    scope_ = scope_ or settings.scope
+---@param scope? Grapple.ScopeResolverLike
+function grapple.popup_tags(scope)
+    scope = scope or settings.scope
     local window_options = vim.deepcopy(settings.popup_options)
-    require("grapple.popup_tags").open(scope_, window_options)
+    require("grapple.popup_tags").open(scope, window_options)
 end
 
 function grapple.popup_scopes()

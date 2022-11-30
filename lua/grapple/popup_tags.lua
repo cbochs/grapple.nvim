@@ -26,10 +26,10 @@ local function into_popup_tag(key, tag)
     }
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.Serializer<Grapple.PopupTag>
-local function create_serializer(scope_)
-    local scope_path = scope.get(scope_)
+local function create_serializer(scope_resolver)
+    local scope_path = scope.get(scope_resolver)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
@@ -43,10 +43,10 @@ local function create_serializer(scope_)
     end
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.Parser<Grapple.PartialTag>
-local function create_parser(scope_)
-    local scope_path = scope.get(scope_)
+local function create_parser(scope_resolver)
+    local scope_path = scope.get(scope_resolver)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
@@ -82,10 +82,10 @@ local function create_parser(scope_)
     end
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@param popup_ Grapple.Popup
 ---@param parser Grapple.Parser<Grapple.PartialTag>
-local function resolve(scope_, popup_, parser)
+local function resolve(scope_resolver, popup_, parser)
     ---@type string[]
     local lines = vim.api.nvim_buf_get_lines(popup_.buffer, 0, -1, false)
 
@@ -109,83 +109,83 @@ local function resolve(scope_, popup_, parser)
 
     -- Determine which tags have been modified and which were deleted
     for _, partial_tag in ipairs(partial_tags) do
-        local key = tags.key(scope_, { file_path = partial_tag.file_path })
+        local key = tags.key(scope_resolver, { file_path = partial_tag.file_path })
         if key ~= nil then
             if partial_tag.key ~= key then
                 table.insert(modified_tags, partial_tag)
             end
             remaining_tags[key] = true
         else
-            log.warn("Unable to find tag key for parsed file path. Path: " .. partial_tag.file_path)
+            log.warn(string.format("Unable to find tag key for parsed file path. path: ", partial_tag.file_path))
         end
     end
 
     -- Delete tags that do not exist anymore
-    for _, key in ipairs(tags.keys(scope_)) do
+    for _, key in ipairs(tags.keys(scope_resolver)) do
         if not remaining_tags[key] then
-            tags.untag(scope_, { key = key })
+            tags.untag(scope_resolver, { key = key })
         end
     end
 
     -- Update tags that now have a different key
     for _, partial_tag in ipairs(modified_tags) do
-        tags.tag(scope_, { file_path = partial_tag.file_path, key = partial_tag.key })
+        tags.tag(scope_resolver, { file_path = partial_tag.file_path, key = partial_tag.key })
     end
 
     -- Fill any "holes" that were made from deletion and updating
-    tags.compact(scope_)
+    tags.compact(scope_resolver)
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@param popup_ Grapple.Popup
 ---@param parser Grapple.Parser<Grapple.PartialTag>
-local function action_close(scope_, popup_, parser)
+local function action_close(scope_resolver, popup_, parser)
     return function()
-        resolve(scope_, popup_, parser)
+        resolve(scope_resolver, popup_, parser)
         popup.close(popup_)
     end
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@param popup_ Grapple.Popup
 ---@param parser Grapple.Parser<Grapple.PartialTag>
-local function action_select(scope_, popup_, parser)
+local function action_select(scope_resolver, popup_, parser)
     return function()
         local current_line = vim.api.nvim_get_current_line()
         local partial_tag = parser(current_line)
-        action_close(scope_, popup_, parser)()
+        action_close(scope_resolver, popup_, parser)()
 
-        local selected_tag = tags.find(scope_, { file_path = partial_tag.file_path })
+        local selected_tag = tags.find(scope_resolver, { file_path = partial_tag.file_path })
         if selected_tag ~= nil then
             tags.select(selected_tag)
         end
     end
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@param popup_ Grapple.Popup
 ---@param parser Grapple.Parser<Grapple.PartialTag>
-local function action_quickfix(scope_, popup_, parser)
+local function action_quickfix(scope_resolver, popup_, parser)
     return function()
-        resolve(scope_, popup_, parser)
+        resolve(scope_resolver, popup_, parser)
         popup.close(popup_)
-        tags.quickfix(scope_)
+        tags.quickfix(scope_resolver)
     end
 end
 
----@param scope_ Grapple.Scope
+---@param scope_resolver Grapple.ScopeResolverLike
 ---@param window_options table
-function M.open(scope_, window_options)
+function M.open(scope_resolver, window_options)
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = scope.get(scope_)
+        window_options.title = scope.get(scope_resolver)
         window_options.title_pos = "center"
     end
 
-    local serializer = create_serializer(scope_)
-    local parser = create_parser(scope_)
+    local serializer = create_serializer(scope_resolver)
+    local parser = create_parser(scope_resolver)
 
     local popup_tags = {}
-    for key, tag in pairs(tags.tags(scope_)) do
+    for key, tag in pairs(tags.tags(scope_resolver)) do
         table.insert(popup_tags, into_popup_tag(key, tag))
     end
 
@@ -193,9 +193,9 @@ function M.open(scope_, window_options)
     local popup_ = popup.open(window_options)
     popup.update(popup_, lines)
 
-    local close = action_close(scope_, popup_, parser)
-    local select = action_select(scope_, popup_, parser)
-    local quickfix = action_quickfix(scope_, popup_, parser)
+    local close = action_close(scope_resolver, popup_, parser)
+    local select = action_select(scope_resolver, popup_, parser)
+    local quickfix = action_quickfix(scope_resolver, popup_, parser)
 
     local keymap_options = { buffer = popup_.buffer, nowait = true }
     vim.keymap.set("n", "q", close, keymap_options)
