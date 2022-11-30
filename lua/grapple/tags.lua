@@ -17,6 +17,10 @@ local tags = {}
 ---@param path string
 ---@return string
 local function resolve_file_path(path)
+    if path == "" then
+        return ""
+    end
+
     local expanded_path = Path:new(path):expand()
     local absolute_path = Path:new(expanded_path):absolute()
     return absolute_path

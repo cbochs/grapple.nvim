@@ -41,8 +41,8 @@ describe("tags", function()
         end)
 
         it("does not create duplicate tags for the same buffer", function()
-            require("grapple.tags").tag("scope", { buffer = buffer_one })
-            require("grapple.tags").tag("scope", { buffer = buffer_one })
+            require("grapple.tags").tag("scope", { buffer = buffer_unnamed })
+            require("grapple.tags").tag("scope", { buffer = buffer_unnamed })
             assert.equals(1, require("grapple.tags").count("scope"))
         end)
 
