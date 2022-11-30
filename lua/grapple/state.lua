@@ -92,6 +92,7 @@ function state.save(save_dir)
         save_dir:mkdir()
     end
 
+    log.debug(string.format("Saving state. save_dir: %s", save_dir))
     for scope_, scope_state in pairs(internal_state) do
         if vim.tbl_isempty(scope_state) then
             goto continue
@@ -118,6 +119,7 @@ function state.load(scope_resolver, save_dir)
     end
 
     local scope_ = scope.get(scope_resolver)
+    log.debug(string.format("Loading scope state. scope: %s", scope_))
 
     save_dir = Path:new(save_dir or settings.save_path)
     local save_path = save_dir / state.encode(scope_)
@@ -128,6 +130,7 @@ function state.load(scope_resolver, save_dir)
 
     local serialized_state = save_path:read()
     local scope_state = state.deserialize(serialized_state)
+    log.debug(string.format("Loaded scope state. scope: %s. ", scope_))
 
     return scope_state
 end
