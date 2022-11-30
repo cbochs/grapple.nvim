@@ -1,4 +1,5 @@
 local Path = require("plenary.path")
+local log = require("grapple.log")
 local scope = require("grapple.scope")
 local settings = require("grapple.settings")
 
@@ -87,6 +88,7 @@ end
 function state.save(save_dir)
     save_dir = Path:new(save_dir or settings.save_path)
     if not save_dir:exists() then
+        log.info(string.format("Save directory does not exist, creating. path: %s", save_dir))
         save_dir:mkdir()
     end
 
@@ -100,6 +102,7 @@ function state.save(save_dir)
 
         local save_path = save_dir / state.encode(scope_)
         save_path:write(state.serialize(scope_state), "w")
+        log.debug(string.format("Saved scope state. path: %s", save_path))
 
         ::continue::
     end
@@ -119,6 +122,7 @@ function state.load(scope_resolver, save_dir)
     save_dir = Path:new(save_dir or settings.save_path)
     local save_path = save_dir / state.encode(scope_)
     if not save_path:exists() then
+        log.debug(string.format("Cannot load scope state from disk, save path does not exist. path: %s", save_path))
         return nil
     end
 
@@ -134,6 +138,7 @@ function state.prune(save_dir)
     for scope_, scope_state in pairs(internal_state) do
         local save_path = save_dir / state.encode(scope_)
         if vim.tbl_isempty(scope_state) and save_path:exists() then
+            log.debug(string.format("Pruning: scope is empty. scope: %s", scope_))
             save_path:rm()
         end
     end
