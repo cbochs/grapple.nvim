@@ -1,148 +1,129 @@
--- log.lua
---
--- Inspired by rxi/log.lua
--- Modified by tjdevries and can be found at github.com/tjdevries/vlog.nvim
---
--- This library is free software; you can redistribute it and/or modify it
--- under the terms of the MIT license. See LICENSE for details.
+local Path = require("plenary.path")
 
--- User configuration section
-local default_config = {
-    -- Name of the plugin. Prepended to log messages
-    plugin = "grapple",
-
-    -- Should print the output to neovim while running
-    use_console = false,
-
-    -- Should highlighting be used in console (using echohl)
-    highlights = true,
-
-    -- Should write to a file
-    use_file = true,
-
-    -- Any messages above this level will be logged.
-    level = "debug",
-
-    -- Level configuration
-    modes = {
-        { name = "debug", hl = "Comment" },
-        { name = "info", hl = "None" },
-        { name = "warn", hl = "WarningMsg" },
-        { name = "error", hl = "ErrorMsg" },
-        { name = "fatal", hl = "ErrorMsg" },
-    },
-
-    -- Can limit the number of decimals displayed for floats
-    float_precision = 0.01,
-}
-
--- {{{ NO NEED TO CHANGE
 local log = {}
 
-local unpack = unpack or table.unpack
+local _logger = {}
 
-log.new = function(config, standalone)
-    config = vim.tbl_deep_extend("force", default_config, config)
+---@class Grapple.LogMode
+---@field name string
+---@field highlight string
 
-    local outfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "cache" }), config.plugin)
+---@class Grapple.LogSettings
+local DEFAULT_SETTINGS = {
+    plugin_name = "grapple",
+    log_level = "warn",
+    log_dir = tostring(Path:new(vim.fn.stdpath("cache"))),
 
-    local obj
-    if standalone then
-        obj = log
-    else
-        -- luacheck: ignore
-        obj = {}
-    end
+    use_console = false,
+    use_file = true,
+    highlight = true,
+}
 
-    local levels = {}
-    for i, v in ipairs(config.modes) do
-        levels[v.name] = i
-    end
 
-    local round = function(x, increment)
-        increment = increment or 1
-        x = x / increment
-        return (x > 0 and math.floor(x + 0.5) or math.ceil(x - 0.5)) * increment
-    end
+-- stylua: ignore start
+---@type Grapple.LogMode[]
+local DEFAULT_MODES = {
+    { name = "fatal",  highlight = "ErrorMsg" },
+    { name = "error",  highlight = "ErrorMsg" },
+    { name = "warn",   highlight = "WarningMsg" },
+    { name = "info",   highlight = "None" },
+    { name = "debug",  highlight = "Comment" },
+}
+-- stylua: ignore end
 
-    local make_string = function(...)
-        local t = {}
-        for i = 1, select("#", ...) do
-            local x = select(i, ...)
-
-            if type(x) == "number" and config.float_precision then
-                x = tostring(round(x, config.float_precision))
-            elseif type(x) == "table" then
-                x = vim.inspect(x)
-            else
-                x = tostring(x)
-            end
-
-            t[#t + 1] = x
-        end
-        return table.concat(t, " ")
-    end
-
-    local log_at_level = function(level, level_config, message_maker, ...)
-        -- Return early if we're below the config.level
-        if level < levels[config.level] then
-            return
-        end
-        local nameupper = level_config.name:upper()
-
-        local msg = message_maker(...)
-        local info = debug.getinfo(2, "Sl")
-        local lineinfo = info.short_src .. ":" .. info.currentline
-
-        -- Output to console
-        if config.use_console then
-            local console_string = string.format("[%-6s%s] %s: %s", nameupper, os.date("%H:%M:%S"), lineinfo, msg)
-
-            if config.highlights and level_config.hl then
-                vim.cmd(string.format("echohl %s", level_config.hl))
-            end
-
-            local split_console = vim.split(console_string, "\n")
-            for _, v in ipairs(split_console) do
-                vim.cmd(string.format([[echom "[%s] %s"]], config.plugin, vim.fn.escape(v, '"')))
-            end
-
-            if config.highlights and level_config.hl then
-                vim.cmd("echohl NONE")
-            end
-        end
-
-        -- Output to log file
-        if config.use_file then
-            local fp = io.open(outfile, "a")
-            local str = string.format("[%-6s%s] %s: %s\n", nameupper, os.date(), lineinfo, msg)
-            fp:write(str)
-            fp:close()
-        end
-    end
-
-    for i, x in ipairs(config.modes) do
-        obj[x.name] = function(...)
-            return log_at_level(i, x, make_string, ...)
-        end
-
-        obj[("fmt_%s"):format(x.name)] = function()
-            return log_at_level(i, x, function(...)
-                local passed = { ... }
-                local fmt = table.remove(passed, 1)
-                local inspected = {}
-                for _, v in ipairs(passed) do
-                    table.insert(inspected, vim.inspect(v))
-                end
-                return string.format(fmt, unpack(inspected))
-            end)
-        end
-    end
-
-    return obj
+---@param level string
+---@param info string
+---@param date string
+---@param message string
+local function format_log(level, info, date, message)
+    return string.format("[%-6s%s] %s: %s", level:upper(), date, info, message)
 end
 
-log.new(default_config, true)
--- }}}
+---@param formatted_lines string[]
+---@param highlight string | nil
+local function console_log(formatted_lines, highlight)
+    if highlight ~= nil then
+        vim.cmd(string.format("echohl %s", highlight))
+    end
+
+    for _, line in ipairs(formatted_lines) do
+        vim.cmd(string.format([[echom "%s"]], line))
+    end
+
+    if highlight ~= nil then
+        vim.cmd("echohl NONE")
+    end
+end
+
+---@param level_name string
+---@param modes Grapple.LogMode[]
+local function get_log_level(level_name, modes)
+    for mode_level, mode in ipairs(modes) do
+        if level_name == mode.name then
+            return mode_level
+        end
+    end
+end
+
+---@param settings? Grapple.LogSettings
+---@param modes? Grapple.LogMode[]
+function log.new(settings, modes)
+    ---@type Grapple.LogSettings
+    settings = vim.tbl_extend("force", DEFAULT_SETTINGS, settings or {})
+    modes = modes or DEFAULT_MODES
+
+    local logger = {}
+    local log_dir = Path:new(settings.log_dir)
+    local log_name = string.format("%s.log", settings.plugin_name)
+    local log_path = log_dir / log_name
+    local log_level = get_log_level(settings.log_level, modes)
+
+    if settings.use_file and not log_dir:exists() then
+        log_dir:mkdir()
+    end
+
+    for mode_level, mode in ipairs(modes) do
+        -- logger[mode.name .. "_fmt"] = function(...) end
+        logger[mode.name] = function(message)
+            if mode_level < log_level then
+                return
+            end
+
+            local info = debug.getinfo(2, "Sl")
+            local info_short = string.format("%s:%s", info.short_src, info.currentline)
+
+            if settings.use_console then
+                local date = os.date("%H:%M:%S")
+                local formatted_message = format_log(mode.name, info_short, date, message)
+                local formatted_lines = vim.tbl_map(function(line)
+                    return string.format("[%s] %s", settings.plugin_name, vim.fn.escape(line, '"'))
+                end, vim.split(formatted_message, "\n"))
+                console_log(formatted_lines, settings.highlight and mode.highlight or nil)
+            end
+
+            if settings.use_file then
+                local date = os.date()
+                local formatted_message = format_log(mode.name, info_short, date, message)
+                log_path:write(formatted_message .. "\n", "a")
+            end
+        end
+    end
+
+    return logger
+end
+
+---@param settings? Grapple.LogSettings
+function log.global(settings)
+    _logger = log.new(settings)
+end
+
+-- Create default logger
+log.global()
+
+setmetatable(log, {
+    __index = function(_, index)
+        return _logger[index]
+    end,
+})
 
 return log

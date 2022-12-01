@@ -20,7 +20,6 @@ function grapple.initialize()
     require("grapple.commands").create()
     require("grapple.scope").reset()
     require("grapple.scope_resolvers").create()
-    require("grapple.log").new({ level = settings.log_level })
 
     -- Give two weeks migration time. Delete 12-12-2022
     local Path = require("plenary.path")
@@ -36,11 +35,8 @@ end
 
 ---@param overrides? Grapple.Settings
 function grapple.setup(overrides)
-    require("grapple.scope").reset()
-    require("grapple.scope_resolvers").create()
-
     settings.update(overrides)
-    require("grapple.log").new({ level = settings.log_level })
+    require("grapple.log").global({ level = settings.log_level })
 
     -- Give two weeks migration time. Delete 12-12-2022
     local Path = require("plenary.path")
