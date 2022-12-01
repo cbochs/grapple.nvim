@@ -36,7 +36,7 @@ end
 ---@param overrides? Grapple.Settings
 function grapple.setup(overrides)
     settings.update(overrides)
-    require("grapple.log").global({ level = settings.log_level })
+    require("grapple.log").global({ log_level = settings.log_level })
 
     -- Give two weeks migration time. Delete 12-12-2022
     local Path = require("plenary.path")
