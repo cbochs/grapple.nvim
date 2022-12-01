@@ -36,7 +36,7 @@ local function temp_dir()
     end)
 end
 
-describe("26112022_save_as_individual_files", function()
+describe("20221130_separate_named_and_indexed_tags", function()
     before_each(function()
         test_resolvers()
     end)
@@ -48,7 +48,7 @@ describe("26112022_save_as_individual_files", function()
                     local save_path = Path:new(dir_path) / require("grapple.state").encode(scope)
                     save_path:write(vim.json.encode(scope_state), "w")
                 end
-                require("grapple.migrations.30112022_separate_named_and_indexed_tags").migrate(dir_path)
+                require("grapple.migrations.20221130_separate_named_and_indexed_tags").migrate(dir_path)
 
                 assert.is_true(vim.tbl_contains(files(dir_path), "project%5Fone"))
                 assert.is_true(vim.tbl_contains(files(dir_path), "project%5Ftwo"))

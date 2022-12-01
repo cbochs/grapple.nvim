@@ -1,12 +1,18 @@
-local Path = require("plenary.path")
-local state = require("grapple.state")
-
 local migration = {}
+
+migration.LEVEL = 1
 
 ---@param save_path string
 ---@param old_save_path string
 ---@param new_save_path string
 function migration.migrate(save_path, old_save_path, new_save_path)
+    local Path = require("plenary.path")
+    local state = require("grapple.state")
+
+    save_path = save_path or require("grapple.settings").save_path
+    old_save_path = old_save_path or tostring(Path:new(vim.fn.stdpath("data")) / "grapple.json")
+    new_save_path = new_save_path or tostring(Path:new(vim.fn.stdpath("data")) / "grapple")
+
     if not Path:new(old_save_path):exists() then
         return
     end

@@ -20,34 +20,14 @@ function grapple.initialize()
     require("grapple.commands").create()
     require("grapple.scope").reset()
     require("grapple.scope_resolvers").create()
-
-    -- Give two weeks migration time. Delete 12-12-2022
-    local Path = require("plenary.path")
-    require("grapple.migrations.26112022_save_as_individual_files").migrate(
-        settings.save_path,
-        tostring(Path:new(vim.fn.stdpath("data")) / "grapple.json"),
-        tostring(Path:new(vim.fn.stdpath("data")) / "grapple")
-    )
-
-    -- Give two weeks migration time. Delete 14-12-2022
-    require("grapple.migrations.30112022_separate_named_and_indexed_tags").migrate(settings.save_path)
+    require("grapple.migrations").migrate()
 end
 
 ---@param overrides? Grapple.Settings
 function grapple.setup(overrides)
     settings.update(overrides)
     require("grapple.log").global({ log_level = settings.log_level })
-
-    -- Give two weeks migration time. Delete 12-12-2022
-    local Path = require("plenary.path")
-    require("grapple.migrations.26112022_save_as_individual_files").migrate(
-        settings.save_path,
-        tostring(Path:new(vim.fn.stdpath("data")) / "grapple.json"),
-        tostring(Path:new(vim.fn.stdpath("data")) / "grapple")
-    )
-
-    -- Give two weeks migration time. Delete 14-12-2022
-    require("grapple.migrations.30112022_separate_named_and_indexed_tags").migrate(settings.save_path)
+    require("grapple.migrations").migrate()
 end
 
 ---@param opts? Grapple.Options

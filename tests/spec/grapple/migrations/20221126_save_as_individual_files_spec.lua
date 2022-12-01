@@ -43,7 +43,7 @@ local function temp_dir()
     end)
 end
 
-describe("26112022_save_as_individual_files", function()
+describe("20221126_save_as_individual_files", function()
     before_each(function()
         test_resolvers()
     end)
@@ -55,7 +55,7 @@ describe("26112022_save_as_individual_files", function()
                 local new_save_path = tostring(Path:new(dir_path) / "grapple")
 
                 Path:new(old_save_path):write(vim.json.encode(test_state_table()), "w")
-                require("grapple.migrations.26112022_save_as_individual_files").migrate(
+                require("grapple.migrations.20221126_save_as_individual_files").migrate(
                     old_save_path,
                     old_save_path,
                     new_save_path
