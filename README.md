@@ -334,7 +334,7 @@ Clear all tags for a given tag scope.
 
 **API**: `require("grapple").reset(scope)`
 
-**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `settings.scope`)
+**`scope?`**: [`Grapple.ScopeResolverLike`](#scoperesolverlike) (default: `settings.scope`)
 
 **Examples**
 
@@ -352,7 +352,7 @@ Open the quickfix menu and populate the quickfix list with a project scope's tag
 
 **API**: `require("grapple").quickfix(scope)`
 
-**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `settings.scope`)
+**`scope?`**: [`Grapple.ScopeResolverLike`](#scoperesolverlike) (default: `settings.scope`)
 
 **Examples**
 
@@ -562,7 +562,7 @@ The **tags popup menu** opens a floating window containing all the tags within a
 
 **API**: `require("grapple").popup_tags(scope)`
 
-**`scope?`**: [`Grapple.Scope`](#grapplescope) (default: `settings.scope`)
+**`scope?`**: [`Grapple.ScopeResolverLike`](#scoperesolverlike) (default: `settings.scope`)
 
 **Examples**
 
@@ -738,6 +738,12 @@ A **[scope resolver](#grapplescoperesolver-1)** is identified by its **scope key
 * **`resolve`**: [`Grapple.ScopeFunction`](#grapplescopefunction)
 * **`cache`**: `boolean` | `string` | `string[]`
 * **`autocmd`**: `number` | `nil`
+
+---
+
+### `Grapple.ScopeResolverLike`
+
+**Type**: [`Grapple.ScopeKey`](#grapplescopekey) | [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
 
 ---
 
