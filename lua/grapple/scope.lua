@@ -25,8 +25,8 @@ local scope = {}
 ---@type table<Grapple.ScopeKey, Grapple.Scope>
 local cached_scopes = {}
 
----@type table<Grapple.ScopeKey, Grapple.ScopeResolver>
-scope.resolvers = {}
+-- Give a unique id to scope resolvers that aren't given a key
+local resolver_counter = 0
 
 scope.separator = "#"
 
@@ -51,8 +51,6 @@ end
 
 ---@private
 function scope.reset()
-    vim.api.nvim_create_augroup("GrappleScope", { clear = true })
-    scope.resolvers = {}
     cached_scopes = {}
 end
 
@@ -62,20 +60,9 @@ end
 function scope.resolver(scope_function, opts)
     opts = opts or {}
 
-    if opts.key and scope.resolvers[opts.key] ~= nil then
-        log.debug("Replacing existing scope resolver. key: " .. opts.key)
-
-        local scope_resolver = scope.resolvers[opts.key]
-        if scope_resolver.autocmd ~= nil then
-            vim.api.nvim_del_autocmd(scope_resolver.autocmd)
-        end
-
-        scope.invalidate(scope_resolver)
-        scope.resolvers[scope_resolver.key] = nil
-    end
-
     -- Scope resolver defaults
-    local scope_key = opts.key or (#scope.resolvers + 1)
+    resolver_counter = resolver_counter + 1
+    local scope_key = opts.key or resolver_counter
     local scope_cache = true
     local scope_persist = true
 
@@ -97,8 +84,6 @@ function scope.resolver(scope_function, opts)
         persist = scope_persist,
         autocmd = nil,
     }
-
-    scope.resolvers[scope_key] = scope_resolver
 
     return scope_resolver
 end
@@ -159,7 +144,7 @@ end
 function scope.static(plain_string, opts)
     return scope.resolver(function()
         return plain_string
-    end, vim.tbl_extend("force", { cache = false }, opts or {}))
+    end, opts)
 end
 
 ---@private
@@ -171,7 +156,7 @@ function scope.find_resolver(scope_resolver)
         error("Input scope resolver is nil.")
     end
     if type(scope_resolver) == "string" then
-        scope_resolver = scope.resolvers[scope_resolver]
+        scope_resolver = require("grapple").resolvers[scope_resolver]
         if scope_resolver == nil then
             log.error(string.format("Unable to find scope resolver for key: %s", scope_resolver))
             error(string.format("Unable to find scope resolver for key: %s", scope_resolver))
