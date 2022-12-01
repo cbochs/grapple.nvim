@@ -10,6 +10,10 @@ function migration.migrate(save_dir)
     save_dir = save_dir or require("grapple.settings").save_path
 
     for file_name, _ in vim.fs.dir(save_dir) do
+        if file_name == "migration_level" then
+            goto continue
+        end
+
         local file_path = Path:new(save_dir) / file_name
         local scope_state = vim.json.decode(file_path:read())
 

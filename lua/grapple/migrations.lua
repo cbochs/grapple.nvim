@@ -12,7 +12,7 @@ function migrations.migrate(save_dir)
         save_dir:mk_dir()
     end
 
-    local migration_path = save_dir / "migrate_level"
+    local migration_path = save_dir / "migration_level"
     migration_path:touch()
 
     local migration_level = tonumber(migration_path:read()) or 0
