@@ -9,7 +9,7 @@ function migrations.migrate(save_dir)
 
     save_dir = Path:new(save_dir or require("grapple.settings").save_path)
     if not save_dir:exists() then
-        save_dir:mk_dir()
+        save_dir:mkdir()
     end
 
     local migration_path = save_dir / "migration_level"
