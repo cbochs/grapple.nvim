@@ -53,9 +53,6 @@ require("grapple").setup({
     ---@type Grapple.ScopeKey | Grapple.ScopeResolver
     scope = "git",
 
-    ---The save location for tags
-    save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
-
     ---Window options used for the popup menu
     popup_options = {
         relative = "editor",
@@ -137,7 +134,7 @@ For usage and examples, please see [scope usage](#scope-usage) and the [Wiki](ht
 ### Usage
 
 <details open>
-<summary>Usage</summary>
+<summary>Grapple API</summary>
 
 #### `grapple#tag`
 
@@ -369,10 +366,8 @@ require("grapple").quickfix("global")
 
 </details>
 
-### Scope Usage
-
 <details open>
-<summary>Scope Usage</summary>
+<summary>Scope API</summary>
 
 #### `grapple.scope#resolver`
 
@@ -388,6 +383,7 @@ Create a scope resolver that generates a scope path.
 
 * **`key?`**: `string`
 * **`cache?`**: `boolean` | `string` | `string[]` (default: `true`)
+* **`persist?`**: `boolean` (default: `true`)
 
 **Example**
 
@@ -413,6 +409,7 @@ Create a scope resolver that generates a scope path by looking upwards for direc
 
 * **`key?`**: `string`
 * **`cache?`**: `boolean` | `string` | `string[]` (default: `"DirChanged"`)
+* **`persist?`**: `boolean` (default: `true`)
 
 **Note**: it is recommended to use this with a **[fallback scope resolver](#grapplscopefallback)** to guarantee that a scope is found.
 
@@ -445,6 +442,7 @@ Create a scope resolver that generates a scope path by attempting to get the sco
 
 * **`key?`**: `string`
 * **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
+* **`persist?`**: `boolean` (default: `true`)
 
 **Example**
 
@@ -457,6 +455,70 @@ require("grapple.scope").fallback({
     require("grapple.scope").resolvers.git_fallback,
     require("grapple.scope").resolvers.static
 }, { key = "my_fallback" })
+```
+
+#### `grapple.scope#suffix`
+
+Create a scope resolver that takes in two scope resolvers: a **path resolver** and a **suffix** resolver. If the scope determined from the path resolver is not nil, then the scope from the suffix resolver may be appended to it. Useful in situations where you may want to append additional project information (i.e. the current git branch).
+
+**API**: `require("grapple.scope").suffix(path_resolver, suffix_resolver, opts)`
+
+**`returns`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
+
+**`path_resolver`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
+
+**`suffix_resolver`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
+
+**`opts?`**: [`Grapple.ScopeOptions[]`](#grapplescopeoptions)
+
+* **`key?`**: `string`
+* **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
+* **`persist?`**: `boolean` (default: `true`)
+
+**Examples**
+
+```lua
+-- Create a suffix scope resolver that duplicates a static resolver
+-- and appends it to itself. The result would look a bit like:
+--
+-- > require("grapple.scope").get("duplicator")
+-- asdf#asdf
+--
+require("grapple.scope").suffix(
+    require("grapple.scope").static("asdf"),
+    require("grapple.scope").static("asdf"),
+    { key = "duplicator" }
+)
+```
+
+#### `grapple.scope#static`
+
+Create a scope resolver that simply returns a static string. Useful when creating sub-groups with [`grapple.scope#suffix`](#grapplescopesuffix).
+
+**API**: `require("grapple.scope").static(plain_string, opts)`
+
+**`returns`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
+
+**`plain_string`**: `string`
+
+**`opts?`**: [`Grapple.ScopeOptions[]`](#grapplescopeoptions)
+
+* **`key?`**: `string`
+* **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
+* **`persist?`**: `boolean` (default: `true`)
+
+**Examples**
+
+```lua
+-- Create a static scope resolver that simply returns "I'm a teapot"
+require("grapple.scope").static("I'm a teapot")
+
+-- Create a suffic scope resolver that appends the string "commands"
+-- to the end of a "git" scope resolver
+require("grapple.scope").suffix(
+    require("grapple.scope").resolvers.git,
+    require("grapple.scope").static("commands")
+)
 ```
 
 #### `grapple.scope#invalidate`
@@ -637,7 +699,9 @@ A tag may be referenced as an [anonymous tag](#anonymous-tags) by its index (`in
 
 ### `Grapple.ScopeOptions`
 
-Options available when creating custom scope resolvers. Giving a scope resolver a `key` will allow it to be identified within the `require("grapple.scope").resolvers` table. In addition, a scope may also be cached. The `cache` option may be one of the following:
+Options available when creating custom scope resolvers. Giving a scope resolver a `key` will allow it to be identified within the `require("grapple.scope").resolvers` table. For a scope to persisted, the `persist` options must be set to `true`; otherwise, any scope that is resolved by the scope resolver will be deleted when Neovim exits.
+
+In addition to scope persistence, a scope may also be cached for faster access during a Neovim session. The `cache` option may be one of the following:
 * `cache = true`: scope path is resolved once and cached until explicitly invalidated
 * `cache = false` scope path is never cached and must always be resolved
 * `cache = string | string[]` scope path is cached and invalidated when a given autocommand event is triggered (see: [`:h autocmd`](https://neovim.io/doc/user/autocmd.html))
@@ -646,6 +710,7 @@ Options available when creating custom scope resolvers. Giving a scope resolver 
 
 * **`key`**: `string`
 * **`cache`**: `boolean` | `string` | `string[]`
+* **`persist?`**: `boolean`
 
 ---
 
@@ -654,12 +719,6 @@ Options available when creating custom scope resolvers. Giving a scope resolver 
 A **[scope resolver](#grapplescoperesolver-1)** is identified by its **scope key** in the `require("grapple.scope").resolvers` table. When not explicitly set in [`Grapple.ScopeOptions`](#grapplescopeoptions), a scope resolver will be appended to the end of the `resolvers` table and the resolver's key will be given that index.
 
 **Type**: `string` | `integer`
-
----
-
-### `Grapple.ScopePath`
-
-**Type**: `string`
 
 ---
 
@@ -682,9 +741,7 @@ A **[scope resolver](#grapplescoperesolver-1)** is identified by its **scope key
 
 ### `Grapple.Scope`
 
-A scope determines how tags are separated for a given project.
-
-**Type**: [`Grapple.ScopeKey`](#grapplescopekey) | [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
+**Type**: `string`
 
 </details>
 
