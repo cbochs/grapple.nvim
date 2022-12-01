@@ -29,7 +29,8 @@ end
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.Serializer<Grapple.PopupTag>
 local function create_serializer(scope_resolver)
-    local scope_path = scope.get(scope_resolver)
+    local scope_ = scope.get(scope_resolver)
+    local scope_path = scope.scope_path(scope_)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
@@ -46,7 +47,8 @@ end
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.Parser<Grapple.PartialTag>
 local function create_parser(scope_resolver)
-    local scope_path = scope.get(scope_resolver)
+    local scope_ = scope.get(scope_resolver)
+    local scope_path = scope.scope_path(scope_)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end

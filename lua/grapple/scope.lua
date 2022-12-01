@@ -250,21 +250,21 @@ function scope.resolve(scope_resolver)
 end
 
 ---@private
----@param scope_ Grapple.Scope | nil
----@return string | nil
+---@param scope_ Grapple.Scope
+---@return string
 function scope.scope_path(scope_)
     return scope.scope_parts(scope_)[1]
 end
 
 ---@private
----@param scope_ Grapple.Scope | nil
+---@param scope_ Grapple.Scope
 ---@return string | nil
 function scope.scope_suffix(scope_)
     return scope.scope_suffixes(scope_)[-1]
 end
 
 ---@private
----@param scope_ Grapple.Scope | nil
+---@param scope_ Grapple.Scope
 ---@return string[]
 function scope.scope_suffixes(scope_)
     local parts = scope.scope_parts(scope_)
@@ -275,7 +275,7 @@ function scope.scope_suffixes(scope_)
 end
 
 ---@private
----@param scope_ Grapple.Scope | nil
+---@param scope_ Grapple.Scope
 ---@return string[]
 function scope.scope_parts(scope_)
     if scope_ == nil then
