@@ -111,16 +111,10 @@ function state.save(save_dir)
     end
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope_ Grapple.Scope
 ---@param save_dir? string
 ---@return Grapple.ScopeState
-function state.load(scope_resolver, save_dir)
-    scope_resolver = scope.find_resolver(scope_resolver)
-    if not scope_resolver.persist then
-        return nil
-    end
-
-    local scope_ = scope.get(scope_resolver)
+function state.load(scope_, save_dir)
     log.debug(string.format("Loading scope state. scope: %s", scope_))
 
     save_dir = Path:new(save_dir or settings.save_path)
@@ -150,23 +144,32 @@ function state.prune(save_dir)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.Scope
 function state.ensure_loaded(scope_resolver)
     scope_resolver = scope.find_resolver(scope_resolver)
     local scope_ = scope.get(scope_resolver)
 
     if internal_state[scope_] ~= nil then
-        return
+        return scope_
     end
 
-    internal_state[scope_] = with_metatable(state.load(scope_resolver) or {}, scope_resolver)
+    local scope_state
+    if scope_resolver.persist then
+        scope_state = state.load(scope_)
+    end
+    if scope_state == nil then
+        scope_state = {}
+    end
+    internal_state[scope_] = with_metatable(scope_state, scope_resolver)
+
+    return scope_
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param key Grapple.StateKey
 ---@return Grapple.StateItem | nil
 function state.get(scope_resolver, key)
-    local scope_ = scope.get(scope_resolver)
-    state.ensure_loaded(scope_resolver)
+    local scope_ = state.ensure_loaded(scope_resolver)
     return vim.deepcopy(internal_state[scope_][key])
 end
 
@@ -174,8 +177,7 @@ end
 ---@param data any
 ---@param key? Grapple.StateKey
 function state.set(scope_resolver, data, key)
-    local scope_ = scope.get(scope_resolver)
-    state.ensure_loaded(scope_resolver)
+    local scope_ = state.ensure_loaded(scope_resolver)
 
     local state_item = vim.deepcopy(data)
 
@@ -225,16 +227,14 @@ end
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.ScopeState
 function state.scope(scope_resolver)
-    local scope_ = scope.get(scope_resolver)
-    state.ensure_loaded(scope_resolver)
+    local scope_ = state.ensure_loaded(scope_resolver)
     return vim.deepcopy(internal_state[scope_])
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return integer
 function state.count(scope_resolver)
-    local scope_ = scope.get(scope_resolver)
-    state.ensure_loaded(scope_resolver)
+    local scope_ = state.ensure_loaded(scope_resolver)
     return #internal_state[scope_]
 end
 
