@@ -23,11 +23,11 @@ local DEFAULT_SETTINGS = {
 -- stylua: ignore start
 ---@type Grapple.LogMode[]
 local DEFAULT_MODES = {
-    { name = "fatal",  highlight = "ErrorMsg" },
-    { name = "error",  highlight = "ErrorMsg" },
-    { name = "warn",   highlight = "WarningMsg" },
-    { name = "info",   highlight = "None" },
     { name = "debug",  highlight = "Comment" },
+    { name = "info",   highlight = "None" },
+    { name = "warn",   highlight = "WarningMsg" },
+    { name = "error",  highlight = "ErrorMsg" },
+    { name = "fatal",  highlight = "ErrorMsg" },
 }
 -- stylua: ignore end
 
