@@ -6,7 +6,7 @@ _Theme: [catppuccin](https://github.com/catppuccin/nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#tag-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
+Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#project-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
 To get started, [install](#installation) the plugin using your preferred package manager and give it a go! Default settings for the plugin can be found in the [settings](#default-settings) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
 
@@ -74,7 +74,7 @@ require("grapple").setup({
 
 A **tag** is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
 
-There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#tag-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below.
+There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below.
 
 ### Anonymous Tags
 
@@ -88,11 +88,11 @@ Tags that are given a name are considered to be **named tags**. These tags will 
 
 Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag (see: [suggested keymaps](#named-tag-keymaps)).
 
-### Tag Scopes
+## Project Scopes
 
 A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are typically resolved into an absolute directory path (i.e. current working directory), which - in turn - is used as the "root" location for a set of tags.
 
-Scope paths are _cached by default_, and will only update when triggered by a provided autocommand event ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html)). For example, the `static` scope never updates once cached; the `directory` scope only updates on `DirChanged`; and the `lsp` scope updates on either `LspAttach` or `LspDetach`.
+Scope paths are _cached by default_, and will only update when triggered when the cache is explicitly invalidated, or when an associated event ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html)) is triggered. For example, the `static` scope never updates once cached; the `directory` scope only updates on `DirChanged`; and the `lsp` scope updates on either `LspAttach` or `LspDetach`.
 
 A **scope path** is determined by means of a **[scope resolver](#grapplescoperesolver)**. The builtin options are as follows:
 
@@ -589,14 +589,16 @@ The **scopes popup menu** opens a floating window containing all the scope paths
 require("grapple").popup_scopes()
 ```
 
-## Persistent Tag State
+## Persistent State
 
-Grapple saves all [tag scopes](#tag-scopes) to a common location, specified in the [settings](#default-settings). Each non-empty tag scope (contains at least one tagged file) will be saved as its individiual scope file, serialized as a JSON blob, and named using the resolved tag scope's path. Each tag in a tag scope will contain two pieces of information: the absolute `file path` of the tagged file and its last known `cursor` location.
+Grapple saves all [tag scopes](#project-scopes) to a common directory. This directory is aptly named `grapple` and lives in Neovim's `"data"` standard path (see: [`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each non-empty scope (scope contains at least one item) will be saved as an individiual scope file; serialized as a JSON blob, and named using the resolved scope's path.
 
-When a user loads Grapple, no tags are loaded initially. Instead, Grapple will wait until the user requests a tag scope (e.g. [tagging a file](#grappletag) or opening the [tags popup menu](#tag-popup-menu)). At that point, one of three things can occur:
-* the tag scope is **already loaded**, nothing is needed to be done
-* the tag scope has **not been loaded**, attempt to load tag scope from its associated scope file
-* the tag scope file was **not found**, initialize the tag scope as an empty table
+Each tag in a scope will contain two pieces of information: the absolute `file path` of the tagged file and its last known `cursor` location.
+
+When a user loads Grapple, no scopes are loaded initially. Instead, Grapple will wait until the user requests a project scope (e.g. [tagging a file](#grappletag) or opening the [tags popup menu](#tag-popup-menu)). At that point, one of three things can occur:
+* the scope is **already loaded**, nothing is needed to be done
+* the scope has **not been loaded**, attempt to load scope state from its associated scope file
+* the scope file was **not found**, initialize the scope state as an empty table
 
 ## Suggested Keymaps
 
