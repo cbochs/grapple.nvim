@@ -129,7 +129,7 @@ require("grapple").setup({
 })
 ```
 
-For usage and examples, please see [scope usage](#scope-usage) and the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes), respectively.
+For usage and examples, please see the [usage](#usage) and [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes), respectively.
 
 ### Usage
 
