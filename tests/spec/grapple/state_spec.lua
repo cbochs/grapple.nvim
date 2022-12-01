@@ -1,28 +1,21 @@
 local Path = require("plenary.path")
 local with = require("plenary.context_manager").with
 
-local function tag_state()
-    return {
-        project_one = {
-            file_one = {
-                file_path = "file_one",
-                cursor = { 1, 1 },
-            },
-        },
-        project_two = {
-            file_two = {
-                file_path = "file_two",
-                cursor = { 2, 2 },
-            },
-        },
-        none = {
-            file_three = {
-                file_path = "file_three",
-                cursor = { 3, 3 },
-            },
-        },
-        project_three = {},
-    }
+local function test_resolvers()
+    require("grapple.scope").static("project_one_scope", { key = "project_one" })
+    require("grapple.scope").static("project_two_scope", { key = "project_two" })
+    require("grapple.scope").static("project_three_scope", { key = "project_three", persist = false })
+    require("grapple.scope").static("project_four_scope", { key = "project_four" })
+    require("grapple.scope").static("project_five_scope", { key = "project_five" })
+end
+
+local function test_state()
+    local state = require("grapple.state")
+    state.set("project_one", { file_path = "file_one" })
+    state.set("project_one", { file_path = "file_two" }, "keyed_tag")
+    state.set("project_two", { file_path = "" })
+    state.set("project_three", { file_path = "" })
+    state.get("project_four", "touch to create table")
 end
 
 local function files(dir_path)
@@ -43,104 +36,206 @@ local function temp_dir()
     end)
 end
 
-describe("", function()
+describe("state", function()
+    before_each(function()
+        test_resolvers()
+        test_state()
+    end)
+
+    after_each(function()
+        require("grapple.state").reset()
+    end)
+
+    describe("#save", function()
+        it("saves state as separate files", function()
+            with(temp_dir(), function(dir_path)
+                require("grapple.state").save(dir_path)
+                assert.equals(2, #files(dir_path))
+                assert.is_true(vim.tbl_contains(files(dir_path), "project%5Fone%5Fscope"))
+                assert.is_true(vim.tbl_contains(files(dir_path), "project%5Ftwo%5Fscope"))
+            end)
+        end)
+
+        it("does not save state for non-persistent scopes", function()
+            with(temp_dir(), function(dir_path)
+                require("grapple.state").save(dir_path)
+                assert.is_false(vim.tbl_contains(files(dir_path)), "project%5Fthree%5Fscope")
+            end)
+        end)
+
+        it("does not save state for empty scopes", function()
+            with(temp_dir(), function(dir_path)
+                require("grapple.state").save(dir_path)
+                assert.is_false(vim.tbl_contains(files(dir_path)), "project%5Ffour%5Fscope")
+            end)
+        end)
+    end)
+
+    describe("#load", function()
+        it("loads scope state for a given scope resolver", function()
+            with(temp_dir(), function(dir_path)
+                require("grapple.state").save(dir_path)
+                local project_one = require("grapple.state").load("project_one", dir_path)
+                assert.equals("file_one", project_one[1].file_path)
+                assert.equals("file_two", project_one.keyed_tag.file_path)
+            end)
+        end)
+
+        it("returns nothing when a state key does not exist", function()
+            with(temp_dir(), function(dir_path)
+                require("grapple.state").save(dir_path)
+                assert.is_nil(require("grapple.state").load("project_five", dir_path))
+            end)
+        end)
+
+        it("does not error when a state key does not exist", function()
+            with(temp_dir(), function(dir_path)
+                local ok, _ = pcall(require("grapple.state").load, "project_five", dir_path)
+                assert.is_true(ok)
+            end)
+        end)
+    end)
+
     describe("#prune", function()
         it("removes files that are are associated with an empty sub-state", function()
             with(temp_dir(), function(dir_path)
-                local state = tag_state()
-                require("grapple.state").save(state, dir_path)
+                require("grapple.state").save(dir_path)
+                require("grapple.state").unset("project_two", 1)
+                require("grapple.state").prune(dir_path)
 
-                state.project_one = {}
-                require("grapple.state").prune(state, dir_path)
-
-                assert.is_nil(require("grapple.state").load("project_one", dir_path))
+                assert.is_nil(require("grapple.state").load("project_two", dir_path))
             end)
         end)
 
         it("does not remove files that are are associated with a non-empty sub-state", function()
             with(temp_dir(), function(dir_path)
-                local state = tag_state()
-                require("grapple.state").save(state, dir_path)
+                require("grapple.state").save(dir_path)
 
-                state.project_one = {}
-                require("grapple.state").prune(state, dir_path)
+                require("grapple.state").unset("project_one", "file_one")
+                require("grapple.state").prune(dir_path)
 
                 assert.is_not_nil(require("grapple.state").load("project_two", dir_path))
             end)
         end)
     end)
 
-    describe("#save", function()
-        it("saves table state as separate files", function()
-            with(temp_dir(), function(dir_path)
-                require("grapple.state").save(tag_state(), dir_path)
-                assert.equals(2, #files(dir_path))
-                assert.is_true(vim.tbl_contains(files(dir_path), "project%5Fone"))
-                assert.is_true(vim.tbl_contains(files(dir_path), "project%5Ftwo"))
-            end)
-        end)
-
-        it("does not save the 'none' sub-table", function()
-            with(temp_dir(), function(dir_path)
-                require("grapple.state").save(tag_state(), dir_path)
-                assert.is_false(vim.tbl_contains(files(dir_path)), "none")
-            end)
-        end)
-
-        it("does not save empty sub-tables", function()
-            with(temp_dir(), function(dir_path)
-                require("grapple.state").save(tag_state(), dir_path)
-                assert.is_false(vim.tbl_contains(files(dir_path)), "project%5Fthree")
-            end)
+    describe("#get", function()
+        it("returns the state item associated with a scope key", function()
+            local item = require("grapple.state").get("project_one", "keyed_tag")
+            assert.equals("file_two", item.file_path)
         end)
     end)
 
-    describe("#load", function()
-        it("loads a sub-state for a given state key", function()
-            with(temp_dir(), function(dir_path)
-                require("grapple.state").save(tag_state(), dir_path)
-                local project_one = require("grapple.state").load("project_one", dir_path)
-                assert.equals("file_one", project_one.file_one.file_path)
-                assert.equals(1, project_one.file_one.cursor[1])
-                assert.equals(1, project_one.file_one.cursor[2])
-            end)
-        end)
-
-        it("returns nothing when a state key does not exist", function()
-            with(temp_dir(), function(dir_path)
-                assert.is_nil(require("grapple.state").load("project_infinity", dir_path))
-            end)
-        end)
-
-        it("does not error when a state key does not exist", function()
-            with(temp_dir(), function(dir_path)
-                local ok, _ = pcall(require("grapple.state").load, "project_infinity", dir_path)
-                assert.is_true(ok)
-            end)
+    describe("#set", function()
+        it("sets a state item to a given key", function()
+            require("grapple.state").set("project_one", 1, "my key")
+            assert.equals(1, require("grapple.state").get("project_one", "my key"))
         end)
     end)
 
-    describe("#migrate", function()
-        it("migrates the old grapple.json to the new save structure", function()
+    describe("#exists", function()
+        it("returns true when a state item exists", function()
+            assert.is_true(require("grapple.state").exists("project_one", "keyed_tag"))
+        end)
+
+        it("returns false when a state item exists", function()
+            assert.is_false(require("grapple.state").exists("project_one", "asdf"))
+        end)
+    end)
+
+    describe("#query", function()
+        it("returns the key of a state item", function()
+            assert.equals("keyed_tag", require("grapple.state").query("project_one", { file_path = "file_two" }))
+        end)
+
+        it("return nil when the state item does not exist", function()
+            assert.is_nil(require("grapple.state").query("project_one", { file_path = "file_three" }))
+        end)
+    end)
+
+    describe("#keys", function()
+        it("returns the keys for a given scope", function()
+            local keys = require("grapple.state").keys("project_one")
+            assert.equals(2, #keys)
+            assert.is_true(vim.tbl_contains(keys, 1))
+            assert.is_true(vim.tbl_contains(keys, "keyed_tag"))
+        end)
+    end)
+
+    describe("#scopes", function()
+        it("returns all the loaded scopes", function()
+            local scopes = require("grapple.state").scopes()
+            assert.equals(4, #scopes)
+            assert.is_true(vim.tbl_contains(scopes, "project_one_scope"))
+            assert.is_true(vim.tbl_contains(scopes, "project_two_scope"))
+            assert.is_true(vim.tbl_contains(scopes, "project_three_scope"))
+            assert.is_true(vim.tbl_contains(scopes, "project_four_scope"))
+        end)
+    end)
+
+    describe("#scope", function()
+        it("returns all the items in a given scope", function()
+            local state_items = require("grapple.state").scope("project_one")
+            assert.is_table(state_items)
+            assert.not_nil(state_items[1])
+            assert.not_nil(state_items.keyed_tag)
+        end)
+    end)
+
+    describe("#count", function()
+        it("returns the number of items in a given scope", function()
+            assert(2, require("grapple.state").count("project_one"))
+        end)
+    end)
+
+    describe("#scope_pairs", function()
+        it("returns a list of (scope, scope_resolver) pairs", function()
+            local scope_pairs = require("grapple.state").scope_pairs()
+            assert.equals(4, #scope_pairs)
+            for _, scope_pair in pairs(scope_pairs) do
+                assert.not_nil(scope_pair.scope)
+                assert.not_nil(scope_pair.resolver)
+            end
+        end)
+    end)
+
+    describe("#resolver", function()
+        it("returns a scope resolver for a given scope", function()
+            assert.equals("project_one", require("grapple.state").resolver("project_one_scope").key)
+        end)
+    end)
+
+    describe("#state", function()
+        it("returns the entire state", function()
+            local state_ = require("grapple.state").state()
+            assert.not_nil(state_.project_one_scope)
+            assert.not_nil(state_.project_two_scope)
+            assert.not_nil(state_.project_three_scope)
+            assert.not_nil(state_.project_four_scope)
+            assert.is_nil(state_.project_five_scope)
+        end)
+    end)
+
+    describe("#load_all", function()
+        it("loads the entire state", function()
+            local state_ = require("grapple.state").state()
+            require("grapple.state").reset()
+            require("grapple.state").load_all(state_)
+            assert.not_nil(state_.project_one_scope)
+            assert.not_nil(state_.project_two_scope)
+            assert.not_nil(state_.project_three_scope)
+            assert.not_nil(state_.project_four_scope)
+            assert.is_nil(state_.project_five_scope)
+        end)
+    end)
+
+    describe("#reset", function()
+        it("resets a scope state to an empty table", function()
             with(temp_dir(), function(dir_path)
-                local old_save_path = tostring(Path:new(dir_path) / "grapple.json")
-                local new_save_path = tostring(Path:new(dir_path) / "grapple")
-
-                Path:new(old_save_path):write(vim.json.encode(tag_state()), "w")
-                require("grapple.state").migrate(old_save_path, old_save_path, new_save_path)
-
-                assert.is_true(vim.tbl_contains(files(new_save_path), "project%5Fone"))
-                assert.is_true(vim.tbl_contains(files(new_save_path), "project%5Ftwo"))
-
-                local project_one = require("grapple.state").load("project_one", new_save_path)
-                assert.equals("file_one", project_one.file_one.file_path)
-                assert.equals(1, project_one.file_one.cursor[1])
-                assert.equals(1, project_one.file_one.cursor[2])
-
-                local project_two = require("grapple.state").load("project_two", new_save_path)
-                assert.equals("file_two", project_two.file_two.file_path)
-                assert.equals(2, project_two.file_two.cursor[1])
-                assert.equals(2, project_two.file_two.cursor[2])
+                require("grapple.state").save(dir_path)
+                require("grapple.state").reset("project_one")
+                assert.equals(0, #vim.tbl_keys(require("grapple.state").scope("project_one")))
+                assert.not_nil(require("grapple.state").resolver("project_one_scope"))
             end)
         end)
     end)
