@@ -281,12 +281,7 @@ function scope.scope_parts(scope_)
     if scope_ == nil then
         return {}
     end
-
-    local parts = {}
-    for _, part in string.gmatch(scope_, scope.separator) do
-        table.insert(parts, part)
-    end
-    return parts
+    return vim.split(scope_, scope.separator)
 end
 
 return scope
