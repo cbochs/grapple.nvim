@@ -19,7 +19,6 @@ local DEFAULT_SETTINGS = {
     highlight = true,
 }
 
-
 -- stylua: ignore start
 ---@type Grapple.LogMode[]
 local DEFAULT_MODES = {
