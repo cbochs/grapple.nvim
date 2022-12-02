@@ -14,6 +14,10 @@ local resolvers = {
         return "__basic__"
     end, { persist = false, cache = "DirChanged" }),
 
+    basic_timer = require("grapple.scope").resolver(function()
+        return "__basic__"
+    end, { persist = false, cache = 100 }),
+
     basic_async = require("grapple.scope").resolver({
         command = "echo",
         args = { "__basic__" },
@@ -49,6 +53,9 @@ describe("scope", function()
     after_each(function()
         counter = 0
         require("grapple.scope").reset()
+        for _, resolver in pairs(resolvers) do
+            require("grapple.scope").reset_resolver(resolver)
+        end
     end)
 
     describe("#get", function()
@@ -91,6 +98,7 @@ describe("scope", function()
         end)
 
         it("clears the cache for a scope resolver with an autocmd", function() end)
+        it("clears the cache for a scope resolver with a timer", function() end)
     end)
 
     describe("#update", function()
@@ -125,7 +133,7 @@ describe("scope", function()
             assert.is_false(require("grapple.scope").cached(resolvers.basic_uncached))
         end)
 
-        it("creates an autocmd for the first time a scope is resolved", function()
+        it("creates an autocmd for the first time an autocmd resolver is resolved", function()
             local resolver = resolvers.basic_autocmd
             require("grapple.scope").update(resolver)
 
@@ -133,8 +141,8 @@ describe("scope", function()
                 return autocmd.id
             end, vim.api.nvim_get_autocmds({ group = "GrappleScope" }))
 
-            assert.not_nil(resolver.autocmd)
-            assert.is_true(vim.tbl_contains(autocmd_ids, resolver.autocmd))
+            assert.not_nil(resolver.watch.autocmd)
+            assert.is_true(vim.tbl_contains(autocmd_ids, resolver.watch.autocmd))
         end)
 
         it("does not recreate the autocmd for a scope resolver", function()
@@ -147,6 +155,13 @@ describe("scope", function()
             local second_autocmd_id = resolver.autocmd
 
             assert.equals(first_autocmd_id, second_autocmd_id)
+        end)
+
+        it("creates a timer for the first time a timed resolver is resolved", function()
+            local resolver = resolvers.basic_timer
+            require("grapple.scope").update(resolver)
+            assert.not_nil(resolver.watch.timer)
+            assert.is_true(require("grapple.scope").cached(resolver))
         end)
     end)
 
@@ -188,9 +203,9 @@ describe("scope", function()
             assert.is_table(resolver)
             assert.is_number(resolver.key)
             assert.equals(foo, resolver.resolve)
-            assert.equals(true, resolver.cache)
             assert.equals(true, resolver.persist)
-            assert.equals(nil, resolver.autocmd)
+            assert.equals("basic", resolver.watch.type)
+            assert.equals(true, resolver.watch.cache)
         end)
 
         it("gives the scope resolver a unique id when no key is given", function()
@@ -206,18 +221,21 @@ describe("scope", function()
         end)
 
         it("creates a cached scope resolver", function()
-            local resolver = require("grapple.scope").resolver(function() end, { cache = true })
-            assert.equals(true, resolver.cache)
+            local resolver = require("grapple.scope").resolver(function() end, { cache = false })
+            assert.equals("basic", resolver.watch.type)
+            assert.equals(false, resolver.watch.cache)
         end)
 
         it("creates a cached scope resolver with an autocmd", function()
             local resolver = require("grapple.scope").resolver(function() end, { cache = "DirChanged" })
-            assert.equals("DirChanged", resolver.cache)
+            assert.equals("autocmd", resolver.watch.type)
+            assert.equals("DirChanged", resolver.watch.events)
         end)
 
-        it("creates a non-cached scope resolver", function()
-            local resolver = require("grapple.scope").resolver(function() end, { cache = false })
-            assert.equals(false, resolver.cache)
+        it("creates a cached scope resolver with a timer", function()
+            local resolver = require("grapple.scope").resolver(function() end, { cache = 100 })
+            assert.equals("timer", resolver.watch.type)
+            assert.equals(100, resolver.watch.interval)
         end)
     end)
 
@@ -229,7 +247,8 @@ describe("scope", function()
         it("creates a root scope resolver", function()
             local resolver = require("grapple.scope").root(".git")
             assert.is_table(resolver)
-            assert.equals("DirChanged", resolver.cache)
+            assert.equals("autocmd", resolver.watch.type)
+            assert.equals("DirChanged", resolver.watch.events)
         end)
 
         it("resolves a scope when a root file exists", function()
@@ -253,7 +272,8 @@ describe("scope", function()
         it("creates a fallback scope resolver", function()
             local resolver = require("grapple.scope").fallback({ resolvers.basic })
             assert.is_table(resolver)
-            assert.equals(false, resolver.cache)
+            assert.equals("basic", resolver.watch.type)
+            assert.equals(false, resolver.watch.cache)
         end)
 
         it("resolves a scope in the fallback order", function()
@@ -287,7 +307,8 @@ describe("scope", function()
         it("creates a suffix scope resolver", function()
             local resolver = require("grapple.scope").suffix(resolvers.basic, resolvers.basic)
             assert.is_table(resolver)
-            assert.equals(false, resolver.cache)
+            assert.equals("basic", resolver.watch.type)
+            assert.equals(false, resolver.watch.cache)
         end)
 
         it("resolves a scope with a suffix", function()

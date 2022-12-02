@@ -3,8 +3,8 @@ local log = require("grapple.log")
 local scope = {}
 
 ---@class Grapple.ScopeOptions
----@field cache boolean | string | string[]
 ---@field persist boolean
+---@field cache? boolean | string | string[] | integer
 
 ---@alias Grapple.Scope string
 
@@ -16,12 +16,19 @@ local scope = {}
 ---@field cwd string
 ---@field on_exit fun(job, return_value): string | nil
 
+---@class Grapple.ScopeWatch
+---@field type Grapple.ScopeWatchType
+---@field cache boolean
+---@field events string | string[]
+---@field autocmd? number | nil
+---@field interval integer
+---@field timer? integer
+
 ---@class Grapple.ScopeResolver
 ---@field key Grapple.ScopeCacheKey
 ---@field resolve Grapple.ScopeFunction
----@field cache boolean | string | string[]
----@field persist boolean | string | string[]
----@field autocmd number | nil
+---@field persist boolean
+---@field watch = Grapple.ScopeWatch
 
 ---@alias Grapple.ScopeCacheKey integer
 
@@ -34,23 +41,55 @@ local cached_scopes = {}
 ---@type Grapple.ScopeCacheKey
 local resolver_counter = 0
 
+---@enum Grapple.ScopeWatchType
+local watch_type = {
+    basic = "basic",
+    autocmd = "autocmd",
+    timer = "timer",
+}
+
 scope.separator = "#"
+
+local function should_cache(scope_resolver)
+    return scope_resolver.watch.cache
+end
 
 ---@private
 ---@param scope_resolver Grapple.ScopeResolver
 ---@return Grapple.ScopeResolver
-local function update_autocmd(scope_resolver)
-    if type(scope_resolver.cache) == "boolean" or scope_resolver.autocmd ~= nil then
-        return scope_resolver
+local function update_watch(scope_resolver)
+    if scope_resolver.watch.type == watch_type.basic then
+        goto fallthrough
+    elseif scope_resolver.watch.type == watch_type.autocmd then
+        if scope_resolver.watch.autocmd ~= nil then
+            goto fallthrough
+        end
+
+        local group = vim.api.nvim_create_augroup("GrappleScope", { clear = false })
+        scope_resolver.watch.autocmd = vim.api.nvim_create_autocmd(scope_resolver.watch.events, {
+            group = group,
+            callback = function()
+                scope.invalidate(scope_resolver)
+            end,
+        })
+    elseif scope_resolver.watch.type == watch_type.timer then
+        if scope_resolver.watch.timer ~= nil then
+            goto fallthrough
+        end
+
+        local interval = scope_resolver.watch.interval
+        local timer = vim.loop.new_timer()
+        timer:start(interval, interval, function()
+            scope.invalidate(scope_resolver)
+        end)
+
+        scope_resolver.watch.timer = timer
+    else
+        log.error("")
+        error("")
     end
 
-    local group = vim.api.nvim_create_augroup("GrappleScope", { clear = false })
-    scope_resolver.autocmd = vim.api.nvim_create_autocmd(scope_resolver.cache, {
-        group = group,
-        callback = function()
-            scope.invalidate(scope_resolver)
-        end,
-    })
+    ::fallthrough::
 
     return scope_resolver
 end
@@ -58,6 +97,24 @@ end
 ---@private
 function scope.reset()
     cached_scopes = {}
+end
+
+---@param Grapple.ScopeResolver
+function scope.reset_resolver(scope_resolver)
+    cached_scopes[scope_resolver.key] = nil
+
+    if scope_resolver.watch.type == watch_type.autocmd then
+        if scope_resolver.watch.autocmd ~= nil then
+            vim.api.nvim_del_autocmd(scope_resolver.watch.autocmd)
+            scope_resolver.watch.autocmd = nil
+        end
+    elseif scope_resolver.watch.type == watch_type.timer then
+        if scope_resolver.watch.timer ~= nil then
+            scope_resolver.watch.timer:stop()
+            scope_resolver.watch.timer:close()
+            scope_resolver.watch.timer = nil
+        end
+    end
 end
 
 ---@param scope_function Grapple.ScopeFunction | Grapple.ScopeJob
@@ -69,20 +126,34 @@ function scope.resolver(scope_function, opts)
     -- Scope resolver defaults
     resolver_counter = resolver_counter + 1
     local scope_key = resolver_counter
-    local scope_cache = true
     local scope_persist = true
+
+    ---@type Grapple.ScopeWatch
+    local scope_watch = {
+        type = "basic",
+        cache = true,
+    }
 
     if opts.key ~= nil then
         scope_key = opts.key
-    end
-    if opts.cache ~= nil then
-        scope_cache = opts.cache
     end
     if opts.persist ~= nil then
         scope_persist = opts.persist
     end
 
-    if type(scope_function) == "table" and scope_cache == false then
+    if type(opts.cache) == "boolean" then
+        scope_watch.cache = opts.cache
+    elseif type(opts.cache) == "string" or type(opts.cache) == "table" then
+        scope_watch.type = watch_type.autocmd
+        scope_watch.cache = true
+        scope_watch.events = opts.cache
+    elseif type(opts.cache) == "number" then
+        scope_watch.type = watch_type.timer
+        scope_watch.cache = true
+        scope_watch.interval = opts.cache
+    end
+
+    if type(scope_function) == "table" and scope_watch == false then
         log.error("Scope resolver cannot be asynchronous and not cache its result")
         error("Scope resolver cannot be asynchronous and not cache its result")
     end
@@ -91,9 +162,8 @@ function scope.resolver(scope_function, opts)
     local scope_resolver = {
         key = scope_key,
         resolve = scope_function,
-        cache = scope_cache,
         persist = scope_persist,
-        autocmd = nil,
+        watch = scope_watch,
     }
 
     return scope_resolver
@@ -104,7 +174,6 @@ end
 ---@return Grapple.ScopeResolver
 function scope.root(root_names, opts)
     root_names = type(root_names) == "string" and { root_names } or root_names
-    opts = vim.tbl_extend("force", { cache = "DirChanged" }, opts or {})
 
     return scope.resolver(function()
         local root_files = vim.fs.find(root_names, { upward = true })
@@ -112,7 +181,7 @@ function scope.root(root_names, opts)
             return vim.fs.dirname(root_files[1])
         end
         return nil
-    end, opts)
+    end, vim.tbl_extend("force", { cache = "DirChanged" }, opts or {}))
 end
 
 ---@param scope_resolvers Grapple.ScopeResolver[]
@@ -215,11 +284,11 @@ end
 ---@param scope_resolver Grapple.ScopeResolver
 ---@return Grapple.Scope | nil
 function scope.update(scope_resolver)
-    scope_resolver = update_autocmd(scope_resolver)
+    scope_resolver = update_watch(scope_resolver)
 
     if type(scope_resolver.resolve) == "function" then
         local resolved_scope = scope.resolve(scope_resolver)
-        if scope_resolver.cache ~= false then
+        if should_cache(scope_resolver) then
             log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
             cached_scopes[scope_resolver.key] = resolved_scope
         end
