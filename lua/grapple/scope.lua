@@ -85,8 +85,8 @@ local function update_watch(scope_resolver)
 
         scope_resolver.watch.timer = timer
     else
-        log.error("")
-        error("")
+        log.error(string.format("Invalid cache invalidation type. type: %s", scope_resolver.watch.type))
+        error(string.format("Invalid cache invalidation type. type: %s", scope_resolver.watch.type))
     end
 
     ::fallthrough::
