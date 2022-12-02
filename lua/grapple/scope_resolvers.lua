@@ -55,7 +55,7 @@ resolvers.git = scope.fallback({
 ---Fallback: "static"
 ---Uses the current git repository and its branch as the project scope
 resolvers.git_branch = scope.fallback({
-    scope.suffix("git_fallback", "git_branch"),
+    scope.suffix("git_fallback", "git_branch_scope"),
     "static",
 })
 
