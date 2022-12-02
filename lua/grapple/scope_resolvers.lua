@@ -27,10 +27,10 @@ end, { cache = "DirChanged" })
 ---Uses the current git repository as the project scope
 resolvers.git_fallback = scope.root(".git")
 
----Scope: "git_branch_scope"
+---Scope: "git_branch_suffix"
 ---Fallback: nil
 ---Uses the current git branch as the project scope
-resolvers.git_branch_scope = scope.resolver({
+resolvers.git_branch_suffix = scope.resolver({
     command = "git",
     args = { "symbolic-ref", "--short", "HEAD" },
     cwd = vim.fn.getcwd(),
@@ -41,7 +41,7 @@ resolvers.git_branch_scope = scope.resolver({
             return nil
         end
     end,
-})
+}, { cache = 1000 })
 
 ---Scope: "git"
 ---Fallback: "static"
@@ -55,7 +55,7 @@ resolvers.git = scope.fallback({
 ---Fallback: "static"
 ---Uses the current git repository and its branch as the project scope
 resolvers.git_branch = scope.fallback({
-    scope.suffix("git_fallback", "git_branch_scope"),
+    scope.suffix("git_fallback", "git_branch_suffix"),
     "static",
 })
 
