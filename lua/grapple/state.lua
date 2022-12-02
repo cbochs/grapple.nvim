@@ -113,7 +113,7 @@ end
 
 ---@param scope_ Grapple.Scope
 ---@param save_dir? string
----@return Grapple.ScopeState
+---@return Grapple.ScopeState | nil
 function state.load(scope_, save_dir)
     log.debug(string.format("Loading scope state. scope: %s", scope_))
 

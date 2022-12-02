@@ -19,6 +19,10 @@ local resolvers = {
         return tostring(counter)
     end, { persist = false }),
 
+    random = require("grapple.scope").resolver(function()
+        return tostring(math.random(1, 100))
+    end, { cache = false, persist = false }),
+
     bad_nil = require("grapple.scope").resolver(function()
         return nil
     end, { persist = false }),
@@ -273,6 +277,14 @@ describe("scope", function()
         it("resolves a scope without a suffix", function()
             local resolver = require("grapple.scope").suffix(resolvers.basic, resolvers.bad_nil)
             assert.equals("__basic__", require("grapple.scope").get(resolver))
+        end)
+
+        it("resolves a scope for a varying suffix", function()
+            local resolver = require("grapple.scope").suffix(resolvers.basic, resolvers.random)
+            for _ = 1, 100 do
+                local scope = require("grapple.scope").get(resolver)
+                assert.equals(2, #require("grapple.scope").scope_parts(scope))
+            end
         end)
 
         it("does not cache the scope", function()

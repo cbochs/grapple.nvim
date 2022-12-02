@@ -3,7 +3,6 @@ local log = require("grapple.log")
 local scope = {}
 
 ---@class Grapple.ScopeOptions
----@field key string
 ---@field cache boolean | string | string[]
 ---@field persist boolean
 
@@ -12,20 +11,21 @@ local scope = {}
 ---@alias Grapple.ScopeFunction fun(): Grapple.Scope | nil
 
 ---@class Grapple.ScopeResolver
----@field key Grapple.ScopeKey
+---@field key Grapple.ScopeCacheKey
 ---@field resolve Grapple.ScopeFunction
 ---@field cache boolean | string | string[]
 ---@field persist boolean | string | string[]
 ---@field autocmd number | nil
 
----@alias Grapple.ScopeKey string | integer
+---@alias Grapple.ScopeCacheKey integer
 
----@alias Grapple.ScopeResolverLike Grapple.ScopeKey | Grapple.ScopeResolver
+---@alias Grapple.ScopeResolverLike string | Grapple.ScopeResolver
 
----@type table<Grapple.ScopeKey, Grapple.Scope>
+---@type table<Grapple.ScopeCacheKey, Grapple.Scope>
 local cached_scopes = {}
 
--- Give a unique id to scope resolvers that aren't given a key
+---Give a unique id to scope resolvers
+---@type Grapple.ScopeCacheKey
 local resolver_counter = 0
 
 scope.separator = "#"
@@ -42,7 +42,7 @@ local function update_autocmd(scope_resolver)
     scope_resolver.autocmd = vim.api.nvim_create_autocmd(scope_resolver.cache, {
         group = group,
         callback = function()
-            scope.invalidate(scope_resolver.key)
+            scope.invalidate(scope_resolver)
         end,
     })
 
@@ -62,7 +62,7 @@ function scope.resolver(scope_function, opts)
 
     -- Scope resolver defaults
     resolver_counter = resolver_counter + 1
-    local scope_key = opts.key or resolver_counter
+    local scope_key = resolver_counter
     local scope_cache = true
     local scope_persist = true
 

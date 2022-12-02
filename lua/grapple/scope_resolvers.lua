@@ -4,28 +4,28 @@ local resolvers = {}
 
 ---Scope: "none"
 ---Tags are ephemeral and are deleted on exit
-resolvers.none = scope.static("__none__", { key = "none" })
+resolvers.none = scope.static("__none__")
 
 ---Scope: "global"
 ---Uses a global keyspace for tags
-resolvers.global = scope.static("__global__", { key = "global" })
+resolvers.global = scope.static("__global__")
 
 ---Scope: "static"
 ---Uses the working directory set at startup
 resolvers.static = scope.resolver(function()
     return vim.fn.getcwd()
-end, { key = "static" })
+end)
 
 ---Scope: "directory"
 ---Uses the current working directory as the tag keyspace
 resolvers.directory = scope.resolver(function()
     return vim.fn.getcwd()
-end, { key = "directory", cache = "DirChanged" })
+end, { cache = "DirChanged" })
 
 ---Scope: "git_fallback"
 ---Fallback: nil
 ---Uses the current git repository as the tag namespace.
-resolvers.git_fallback = scope.root(".git", { key = "git_fallback" })
+resolvers.git_fallback = scope.root(".git")
 
 ---Scope: "git"
 ---Fallback: "static"
@@ -33,7 +33,7 @@ resolvers.git_fallback = scope.root(".git", { key = "git_fallback" })
 resolvers.git = scope.fallback({
     "git_fallback",
     "static",
-}, { key = "git" })
+})
 
 ---Scope: "lsp_fallback"
 ---Fallback: nil
@@ -44,7 +44,7 @@ resolvers.lsp_fallback = scope.resolver(function()
         local client = clients[1]
         return client.config.root_dir
     end
-end, { key = "lsp_fallback", cache = { "LspAttach", "LspDetach" } })
+end, { cache = { "LspAttach", "LspDetach" } })
 
 ---Scope: "lsp"
 ---Fallback: "static"
@@ -52,6 +52,6 @@ end, { key = "lsp_fallback", cache = { "LspAttach", "LspDetach" } })
 resolvers.lsp = scope.fallback({
     "lsp_fallback",
     "static",
-}, { key = "lsp" })
+})
 
 return resolvers

@@ -1,21 +1,29 @@
 local Path = require("plenary.path")
 local with = require("plenary.context_manager").with
 
-local function test_resolvers()
-    require("grapple.scope").static("project_one_scope", { key = "project_one" })
-    require("grapple.scope").static("project_two_scope", { key = "project_two" })
-    require("grapple.scope").static("project_three_scope", { key = "project_three", persist = false })
-    require("grapple.scope").static("project_four_scope", { key = "project_four" })
-    require("grapple.scope").static("project_five_scope", { key = "project_five" })
-end
+local resolvers = {
+    project_one = require("grapple.scope").static("project_one_scope"),
+    project_two = require("grapple.scope").static("project_two_scope"),
+    project_three = require("grapple.scope").static("project_three_scope", { persist = false }),
+    project_four = require("grapple.scope").static("project_four_scope"),
+    project_five = require("grapple.scope").static("project_five_scope"),
+    random = require("grapple.scope").suffix(
+        require("grapple.scope").resolver(function()
+            return tostring(math.random(1, 100))
+        end, { cache = false }),
+        require("grapple.scope").resolver(function()
+            return tostring(math.random(1, 100))
+        end, { cache = false })
+    ),
+}
 
 local function test_state()
     local state = require("grapple.state")
-    state.set("project_one", { file_path = "file_one" })
-    state.set("project_one", { file_path = "file_two" }, "keyed_tag")
-    state.set("project_two", { file_path = "" })
-    state.set("project_three", { file_path = "" })
-    state.get("project_four", "touch to create table")
+    state.set(resolvers.project_one, { file_path = "file_one" })
+    state.set(resolvers.project_one, { file_path = "file_two" }, "keyed_tag")
+    state.set(resolvers.project_two, { file_path = "" })
+    state.set(resolvers.project_three, { file_path = "" })
+    state.ensure_loaded(resolvers.project_four)
 end
 
 local function files(dir_path)
@@ -38,8 +46,11 @@ end
 
 describe("state", function()
     before_each(function()
-        test_resolvers()
         test_state()
+    end)
+
+    after_each(function()
+        require("grapple.state").reset()
     end)
 
     after_each(function()
@@ -72,10 +83,10 @@ describe("state", function()
     end)
 
     describe("#load", function()
-        it("loads scope state for a given scope", function()
+        it("loads scope state for a given scope resolver", function()
             with(temp_dir(), function(dir_path)
                 require("grapple.state").save(dir_path)
-                local scope = require("grapple.scope").get("project_one")
+                local scope = require("grapple.scope").get(resolvers.project_one)
                 local project_one = require("grapple.state").load(scope, dir_path)
                 assert.equals("file_one", project_one[1].file_path)
                 assert.equals("file_two", project_one.keyed_tag.file_path)
@@ -85,7 +96,7 @@ describe("state", function()
         it("returns nothing when a scope does not exist", function()
             with(temp_dir(), function(dir_path)
                 require("grapple.state").save(dir_path)
-                local scope = require("grapple.scope").get("project_five")
+                local scope = require("grapple.scope").get(resolvers.project_five)
                 assert.is_nil(require("grapple.state").load(scope, dir_path))
             end)
         end)
@@ -95,10 +106,10 @@ describe("state", function()
         it("removes files that are are associated with an empty sub-state", function()
             with(temp_dir(), function(dir_path)
                 require("grapple.state").save(dir_path)
-                require("grapple.state").unset("project_two", 1)
+                require("grapple.state").unset(resolvers.project_two, 1)
                 require("grapple.state").prune(dir_path)
 
-                local scope = require("grapple.scope").get("project_two")
+                local scope = require("grapple.scope").get(resolvers.project_two)
                 assert.is_nil(require("grapple.state").load(scope, dir_path))
             end)
         end)
@@ -107,10 +118,10 @@ describe("state", function()
             with(temp_dir(), function(dir_path)
                 require("grapple.state").save(dir_path)
 
-                require("grapple.state").unset("project_one", "file_one")
+                require("grapple.state").unset(resolvers.project_one, "file_one")
                 require("grapple.state").prune(dir_path)
 
-                local scope = require("grapple.scope").get("project_two")
+                local scope = require("grapple.scope").get(resolvers.project_two)
                 assert.is_not_nil(require("grapple.state").load(scope, dir_path))
             end)
         end)
@@ -118,41 +129,52 @@ describe("state", function()
 
     describe("#get", function()
         it("returns the state item associated with a scope key", function()
-            local item = require("grapple.state").get("project_one", "keyed_tag")
+            local item = require("grapple.state").get(resolvers.project_one, "keyed_tag")
             assert.equals("file_two", item.file_path)
+        end)
+
+        it("can handle a wildly varying scope resolver", function()
+            for _ = 1, 1000 do
+                local ok, scope = pcall(require("grapple.state").scope, resolvers.random)
+                assert.is_true(ok)
+                assert.is_table(scope)
+            end
         end)
     end)
 
     describe("#set", function()
         it("sets a state item to a given key", function()
-            require("grapple.state").set("project_one", 1, "my key")
-            assert.equals(1, require("grapple.state").get("project_one", "my key"))
+            require("grapple.state").set(resolvers.project_one, 1, "my key")
+            assert.equals(1, require("grapple.state").get(resolvers.project_one, "my key"))
         end)
     end)
 
     describe("#exists", function()
         it("returns true when a state item exists", function()
-            assert.is_true(require("grapple.state").exists("project_one", "keyed_tag"))
+            assert.is_true(require("grapple.state").exists(resolvers.project_one, "keyed_tag"))
         end)
 
         it("returns false when a state item exists", function()
-            assert.is_false(require("grapple.state").exists("project_one", "asdf"))
+            assert.is_false(require("grapple.state").exists(resolvers.project_one, "asdf"))
         end)
     end)
 
     describe("#query", function()
         it("returns the key of a state item", function()
-            assert.equals("keyed_tag", require("grapple.state").query("project_one", { file_path = "file_two" }))
+            assert.equals(
+                "keyed_tag",
+                require("grapple.state").query(resolvers.project_one, { file_path = "file_two" })
+            )
         end)
 
         it("return nil when the state item does not exist", function()
-            assert.is_nil(require("grapple.state").query("project_one", { file_path = "file_three" }))
+            assert.is_nil(require("grapple.state").query(resolvers.project_one, { file_path = "file_three" }))
         end)
     end)
 
     describe("#keys", function()
         it("returns the keys for a given scope", function()
-            local keys = require("grapple.state").keys("project_one")
+            local keys = require("grapple.state").keys(resolvers.project_one)
             assert.equals(2, #keys)
             assert.is_true(vim.tbl_contains(keys, 1))
             assert.is_true(vim.tbl_contains(keys, "keyed_tag"))
@@ -172,7 +194,7 @@ describe("state", function()
 
     describe("#scope", function()
         it("returns all the items in a given scope", function()
-            local state_items = require("grapple.state").scope("project_one")
+            local state_items = require("grapple.state").scope(resolvers.project_one)
             assert.is_table(state_items)
             assert.not_nil(state_items[1])
             assert.not_nil(state_items.keyed_tag)
@@ -181,7 +203,7 @@ describe("state", function()
 
     describe("#count", function()
         it("returns the number of items in a given scope", function()
-            assert(2, require("grapple.state").count("project_one"))
+            assert(2, require("grapple.state").count(resolvers.project_one))
         end)
     end)
 
@@ -198,7 +220,8 @@ describe("state", function()
 
     describe("#resolver", function()
         it("returns a scope resolver for a given scope", function()
-            assert.equals("project_one", require("grapple.state").resolver("project_one_scope").key)
+            local resolver = require("grapple.state").resolver("project_one_scope")
+            assert.equals("project_one_scope", require("grapple.scope").get(resolver))
         end)
     end)
 
@@ -230,8 +253,8 @@ describe("state", function()
         it("resets a scope state to an empty table", function()
             with(temp_dir(), function(dir_path)
                 require("grapple.state").save(dir_path)
-                require("grapple.state").reset("project_one")
-                assert.equals(0, #vim.tbl_keys(require("grapple.state").scope("project_one")))
+                require("grapple.state").reset(resolvers.project_one)
+                assert.equals(0, #vim.tbl_keys(require("grapple.state").scope(resolvers.project_one)))
                 assert.not_nil(require("grapple.state").resolver("project_one_scope"))
             end)
         end)
