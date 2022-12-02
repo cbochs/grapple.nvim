@@ -14,7 +14,7 @@ local scope = {}
 ---@field command string,
 ---@field args table
 ---@field cwd string
----@field on_exit fun(job, return_value): string
+---@field on_exit fun(job, return_value): string | nil
 
 ---@class Grapple.ScopeResolver
 ---@field key Grapple.ScopeCacheKey

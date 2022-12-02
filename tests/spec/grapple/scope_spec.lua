@@ -343,6 +343,8 @@ describe("scope", function()
             { key = "git",          cache = false, expected_path = vim.fn.getcwd() },
             { key = "lsp_fallback", cache = false, expected_path = nil },
             { key = "lsp",          cache = false, expected_path = vim.fn.getcwd() },
+            -- untested: git_branch_scope
+            -- untested: git_branch
         }
         -- stylua: ignore end
 
@@ -359,5 +361,17 @@ describe("scope", function()
                 end)
             end)
         end
+
+        describe("git_branch_scope", function()
+            require("grapple.scope").get_safe("git_branch_scope")
+            for _ = 1, 10 do
+                if require("grapple.scope").cached("git_branch_scope") then
+                    break
+                end
+                vim.cmd("sleep 10m")
+            end
+            assert.is_true(require("grapple.scope").cached("git_branch_scope"))
+            -- assert.equals("feat_git_branch_suffixes", require("grapple.scope").get("git_branch_scope"))
+        end)
     end)
 end)
