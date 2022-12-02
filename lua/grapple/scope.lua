@@ -10,6 +10,12 @@ local scope = {}
 
 ---@alias Grapple.ScopeFunction fun(): Grapple.Scope | nil
 
+---@class Grapple.ScopeJob
+---@field command string,
+---@field args table
+---@field cwd string
+---@field on_exit fun(job, return_value): string
+
 ---@class Grapple.ScopeResolver
 ---@field key Grapple.ScopeCacheKey
 ---@field resolve Grapple.ScopeFunction
@@ -54,7 +60,7 @@ function scope.reset()
     cached_scopes = {}
 end
 
----@param scope_function Grapple.ScopeFunction
+---@param scope_function Grapple.ScopeFunction | Grapple.ScopeJob
 ---@param opts? Grapple.ScopeOptions
 ---@return Grapple.ScopeResolver
 function scope.resolver(scope_function, opts)
@@ -74,6 +80,11 @@ function scope.resolver(scope_function, opts)
     end
     if opts.persist ~= nil then
         scope_persist = opts.persist
+    end
+
+    if type(scope_function) == "table" and scope_cache == false then
+        log.error("Scope resolver cannot be asynchronous and not cache its result")
+        error("Scope resolver cannot be asynchronous and not cache its result")
     end
 
     ---@type Grapple.ScopeResolver
@@ -206,13 +217,26 @@ end
 function scope.update(scope_resolver)
     scope_resolver = update_autocmd(scope_resolver)
 
-    local resolved_scope = scope.resolve(scope_resolver)
-    if scope_resolver.cache ~= false then
-        log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
-        cached_scopes[scope_resolver.key] = resolved_scope
+    if type(scope_resolver.resolve) == "function" then
+        local resolved_scope = scope.resolve(scope_resolver)
+        if scope_resolver.cache ~= false then
+            log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
+            cached_scopes[scope_resolver.key] = resolved_scope
+        end
+        return resolved_scope
+    elseif type(scope_resolver.resolve) == "table" then
+        require("plenary.job")
+            :new(vim.tbl_extend("keep", {
+                on_exit = function(job, return_value)
+                    cached_scopes[scope_resolver.key] = scope_resolver.resolve.on_exit(job, return_value)
+                end,
+            }, scope_resolver.resolve))
+            :sync()
+        return nil
+    else
+        log.error("Invalid scope resolver.")
+        error("Invalid scope resolver.")
     end
-
-    return resolved_scope
 end
 
 ---@private

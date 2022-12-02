@@ -14,6 +14,15 @@ local resolvers = {
         return "__basic__"
     end, { persist = false, cache = "DirChanged" }),
 
+    basic_async = require("grapple.scope").resolver({
+        command = "echo",
+        args = { "__basic__" },
+        cwd = vim.fn.getcwd(),
+        on_exit = function(job, _)
+            return job:result()[1]
+        end,
+    }),
+
     counter_cached = require("grapple.scope").resolver(function()
         counter = counter + 1
         return tostring(counter)
@@ -97,6 +106,18 @@ describe("scope", function()
         it("caches an autocmd caching scope resolver", function()
             require("grapple.scope").update(resolvers.basic_autocmd)
             assert.is_true(require("grapple.scope").cached(resolvers.basic_autocmd))
+        end)
+
+        it("caches a asynchronous scope resolver", function()
+            require("grapple.scope").update(resolvers.basic_async)
+            for _ = 1, 10 do
+                if require("grapple.scope").cached(resolvers.basic_async) then
+                    break
+                end
+                vim.cmd("sleep 20m")
+            end
+            assert.is_true(require("grapple.scope").cached(resolvers.basic_async))
+            assert.equals("__basic__", require("grapple.scope").get(resolvers.basic_async))
         end)
 
         it("does not cache a non-caching scope resolver", function()
