@@ -63,7 +63,7 @@ local function create_parser(scope_resolver)
         local pattern = "%[(.*)%] +(.*)"
         local key, parsed_path = string.match(line, pattern)
         if key == nil or parsed_path == nil then
-            log.warn(("Unable to parse line into tag key. Line: %s"):format(line))
+            log.warn(string.format("Unable to parse line into tag key. line: %s", line))
             return nil
         end
 
@@ -118,7 +118,13 @@ local function resolve(scope_resolver, popup_, parser)
             end
             remaining_tags[key] = true
         else
-            log.warn(string.format("Unable to find tag key for parsed file path. path: ", partial_tag.file_path))
+            log.warn(
+                string.format(
+                    "Unable to find tag key for parsed file path. key: %s. path: %s",
+                    key,
+                    partial_tag.file_path
+                )
+            )
         end
     end
 
@@ -179,7 +185,7 @@ end
 ---@param window_options table
 function M.open(scope_resolver, window_options)
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = scope.get(scope_resolver)
+        window_options.title = string.sub(scope.get(scope_resolver), 1, window_options.width - 6)
         window_options.title_pos = "center"
     end
 
