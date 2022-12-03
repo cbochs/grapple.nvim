@@ -149,6 +149,19 @@ describe("state", function()
         end)
     end)
 
+    describe("#commit", function()
+        it("commits a list of changes in order", function()
+            local actions = {
+                require("grapple.state").actions.set({ file_path = "file_one" }, "one"),
+                require("grapple.state").actions.set({ file_path = "file_two" }, "two"),
+                require("grapple.state").actions.unset("one"),
+                require("grapple.state").actions.move("two", "one"),
+            }
+            local scope_state = require("grapple.state").commit(resolvers.project_five, actions)
+            assert.equals("file_two", scope_state.one.file_path)
+        end)
+    end)
+
     describe("#exists", function()
         it("returns true when a state item exists", function()
             assert.is_true(require("grapple.state").exists(resolvers.project_one, "keyed_tag"))
@@ -159,16 +172,13 @@ describe("state", function()
         end)
     end)
 
-    describe("#query", function()
+    describe("#key", function()
         it("returns the key of a state item", function()
-            assert.equals(
-                "keyed_tag",
-                require("grapple.state").query(resolvers.project_one, { file_path = "file_two" })
-            )
+            assert.equals("keyed_tag", require("grapple.state").key(resolvers.project_one, { file_path = "file_two" }))
         end)
 
         it("return nil when the state item does not exist", function()
-            assert.is_nil(require("grapple.state").query(resolvers.project_one, { file_path = "file_three" }))
+            assert.is_nil(require("grapple.state").key(resolvers.project_one, { file_path = "file_three" }))
         end)
     end)
 

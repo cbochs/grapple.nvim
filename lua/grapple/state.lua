@@ -170,15 +170,30 @@ end
 ---@return Grapple.StateItem | nil
 function state.get(scope_resolver, key)
     local scope_ = state.ensure_loaded(scope_resolver)
+    return state.get_raw(scope_, key)
+end
+
+---@param scope_ Grapple.Scope
+---@param key Grapple.StateKey
+---@return Grapple.StateItem | nil
+function state.get_raw(scope_, key)
     return vim.deepcopy(internal_state[scope_][key])
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param data any
 ---@param key? Grapple.StateKey
+---@return Grapple.StateItem
 function state.set(scope_resolver, data, key)
     local scope_ = state.ensure_loaded(scope_resolver)
+    return state.set_raw(scope_, data, key)
+end
 
+---@param scope_ Grapple.Scope
+---@param data any
+---@param key? Grapple.StateKey
+---@return Grapple.StateItem
+function state.set_raw(scope_, data, key)
     local state_item = vim.deepcopy(data)
 
     key = key or (#internal_state[scope_] + 1)
@@ -193,6 +208,41 @@ function state.unset(scope_resolver, key)
     state.set(scope_resolver, nil, key)
 end
 
+---@param scope_ Grapple.Scope
+---@param key Grapple.StateKey
+function state.unset_raw(scope_, key)
+    state.set_raw(scope_, nil, key)
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@param actions Grapple.StateAction[]
+---@return Grapple.ScopeState
+function state.commit(scope_resolver, actions)
+    local scope_ = state.ensure_loaded(scope_resolver)
+    return state.commit_raw(scope_, actions)
+end
+
+---@param scope_ Grapple.Scope
+---@param actions Grapple.StateAction[]
+---@return Grapple.ScopeState
+function state.commit_raw(scope_, actions)
+    for _, record in ipairs(actions) do
+        if record.action == state.actions.type.set then
+            state.set_raw(scope_, record.change.data, record.change.key)
+        elseif record.action == state.actions.type.unset then
+            state.unset_raw(scope_, record.change.key)
+        elseif record.action == state.actions.type.move then
+            local state_item = state.get_raw(scope_, record.change.old_key)
+            state.unset_raw(scope_, record.change.old_key)
+            state.set_raw(scope_, state_item, record.change.new_key)
+        else
+            log.error(string.format("Invalid change record type. type: %s", record.type))
+            error(string.format("Invalid change record type. type: %s", record.type))
+        end
+    end
+    return state.scope_raw(scope_)
+end
+
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param key Grapple.StateKey
 ---@return boolean
@@ -201,11 +251,25 @@ function state.exists(scope_resolver, key)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
----@param query table
+---@param properties table
 ---@return Grapple.StateKey | nil
-function state.query(scope_resolver, query)
-    for key, item in pairs(state.scope(scope_resolver)) do
-        for attribute, value in pairs(query) do
+function state.key(scope_resolver, properties)
+    return state.reverse_lookup(state.scope(scope_resolver), properties)
+end
+
+---@param scope_ Grapple.Scope
+---@param properties table
+---@return Grapple.StateKey | nil
+function state.key_raw(scope_, properties)
+    return state.reverse_lookup(state.scope_raw(scope_), properties)
+end
+
+---@param scope_state Grapple.ScopeState
+---@param properties table
+---@return Grapple.StateKey | nil
+function state.reverse_lookup(scope_state, properties)
+    for key, item in pairs(scope_state) do
+        for attribute, value in pairs(properties) do
             if item[attribute] == value then
                 return key
             end
@@ -228,6 +292,12 @@ end
 ---@return Grapple.ScopeState
 function state.scope(scope_resolver)
     local scope_ = state.ensure_loaded(scope_resolver)
+    return state.scope_raw(scope_)
+end
+
+---@param scope_ Grapple.Scope
+---@return Grapple.ScopeState
+function state.scope_raw(scope_)
     return vim.deepcopy(internal_state[scope_])
 end
 
@@ -289,6 +359,68 @@ function state.reset(scope_resolver)
     else
         internal_state = {}
     end
+end
+
+---@generic T
+---@class Grapple.StateAction<T>
+---@field action Grapple.StateActionType
+---@field change T
+
+---@class Grapple.StateChangeSet
+---@field data any
+---@field key Grapple.StateKey
+
+---@class Grapple.StateChangeUnset
+---@field key Grapple.StateKey
+
+---@class Grapple.StateChangeMove
+---@field old_key Grapple.StateKey
+---@field new_key Grapple.StateKey
+
+state.actions = {}
+
+---@enum Grapple.StateActionType
+state.actions.type = {
+    set = "set",
+    unset = "unset",
+    move = "move",
+}
+
+---@param data Grapple.StateItem
+---@param key Grapple.StateKey
+---@return Grapple.StateAction<Grapple.StateChangeSet>
+function state.actions.set(data, key)
+    return {
+        action = state.actions.type.set,
+        change = {
+            data = data,
+            key = key,
+        },
+    }
+end
+
+---@param key Grapple.StateKey
+---@return Grapple.StateAction<Grapple.StateChangeUnset>
+function state.actions.unset(key)
+    return {
+        action = state.actions.type.unset,
+        change = {
+            key = key,
+        },
+    }
+end
+
+---@param old_key Grapple.StateKey
+---@param new_key Grapple.StateKey
+---@return Grapple.StateAction<Grapple.StateChangeMove>
+function state.actions.move(old_key, new_key)
+    return {
+        action = state.actions.type.move,
+        change = {
+            old_key = old_key,
+            new_key = new_key,
+        },
+    }
 end
 
 return state

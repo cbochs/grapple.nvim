@@ -199,12 +199,12 @@ function tags.key(scope_resolver, opts)
 
     if opts.file_path then
         local file_path = resolve_file_path(opts.file_path)
-        return state.query(scope_resolver, { file_path = file_path })
+        return state.key(scope_resolver, { file_path = file_path })
     end
 
     if opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
         local file_path = vim.api.nvim_buf_get_name(opts.buffer)
-        return state.query(scope_resolver, { file_path = file_path })
+        return state.key(scope_resolver, { file_path = file_path })
     end
 end
 
