@@ -3,18 +3,17 @@ local log = require("grapple.log")
 local popup = require("grapple.popup")
 local scope = require("grapple.scope")
 local tags = require("grapple.tags")
+local state = require("grapple.state")
 
 local M = {}
 
----Ingested by the serializer
 ---@class Grapple.PopupTag
 ---@field key Grapple.TagKey
 ---@field tag Grapple.Tag
 
----Created by the parser
----@class Grapple.PartialTag
----@field file_path string
+---@class Grapple.PopupPartialTag
 ---@field key Grapple.TagKey
+---@field file_path string
 
 ---@param key Grapple.TagKey
 ---@param tag Grapple.Tag
@@ -26,159 +25,159 @@ local function into_popup_tag(key, tag)
     }
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
----@return Grapple.Serializer<Grapple.PopupTag>
-local function create_serializer(scope_resolver)
-    local scope_ = scope.get(scope_resolver)
-    local scope_path = scope.scope_path(scope_)
+---@param popup_menu Grapple.Popup
+---@param popup_tag Grapple.PopupTag
+---@return string
+local function serializer(popup_menu, popup_tag)
+    local scope_path = scope.scope_path(popup_menu.scope)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
 
-    ---@param popup_tag Grapple.PopupTag
-    ---@return string
-    return function(popup_tag)
-        local relative_path = Path:new(popup_tag.tag.file_path):make_relative(scope_path)
-        local text = " [" .. popup_tag.key .. "] " .. tostring(relative_path)
-        return text
-    end
+    local relative_path = Path:new(popup_tag.tag.file_path):make_relative(scope_path)
+    local text = " [" .. popup_tag.key .. "] " .. tostring(relative_path)
+
+    return text
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
----@return Grapple.Parser<Grapple.PartialTag>
-local function create_parser(scope_resolver)
-    local scope_ = scope.get(scope_resolver)
-    local scope_path = scope.scope_path(scope_)
+---@param popup_menu Grapple.PopupMenu
+---@param line string
+---@return Grapple.PopupPartialTagTag
+local function deserializer(popup_menu, line)
+    if #line == 0 then
+        return nil
+    end
+
+    local scope_path = scope.scope_path(popup_menu.scope)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
 
-    ---@param line string
-    ---@return Grapple.PartialTag
-    return function(line)
-        if #line == 0 then
-            return nil
-        end
-
-        local pattern = "%[(.*)%] +(.*)"
-        local key, parsed_path = string.match(line, pattern)
-        if key == nil or parsed_path == nil then
-            log.warn(string.format("Unable to parse line into tag key. line: %s", line))
-            return nil
-        end
-
-        local file_path
-        if Path:new(parsed_path):is_absolute() then
-            file_path = parsed_path
-        else
-            file_path = Path:new(scope_path) / parsed_path
-        end
-
-        ---@type Grapple.PartialTag
-        local partial_tag = {
-            file_path = tostring(file_path),
-            key = tonumber(key) or key,
-        }
-
-        return partial_tag
+    local pattern = "%[(.*)%] +(.*)"
+    local key, parsed_path = string.match(line, pattern)
+    if key == nil or parsed_path == nil then
+        log.warn(string.format("Unable to parse line into tag key. line: %s", line))
+        return nil
     end
+
+    local file_path
+    if Path:new(parsed_path):is_absolute() then
+        file_path = parsed_path
+    else
+        file_path = Path:new(scope_path) / parsed_path
+    end
+
+    ---@type Grapple.PopupTag
+    local popup_tag = {
+        key = tonumber(key) or key,
+        file_path = tostring(file_path),
+    }
+
+    return popup_tag
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.PartialTag>
-local function resolve(scope_resolver, popup_, parser)
-    ---@type string[]
-    local lines = vim.api.nvim_buf_get_lines(popup_.buffer, 0, -1, false)
+---@param popup_menu Grapple.PopupMenu
+local function resolve(popup_menu)
+    ---@type Grapple.PopupPartialTag[]
+    local parsed_partial_tags = popup.items(popup_menu)
 
-    ---@type Grapple.PartialTag[]
-    local partial_tags = vim.tbl_map(parser, lines)
+    ---@type Grapple.PopupTag[]
+    local before_popup_tags = popup_menu.items
 
-    -- Use the line number as the index for numbered tags
-    local index = 1
-    for i = 1, #partial_tags do
-        if type(partial_tags[i].key) == "number" then
-            partial_tags[i].key = index
-            index = index + 1
-        end
+    ---@type table<string, Grapple.PopupTag>
+    local before_lookup = {}
+    for _, before_tag in ipairs(before_popup_tags) do
+        before_lookup[before_tag.tag.file_path] = before_tag
     end
 
-    ---@type table<string, boolean>
-    local remaining_tags = {}
-
-    ---@type Grapple.PartialTag[]
-    local modified_tags = {}
-
-    -- Determine which tags have been modified and which were deleted
-    for _, partial_tag in ipairs(partial_tags) do
-        local key = tags.key(scope_resolver, { file_path = partial_tag.file_path })
-        if key ~= nil then
-            if partial_tag.key ~= key then
-                table.insert(modified_tags, partial_tag)
-            end
-            remaining_tags[key] = true
-        else
-            log.warn(
-                string.format(
-                    "Unable to find tag key for parsed file path. key: %s. path: %s",
-                    key,
-                    partial_tag.file_path
-                )
-            )
-        end
+    ---@type table<string, Grapple.PopupPartialTag>
+    local after_lookup = {}
+    for _, after_tag in ipairs(parsed_partial_tags) do
+        after_lookup[after_tag.file_path] = after_tag
     end
+
+    ---@type Grapple.PopupPartialTag[]
+    local after_partial_tags = {}
+
+    ---@type Grapple.StateChange[]
+    local change_record = {}
 
     -- Delete tags that do not exist anymore
-    for _, key in ipairs(tags.keys(scope_resolver)) do
-        if not remaining_tags[key] then
-            tags.untag(scope_resolver, { key = key })
+    for _, before_tag in ipairs(before_popup_tags) do
+        local after_tag = after_lookup[before_tag.file_path]
+        if after_tag ~= nil then
+            table.insert(after_partial_tags, after_tag)
+        else
+            -- Assumptions:
+            -- 1. the scope must exist for the popup menu to have been populated
+            -- 2. the state should not have changed while the popup menu was open
+            table.insert(change_record, state.actions.unset(before_tag.key))
         end
     end
 
     -- Update tags that now have a different key
-    for _, partial_tag in ipairs(modified_tags) do
-        tags.tag(scope_resolver, { file_path = partial_tag.file_path, key = partial_tag.key })
-    end
-
-    -- Fill any "holes" that were made from deletion and updating
-    tags.compact(scope_resolver)
-end
-
----@param scope_resolver Grapple.ScopeResolverLike
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.PartialTag>
-local function action_close(scope_resolver, popup_, parser)
-    return function()
-        resolve(scope_resolver, popup_, parser)
-        popup.close(popup_)
-    end
-end
-
----@param scope_resolver Grapple.ScopeResolverLike
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.PartialTag>
-local function action_select(scope_resolver, popup_, parser)
-    return function()
-        local current_line = vim.api.nvim_get_current_line()
-        local partial_tag = parser(current_line)
-        action_close(scope_resolver, popup_, parser)()
-
-        local selected_tag = tags.find(scope_resolver, { file_path = partial_tag.file_path })
-        if selected_tag ~= nil then
-            tags.select(selected_tag)
+    local index = 1
+    for _, after_tag in ipairs(after_partial_tags) do
+        local before_tag = before_lookup[after_tag.file_path]
+        if after_tag.key ~= before_tag.key then
+            local new_key = after_tag.key
+            if type(after_tag.key) == "number" then
+                new_key = index
+                index = index + 1
+            end
+            table.insert(change_record, state.actions.move(before_tag.key, new_key))
         end
     end
+
+    local scope_state = state.commit_raw(popup_menu.scope, change_record)
+
+    return scope_state
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.PartialTag>
-local function action_quickfix(scope_resolver, popup_, parser)
-    return function()
-        resolve(scope_resolver, popup_, parser)
-        popup.close(popup_)
-        tags.quickfix(scope_resolver)
+---@param popup_menu Grapple.PopupMenu
+local function action_close(popup_menu)
+    popup.close(popup_menu)
+end
+
+---@param popup_menu Grapple.PopupMenu
+local function action_select(popup_menu)
+    local partial_tag = popup.current_selection(popup_menu)
+    local scope_state = popup.close(popup_menu)
+
+    local selected_key = state.reverse_lookup(scope_state, { file_path = partial_tag.file_path })
+    local selected_tag = state.get_raw(scope_state, selected_key)
+
+    if selected_tag ~= nil then
+        tags.select(selected_tag)
+    else
+        log.debug(string.format("Unable to select tag from popup menu. tag: %s", vim.inspect(partial_tag)))
     end
+end
+
+---@param popup_menu Grapple.PopupMenu
+local function action_select_split(popup_menu)
+    vim.cmd("vsplit")
+    action_select(popup_menu)
+end
+
+---@param popup_menu Grapple.PopupMenu
+local function action_quickfix(popup_menu)
+    local scope_state = popup.close(popup_menu)
+
+    local quickfix_items = {}
+    for key, tag in pairs(scope_state) do
+        local quickfix_item = {
+            filename = tag.file_path,
+            lnum = tag.cursor and tag.cursor[1] or 1,
+            col = tag.cursor and (tag.cursor[2] + 1) or 1,
+            text = string.format(" [%s] ", key, tag.file_path),
+        }
+        table.insert(quickfix_items, quickfix_item)
+    end
+
+    vim.fn.setqflist(quickfix_items, "r")
+    vim.fn.setqflist({}, "a", { title = popup_menu.scope })
+    vim.api.nvim_cmd({ cmd = "copen" }, {})
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
@@ -189,32 +188,22 @@ function M.open(scope_resolver, window_options)
         window_options.title_pos = "center"
     end
 
-    local serializer = create_serializer(scope_resolver)
-    local parser = create_parser(scope_resolver)
+    local actions = {
+        { mode = "n", keymap = "q", action = action_close },
+        { mode = "n", keymap = "<esc>", action = action_close },
+        { mode = "n", keymap = "<cr>", action = action_select },
+        { mode = "n", keymap = "<c-v>", action = action_select_split },
+        { mode = "n", keymap = "<c-q>", action = action_quickfix },
+    }
 
-    local popup_tags = {}
-    for key, tag in pairs(tags.tags(scope_resolver)) do
-        table.insert(popup_tags, into_popup_tag(key, tag))
-    end
-
-    local lines = vim.tbl_map(serializer, popup_tags)
-    local popup_ = popup.open(window_options)
-    popup.update(popup_, lines)
-
-    local close = action_close(scope_resolver, popup_, parser)
-    local select = action_select(scope_resolver, popup_, parser)
-    local quickfix = action_quickfix(scope_resolver, popup_, parser)
-
-    local keymap_options = { buffer = popup_.buffer, nowait = true }
-    vim.keymap.set("n", "q", close, keymap_options)
-    vim.keymap.set("n", "<esc>", close, keymap_options)
-    vim.keymap.set("n", "<cr>", select, keymap_options)
-    vim.keymap.set("n", "<c-q>", quickfix, keymap_options)
-    vim.keymap.set("n", "<c-v>", function()
-        vim.api.nvim_cmd({ cmd = "vsplit" }, {})
-        select()
-    end, keymap_options)
-    popup.on_leave(popup_, close)
+    popup.open(
+        popup.create_window(window_options),
+        popup.create_transformer(serializer, deserializer),
+        resolve,
+        actions,
+        vim.tbl_map(into_popup_tag, tags.tags(scope_resolver)),
+        scope.get(scope_resolver)
+    )
 end
 
 return M
