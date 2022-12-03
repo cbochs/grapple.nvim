@@ -11,7 +11,7 @@ local popup = {}
 ---@alias Grapple.PopupDeserializer fun(popup_menu: Grapple.PopupMenu, line: string): T
 
 ---@generic T
----@class Grapple.PopupTransformer
+---@class Grapple.PopupTransformer<T>
 ---@field serialize Grapple.PopupSerializer<T>
 ---@field deserialize Grapple.PopupDeserializer<T>
 
@@ -23,10 +23,10 @@ local popup = {}
 ---@field action Grapple.PopupActionFunction
 
 ---@generic T
----@class Grapple.PopupMenu
+---@class Grapple.PopupMenu<T>
 ---@field popup Grapple.Popup
----@field transformer Grapple.PopupTransformer
----@field resolve Grapple.PopupActionFunction
+---@field transformer Grapple.PopupTransformer<T>
+---@field resolve Grapple.PopupActionFunction<R>
 ---@field scope Grapple.Scope
 ---@field items T[]
 
@@ -51,10 +51,11 @@ function popup.create_window(window_options)
     return popup_window
 end
 
----@param serializer Grapple.PopupSerializer
----@param deserializer Grapple.PopupDeserializer
+---@generic T
+---@param serializer Grapple.PopupSerializer<T>
+---@param deserializer Grapple.PopupDeserializer<T>
+---@return Grapple.PopupTransformer<T>
 function popup.create_transformer(serializer, deserializer)
-    ---@type Grapple.PopupTransformer
     local transformer = {
         serialize = serializer,
         deserialize = deserializer,
@@ -70,7 +71,7 @@ end
 ---@param resolve Grapple.PopupActionFunction
 ---@param scope Grapple.Scope
 ---@param items T[]
----@return Grapple.Popup
+---@return Grapple.PopupMenu<T>
 function popup.open(popup_, transformer, resolve, actions, scope, items)
     local popup_menu = {
         popup = popup_,
@@ -98,7 +99,8 @@ function popup.open(popup_, transformer, resolve, actions, scope, items)
     return popup_menu
 end
 
----@param popup_menu Grapple.Popup
+---@generic T
+---@param popup_menu Grapple.Popup<T>
 ---@param start integer
 ---@param end_ integer
 function popup.update(popup_menu, start, end_)
@@ -106,20 +108,26 @@ function popup.update(popup_menu, start, end_)
     vim.api.nvim_buf_set_lines(popup_menu.buffer, start or 0, end_ or -1, false, lines)
 end
 
----@param popup_menu Grapple.PopupMenu
+---@generic T
+---@param popup_menu Grapple.PopupMenu<T>
+---@return T
 function popup.current_selection(popup_menu)
     local current_line = vim.api.nvim_get_current_line()
     local selection = popup_menu.transformer.deserialize(current_line)
     return selection
 end
 
+---@generic T
+---@param popup_menu Grapple.PopupMenu<T>
+---@return T[]
 function popup.items(popup_menu)
-    local lines = vim.api.nvim_buf_get_lines(popup_menu.buffer, 0, -1, false)
+    local lines = vim.api.nvim_buf_get_lines(popup_menu.popup.buffer, 0, -1, false)
     local parsed_items = vim.tbl_map(popup_menu.transformer.deserialize, lines)
     return parsed_items
 end
 
----@param popup_menu Grapple.PopupMenu
+---@generic T
+---@param popup_menu Grapple.PopupMenu<T>
 ---@return any
 function popup.close(popup_menu)
     local popup_resolution
