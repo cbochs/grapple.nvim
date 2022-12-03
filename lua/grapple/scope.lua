@@ -80,7 +80,7 @@ local function update_watch(scope_resolver)
         local interval = scope_resolver.watch.interval
         local timer = vim.loop.new_timer()
         timer:start(interval, interval, function()
-            scope.invalidate(scope_resolver)
+            scope.update(scope_resolver)
         end)
 
         scope_resolver.watch.timer = timer
