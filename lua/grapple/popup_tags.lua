@@ -172,7 +172,8 @@ function popup_tags.open(scope_resolver, window_options)
     }
 
     local scope_ = scope.get(scope_resolver)
-    local items = tags.with_keys(state.scope_raw(scope_))
+    local scope_state = state.scope_raw(scope_)
+    local items = state.with_keys_raw(scope_state)
 
     popup.open(
         popup.create_window(window_options),
