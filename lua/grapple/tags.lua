@@ -1,16 +1,28 @@
 local Path = require("plenary.path")
 local log = require("grapple.log")
+local quickfix = require("grapple.quickfix")
 local scope = require("grapple.scope")
 local state = require("grapple.state")
 local types = require("grapple.types")
 
----@class Grapple.Tag
----@field file_path string
----@field cursor table
-
 ---@alias Grapple.TagKey string | integer
 
+---@alias Grapple.FilePath string
+
 ---@alias Grapple.Cursor table
+
+---@class Grapple.Tag
+---@field file_path Grapple.FilePath
+---@field cursor Grapple.Cursor
+
+---@class Grapple.FullTag
+---@field key Grapple.TagKey
+---@field file_path Grapple.FilePath
+---@field cursor Grapple.Cursor
+
+---@class Grapple.PartialTag
+---@field key Grapple.TagKey
+---@field file_path Grapple.FilePath
 
 local tags = {}
 
@@ -45,21 +57,22 @@ function tags.reset(scope_resolver)
     state.reset(scope_resolver)
 end
 
+---@param full_tag Grapple.FullTag
+---@return Grapple.QuickfixItem
+function tags.quickfixer(full_tag)
+    return {
+        filename = full_tag.file_path,
+        lnum = full_tag.cursor and full_tag.cursor[1] or 1,
+        col = full_tag.cursor and (full_tag.cursor[2] + 1) or 1,
+        text = string.format(" [%s] ", full_tag.key, full_tag.file_path),
+    }
+end
+
 ---@param scope_resolver Grapple.ScopeResolverLike
 function tags.quickfix(scope_resolver)
-    local quickfix_items = {}
-    for tag_key, tag in pairs(state.scope(scope_resolver)) do
-        local quickfix_item = {
-            filename = tag.file_path,
-            lnum = tag.cursor and tag.cursor[1] or 1,
-            col = tag.cursor and (tag.cursor[2] + 1) or 1,
-            text = string.format(" [%s] ", tag_key, tag.file_path),
-        }
-        table.insert(quickfix_items, quickfix_item)
-    end
-    vim.fn.setqflist(quickfix_items, "r")
-    vim.fn.setqflist({}, "a", { title = scope.get(scope_resolver) })
-    vim.api.nvim_cmd({ cmd = "copen" }, {})
+    local scope_ = scope.get(scope_resolver)
+    local full_tags = state.with_keys_raw(state.scope_raw(scope_))
+    quickfix.send(scope_, full_tags, tags.quickfixer)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
