@@ -123,6 +123,21 @@ describe("tags", function()
         end)
     end)
 
+    describe("#quickfixer", function()
+        it("transforms a full tag into a quickfix item", function()
+            local tag = {
+                key = "some key",
+                file_path = "i/am/a/file",
+                cursor = { 92, 98 },
+            }
+            local quickfix_item = require("grapple.tags").quickfixer(tag)
+            assert.equals("i/am/a/file", quickfix_item.filename)
+            assert.equals(92, quickfix_item.lnum)
+            assert.equals(99, quickfix_item.col)
+            assert.equals(" [some key] ", quickfix_item.text)
+        end)
+    end)
+
     describe("#quickfix", function()
         it("populates the quickfix list for a given scope", function()
             require("grapple.tags").tag(resolvers.basic, { buffer = buffer_one })
