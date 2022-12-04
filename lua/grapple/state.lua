@@ -1,4 +1,5 @@
 local Path = require("plenary.path")
+local helpers = require("grapple.helpers")
 local log = require("grapple.log")
 local scope = require("grapple.scope")
 local settings = require("grapple.settings")
@@ -8,6 +9,8 @@ local state = {}
 ---@alias Grapple.StateKey string | integer
 
 ---@alias Grapple.StateItem Grapple.Tag
+
+---@alias Grapple.FullStateItem Grapple.FullTag
 
 ---@alias Grapple.ScopeState table<Grapple.StateKey, Grapple.StateItem>
 
@@ -281,6 +284,23 @@ end
 ---@return Grapple.StateKey[]
 function state.keys(scope_resolver)
     return vim.tbl_keys(state.scope(scope_resolver))
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.FullStateItem[]
+function state.with_keys(scope_resolver)
+    local scope_state = state.scope(scope_resolver)
+    return state.with_keys_raw(scope_state)
+end
+
+---@param scope_state Grapple.ScopeState
+---@return Grapple.FullStateItem[]
+function state.with_keys_raw(scope_state)
+    return helpers.table.map(function(key, item)
+        item = vim.deepcopy(item)
+        item.key = key
+        return item
+    end, scope_state)
 end
 
 ---@return Grapple.Scope[]
