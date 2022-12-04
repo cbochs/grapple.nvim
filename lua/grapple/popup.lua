@@ -90,6 +90,11 @@ function popup.open(popup_, transformer, resolve, actions, scope, initial_items)
         end,
     })
 
+    local lines = vim.tbl_map(function(item)
+        popup_menu.transformer.serializer(popup_menu, item)
+    end, popup_menu.initial_items)
+    vim.api.nvim_buf_set_lines(popup_menu.buffer, 0, -1, false, lines)
+
     for _, action in ipairs(actions) do
         vim.keymap.set(action.mode, action.keymap, function()
             action.action(popup_menu)
@@ -100,18 +105,10 @@ function popup.open(popup_, transformer, resolve, actions, scope, initial_items)
 end
 
 ---@param popup_menu Grapple.PopupMenu<T>
----@param start integer
----@param end_ integer
-function popup.update(popup_menu, start, end_)
-    local lines = vim.tbl_map(popup_menu.transformer.serializer, popup_menu.initial_items)
-    vim.api.nvim_buf_set_lines(popup_menu.buffer, start or 0, end_ or -1, false, lines)
-end
-
----@param popup_menu Grapple.PopupMenu<T>
 ---@return T
 function popup.current_selection(popup_menu)
     local current_line = vim.api.nvim_get_current_line()
-    local selection = popup_menu.transformer.deserialize(current_line)
+    local selection = popup_menu.transformer.deserialize(popup_menu, current_line)
     return selection
 end
 
@@ -119,7 +116,9 @@ end
 ---@return T[]
 function popup.items(popup_menu)
     local lines = vim.api.nvim_buf_get_lines(popup_menu.popup.buffer, 0, -1, false)
-    local parsed_items = vim.tbl_map(popup_menu.transformer.deserialize, lines)
+    local parsed_items = vim.tbl_map(function(line)
+        popup_menu.transformer.deserialize(popup_menu, line)
+    end, lines)
     return parsed_items
 end
 
