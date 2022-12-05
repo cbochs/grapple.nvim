@@ -127,10 +127,11 @@ function popup.items(popup_menu)
     return parsed_items
 end
 
+---@generic T
 ---@param popup_menu Grapple.PopupMenu<T>
 ---@return any
 function popup.close(popup_menu)
-    local popup_resolution = popup_menu.resolve(popup_menu)
+    local popup_resolution = popup_menu.handler.resolve(popup_menu)
     if vim.api.nvim_win_is_valid(popup_menu.popup.window) then
         vim.api.nvim_win_close(popup_menu.popup.window, true)
     end
