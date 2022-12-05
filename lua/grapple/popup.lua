@@ -55,7 +55,7 @@ function popup.open(window_options, popup_handler, popup_state)
         end,
     })
 
-    for _, action in ipairs(popup.handler.actions) do
+    for _, action in ipairs(popup_menu.handler.actions) do
         vim.keymap.set(action.mode, action.keymap, function()
             action.action(popup_menu)
         end, { buffer = popup_menu.popup.buffer })
