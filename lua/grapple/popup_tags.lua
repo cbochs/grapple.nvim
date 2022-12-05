@@ -8,17 +8,32 @@ local quickfix = require("grapple.quickfix")
 
 local popup_tags = {}
 
----@param popup_menu Grapple.Popup
+---@class Grapple.PopupTagState
+---@field items Grapple.FullTag[]
+---@field scope Grapple.Scope
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.PopupTagState
+function popup_tags.initial_state(scope_resolver)
+    local scope_ = scope.get(scope_resolver)
+    return {
+        items = state.scope_raw(scope_),
+        scope = scope,
+    }
+end
+
+---@param popup_menu Grapple.PopupMenu
 ---@param full_tag Grapple.FullTag
 ---@return string
 function popup_tags.serialize(popup_menu, full_tag)
-    local scope_path = scope.scope_path(popup_menu.scope)
-    if vim.fn.isdirectory(scope_path) == 0 then
-        scope_path = ""
+    local scope_path = scope.scope_path(popup_menu.state.scope)
+    local file_path = Path:new(full_tag.file_path)
+
+    if vim.fn.isdirectory(scope_path) == 1 then
+        file_path = file_path:make_relative(scope_path)
     end
 
-    local relative_path = Path:new(full_tag.file_path):make_relative(scope_path)
-    local text = " [" .. full_tag.key .. "] " .. tostring(relative_path)
+    local text = " [" .. full_tag.key .. "] " .. tostring(file_path)
 
     return text
 end
@@ -31,7 +46,7 @@ function popup_tags.deserialize(popup_menu, line)
         return nil
     end
 
-    local scope_path = scope.scope_path(popup_menu.scope)
+    local scope_path = scope.scope_path(popup_menu.state.scope)
     if vim.fn.isdirectory(scope_path) == 0 then
         scope_path = ""
     end
@@ -60,25 +75,41 @@ function popup_tags.deserialize(popup_menu, line)
 end
 
 ---@param popup_menu Grapple.PopupMenu
----@param initial_items Grapple.FullTag[]
----@param parsed_items Grapple.PartialTag[]
 ---@return Grapple.PopupTag[]
-function popup_tags.resolve(popup_menu, initial_items, parsed_items)
+function popup_tags.resolve(popup_menu)
     ---@type Grapple.PopupTag[]
-    local before_full_tags = initial_items
+    local original_tags = popup_tags.state.items
 
     ---@type Grapple.PartialTag[]
-    local parsed_partial_tags = parsed_items
+    local modified_tags = popup.items(popup_menu)
+
+    local differences = popup_tags.diff(original_tags, modified_tags)
+    local scope_state = state.commit_raw(popup_menu.scope, differences)
+
+    return scope_state
+end
+
+---@param original_tags Grapple.FullTag[]
+---@param modified_tags Grapple.PartialTag[]
+---@return Grapple.StateAction[]
+function popup_tags.diff(original_tags, modified_tags)
+    local index = 1
+    for _, after_tag in ipairs(modified_tags) do
+        if type(after_tag.key) == "number" then
+            after_tag.key = index
+            index = index + 1
+        end
+    end
 
     ---@type table<string, Grapple.FullTag>
     local before_lookup = {}
-    for _, before_tag in ipairs(before_full_tags) do
-        before_lookup[before_tag.tag.file_path] = before_tag
+    for _, before_tag in ipairs(original_tags) do
+        before_lookup[before_tag.file_path] = before_tag
     end
 
     ---@type table<string, Grapple.PartialTag>
     local after_lookup = {}
-    for _, after_tag in ipairs(parsed_partial_tags) do
+    for _, after_tag in ipairs(modified_tags) do
         after_lookup[after_tag.file_path] = after_tag
     end
 
@@ -89,7 +120,7 @@ function popup_tags.resolve(popup_menu, initial_items, parsed_items)
     local change_record = {}
 
     -- Delete tags that do not exist anymore
-    for _, before_tag in ipairs(before_full_tags) do
+    for _, before_tag in ipairs(original_tags) do
         local after_tag = after_lookup[before_tag.file_path]
         if after_tag ~= nil then
             table.insert(after_partial_tags, after_tag)
@@ -102,22 +133,14 @@ function popup_tags.resolve(popup_menu, initial_items, parsed_items)
     end
 
     -- Update tags that now have a different key
-    local index = 1
     for _, after_tag in ipairs(after_partial_tags) do
         local before_tag = before_lookup[after_tag.file_path]
         if after_tag.key ~= before_tag.key then
-            local new_key = after_tag.key
-            if type(after_tag.key) == "number" then
-                new_key = index
-                index = index + 1
-            end
-            table.insert(change_record, state.actions.move(before_tag.key, new_key))
+            table.insert(change_record, state.actions.move(before_tag.key, after_tag.key))
         end
     end
 
-    local scope_state = state.commit_raw(popup_menu.scope, change_record)
-
-    return scope_state
+    return change_record
 end
 
 popup_tags.actions = {}
