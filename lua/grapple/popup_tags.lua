@@ -78,7 +78,7 @@ end
 ---@return Grapple.PopupTag[]
 function popup_tags.resolve(popup_menu)
     ---@type Grapple.PopupTag[]
-    local original_tags = popup_tags.state.items
+    local original_tags = popup_menu.state.items
 
     ---@type Grapple.PartialTag[]
     local modified_tags = popup.items(popup_menu)
