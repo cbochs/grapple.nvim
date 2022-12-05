@@ -286,6 +286,12 @@ function state.keys(scope_resolver)
     return vim.tbl_keys(state.scope(scope_resolver))
 end
 
+function state.with_key(key, item)
+    item = vim.deepcopy(item)
+    item.key = key
+    return item
+end
+
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.FullStateItem[]
 function state.with_keys(scope_resolver)
@@ -297,9 +303,7 @@ end
 ---@return Grapple.FullStateItem[]
 function state.with_keys_raw(scope_state)
     return helpers.table.map(function(key, item)
-        item = vim.deepcopy(item)
-        item.key = key
-        return item
+        return state.with_key(key, item)
     end, scope_state)
 end
 

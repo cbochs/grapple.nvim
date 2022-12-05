@@ -111,8 +111,18 @@ end
 ---@param scope? Grapple.ScopeResolverLike
 function grapple.popup_tags(scope)
     scope = scope or settings.scope
+
+    local popup_handler = require("grapple.popup_tags")
+    local popup_state = popup_handler.initial_state(scope)
+
     local window_options = vim.deepcopy(settings.popup_options)
-    require("grapple.popup_tags").open(scope, window_options)
+    if vim.fn.has("nvim-0.9") == 1 then
+        window_options.title = popup_handler.title()
+        window_options.title = string.sub(window_options.title, 1, window_options.width - 6)
+        window_options.title_pos = "center"
+    end
+
+    require("grapple.popup").open(window_options, popup_handler, popup_state)
 end
 
 function grapple.popup_scopes()

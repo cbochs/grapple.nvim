@@ -3,6 +3,7 @@ local popup = {}
 ---@class Grapple.Popup
 ---@field buffer number
 ---@field window number
+---@field options Grapple.WindowOptions
 
 ---@generic T
 ---@alias Grapple.PopupSerializer fun(popup_menu: Grapple.PopupMenu, item: T): string
@@ -10,25 +11,60 @@ local popup = {}
 ---@generic T
 ---@alias Grapple.PopupDeserializer fun(popup_menu: Grapple.PopupMenu, line: string): T
 
----@generic T
----@class Grapple.PopupTransformer<T>
----@field serialize Grapple.PopupSerializer<T>
----@field deserialize Grapple.PopupDeserializer<T>
-
----@alias Grapple.PopupActionFunction fun(popup_menu: Grapple.PopupMenu)
+---@alias Grapple.PopupFunction fun(popup_menu: Grapple.PopupMenu)
 
 ---@class Grapple.PopupAction
 ---@field mode string | string[]
 ---@field keymap string
----@field action Grapple.PopupActionFunction
+---@field action Grapple.PopupFunction
+
+---@generic T
+---@class Grapple.PopupHandler<T>
+---@field serialize Grapple.PopupSerializer<T>
+---@field deserialize Grapple.PopupDeserializer<T>
+---@field resolve Grapple.PopupFunction
+---@field actions Grapple.PopupAction[]
+
+---@generic T
+---@class Grapple.PopupState
+---@field items T[]
 
 ---@generic T
 ---@class Grapple.PopupMenu<T>
 ---@field popup Grapple.Popup
----@field transformer Grapple.PopupTransformer<T>
----@field resolve Grapple.PopupActionFunction
----@field scope Grapple.Scope
----@field items T[]
+---@field handler Grapple.PopupHandler<T>
+---@field state Grapple.PopupState<T>
+
+---@generic T
+---@param window_options Grapple.WindowOptions
+---@param popup_handler Grapple.PopupHandler
+---@return Grapple.PopupMenu
+function popup.open(window_options, popup_handler, popup_state)
+    local popup_menu = {
+        popup = popup.create_window(window_options),
+        handler = popup_handler,
+        state = popup_state,
+    }
+
+    vim.api.nvim_create_augroup("GrapplePopup", { clear = true })
+    vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
+        group = "GrapplePopup",
+        buffer = popup_menu.popup.buffer,
+        callback = function()
+            popup.close(popup_menu)
+        end,
+    })
+
+    for _, action in ipairs(popup.handler.actions) do
+        vim.keymap.set(action.mode, action.keymap, function()
+            action.action(popup_menu)
+        end, { buffer = popup_menu.popup.buffer })
+    end
+
+    popup.draw(popup_menu)
+
+    return popup_menu
+end
 
 ---@param window_options Grapple.WindowOptions
 ---@return Grapple.Popup
@@ -42,66 +78,28 @@ function popup.create_window(window_options)
 
     local window = vim.api.nvim_open_win(buffer, true, window_options)
 
-    ---@type Grapple.Popup
-    local popup_window = {
+    local popup_ = {
         buffer = buffer,
         window = window,
+        options = window_options,
     }
 
-    return popup_window
+    return popup_
 end
 
----@generic T
----@param serialize Grapple.PopupSerializer
----@param deserialize Grapple.PopupDeserializer
----@return Grapple.PopupTransformer<T>
-function popup.create_transformer(serialize, deserialize)
-    local transformer = {
-        serialize = serialize,
-        deserialize = deserialize,
-    }
-
-    return transformer
-end
-
----@generic T
----@param popup_ Grapple.PopupWindow
----@param transformer Grapple.PopupTransformer
----@param actions Grapple.PopupAction[]
----@param resolve Grapple.PopupActionFunction
----@param scope Grapple.Scope
----@param initial_items T[]
----@return Grapple.PopupMenu
-function popup.open(popup_, transformer, resolve, actions, scope, initial_items)
-    local popup_menu = {
-        popup = popup_,
-        transformer = transformer,
-        resolve = resolve,
-        scope = scope,
-        initial_items = initial_items,
-    }
-
-    vim.api.nvim_create_augroup("GrapplePopup", { clear = true })
-    vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
-        group = "GrapplePopup",
-        buffer = popup_menu.popup.buffer,
-        callback = function()
-            popup.close(popup_menu)
-        end,
-    })
-
+---@param popup_menu Grapple.PopupMenu
+function popup.draw(popup_menu)
     local lines = vim.tbl_map(function(item)
-        popup_menu.transformer.serializer(popup_menu, item)
-    end, popup_menu.initial_items)
+        popup_menu.handler.serialize(popup_menu, item)
+    end, popup_menu.state.items)
     vim.api.nvim_buf_set_lines(popup_menu.buffer, 0, -1, false, lines)
+end
 
-    for _, action in ipairs(actions) do
-        vim.keymap.set(action.mode, action.keymap, function()
-            action.action(popup_menu)
-        end, { buffer = popup_menu.popup.buffer })
-    end
-
-    return popup_menu
+---@param popup_menu Grapple.PopupMenu
+---@param new_popup_state Grapple.PopupState
+function popup.update(popup_menu, new_popup_state)
+    popup_menu.state = new_popup_state
+    popup.draw(popup_menu)
 end
 
 ---@param popup_menu Grapple.PopupMenu<T>
