@@ -69,6 +69,11 @@ end
 ---@param window_options Grapple.WindowOptions
 ---@return Grapple.Popup
 function popup.create_window(window_options)
+    if window_options.title ~= nil then
+        window_options.title = string.sub(window_options.title, 1, window_options.width - 6)
+        window_options.title_pos = "center"
+    end
+
     local buffer = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(buffer, "filetype", "grapple")
     vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
