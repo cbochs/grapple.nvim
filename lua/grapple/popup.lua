@@ -97,7 +97,7 @@ function popup.draw(popup_menu)
     local lines = vim.tbl_map(function(item)
         popup_menu.handler.serialize(popup_menu, item)
     end, popup_menu.state.items)
-    vim.api.nvim_buf_set_lines(popup_menu.buffer, 0, -1, false, lines)
+    vim.api.nvim_buf_set_lines(popup_menu.popup.buffer, 0, -1, false, lines)
 end
 
 ---@param popup_menu Grapple.PopupMenu
@@ -107,20 +107,22 @@ function popup.update(popup_menu, new_popup_state)
     popup.draw(popup_menu)
 end
 
+---@generic T
 ---@param popup_menu Grapple.PopupMenu<T>
 ---@return T
 function popup.current_selection(popup_menu)
     local current_line = vim.api.nvim_get_current_line()
-    local selection = popup_menu.transformer.deserialize(popup_menu, current_line)
+    local selection = popup_menu.handler.deserialize(popup_menu, current_line)
     return selection
 end
 
+---@generic T
 ---@param popup_menu Grapple.PopupMenu<T>
 ---@return T[]
 function popup.items(popup_menu)
     local lines = vim.api.nvim_buf_get_lines(popup_menu.popup.buffer, 0, -1, false)
     local parsed_items = vim.tbl_map(function(line)
-        popup_menu.transformer.deserialize(popup_menu, line)
+        popup_menu.handler.deserialize(popup_menu, line)
     end, lines)
     return parsed_items
 end
@@ -128,16 +130,10 @@ end
 ---@param popup_menu Grapple.PopupMenu<T>
 ---@return any
 function popup.close(popup_menu)
-    local popup_resolution
-    if popup_menu.resolve ~= nil then
-        local parsed_items = popup.items(popup_menu)
-        popup_resolution = popup_menu.resolve(popup_menu.scope, popup_menu.initial_items, parsed_items)
-    end
-
+    local popup_resolution = popup_menu.resolve(popup_menu)
     if vim.api.nvim_win_is_valid(popup_menu.popup.window) then
         vim.api.nvim_win_close(popup_menu.popup.window, true)
     end
-
     return popup_resolution
 end
 
