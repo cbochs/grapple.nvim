@@ -17,7 +17,7 @@ local popup_tags = {}
 function popup_tags.initial_state(scope_resolver)
     local scope_ = scope.get(scope_resolver)
     return {
-        items = state.scope_raw(scope_),
+        items = state.with_keys_raw(state.scope_raw(scope_)),
         scope = scope_,
     }
 end
