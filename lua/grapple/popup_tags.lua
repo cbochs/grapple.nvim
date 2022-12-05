@@ -84,7 +84,7 @@ function popup_tags.resolve(popup_menu)
     local modified_tags = popup.items(popup_menu)
 
     local differences = popup_tags.diff(original_tags, modified_tags)
-    local scope_state = state.commit_raw(popup_menu.scope, differences)
+    local scope_state = state.commit_raw(popup_menu.state.scope, differences)
 
     return scope_state
 end
