@@ -113,7 +113,7 @@ end
 function popup_tags.actions.quickfix(popup_menu)
     local scope_state = popup.close(popup_menu)
     local full_tags = state.with_keys_raw(scope_state)
-    quickfix.send(popup_menu.scope, full_tags, tags.quickfixer)
+    quickfix.send(popup_menu.state.scope, full_tags, tags.quickfixer)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
