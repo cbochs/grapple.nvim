@@ -114,7 +114,7 @@ function grapple.popup_tags(scope)
 
     local popup_tags = require("grapple.popup_tags")
     local popup_handler = popup_tags.handler
-    local popup_state = popup_handler.initial_state(scope)
+    local popup_state = popup_tags.initial_state(scope)
     local popup_keymaps = {
         { mode = "n", key = "q", action = popup_tags.actions.close },
         { mode = "n", key = "<esc>", action = popup_tags.actions.close },
@@ -130,7 +130,7 @@ function grapple.popup_tags(scope)
 
     local popup = require("grapple.popup")
     local popup_menu = popup.open(window_options, popup_handler, popup_state)
-    popup.keymaps(popup_menu, popup_keymaps)
+    popup.keymap(popup_menu, popup_keymaps)
 end
 
 function grapple.popup_scopes()
