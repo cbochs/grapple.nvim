@@ -166,6 +166,7 @@ function popup_tags.diff(original_tags, modified_tags)
             -- 1. the scope must exist for the popup menu to have been populated
             -- 2. the state should not have changed while the popup menu was open
             table.insert(change_record, state.actions.unset(before_tag.key))
+            log.debug(string.format("Tag not found in popup, deleting. tag %s", vim.inspect(before_tag)))
         end
     end
 
@@ -174,6 +175,13 @@ function popup_tags.diff(original_tags, modified_tags)
         local before_tag = before_lookup[after_tag.file_path]
         if after_tag.key ~= before_tag.key then
             table.insert(change_record, state.actions.move(before_tag.key, after_tag.key))
+            log.debug(
+                string.format(
+                    "Tag key is different in popup, moving. old_key: %s. new_key: %s",
+                    before_tag.key,
+                    after_tag.key
+                )
+            )
         end
     end
 
