@@ -130,14 +130,6 @@ end
 ---@param modified_tags Grapple.PartialTag[]
 ---@return Grapple.StateAction[]
 function popup_tags.diff(original_tags, modified_tags)
-    local index = 1
-    for _, after_tag in ipairs(modified_tags) do
-        if type(after_tag.key) == "number" then
-            after_tag.key = index
-            index = index + 1
-        end
-    end
-
     ---@type table<string, Grapple.FullTag>
     local before_lookup = {}
     for _, before_tag in ipairs(original_tags) do
@@ -167,6 +159,14 @@ function popup_tags.diff(original_tags, modified_tags)
             -- 2. the state should not have changed while the popup menu was open
             table.insert(change_record, state.actions.unset(before_tag.key))
             log.debug(string.format("Tag not found in popup, deleting. tag %s", vim.inspect(before_tag)))
+        end
+    end
+
+    local index = 1
+    for _, after_tag in ipairs(after_partial_tags) do
+        if type(after_tag.key) == "number" then
+            after_tag.key = index
+            index = index + 1
         end
     end
 
