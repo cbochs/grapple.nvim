@@ -15,7 +15,7 @@ local popup = {}
 
 ---@class Grapple.PopupAction
 ---@field mode string | string[]
----@field keymap string
+---@field key string
 ---@field action Grapple.PopupFunction
 
 ---@generic T
@@ -23,7 +23,6 @@ local popup = {}
 ---@field serialize Grapple.PopupSerializer<T>
 ---@field deserialize Grapple.PopupDeserializer<T>
 ---@field resolve Grapple.PopupFunction
----@field actions Grapple.PopupAction[]
 
 ---@generic T
 ---@class Grapple.PopupState
@@ -54,12 +53,6 @@ function popup.open(window_options, popup_handler, popup_state)
             popup.close(popup_menu)
         end,
     })
-
-    for _, action in ipairs(popup_menu.handler.actions) do
-        vim.keymap.set(action.mode, action.keymap, function()
-            action.action(popup_menu)
-        end, { buffer = popup_menu.popup.buffer })
-    end
 
     popup.draw(popup_menu)
 
@@ -107,6 +100,16 @@ function popup.update(popup_menu, new_popup_state)
     popup.draw(popup_menu)
 end
 
+---@param popup_menu Grapple.PopupMenu
+---@param popup_keymaps Grapple.PopupAction[]
+function popup.keymap(popup_menu, popup_keymaps)
+    for _, keymap in ipairs(popup_keymaps) do
+        vim.keymap.set(keymap.mode, keymap.key, function()
+            keymap.action(popup_menu)
+        end, { buffer = popup_menu.popup.buffer })
+    end
+end
+
 ---@generic T
 ---@param popup_menu Grapple.PopupMenu<T>
 ---@return T
@@ -122,7 +125,7 @@ end
 function popup.items(popup_menu)
     local lines = vim.api.nvim_buf_get_lines(popup_menu.popup.buffer, 0, -1, false)
     local parsed_items = vim.tbl_map(function(line)
-        popup_menu.handler.deserialize(popup_menu, line)
+        return popup_menu.handler.deserialize(popup_menu, line)
     end, lines)
     return parsed_items
 end
