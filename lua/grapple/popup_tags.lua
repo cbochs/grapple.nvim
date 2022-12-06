@@ -1,10 +1,10 @@
 local Path = require("plenary.path")
 local log = require("grapple.log")
 local popup = require("grapple.popup")
-local scope = require("grapple.scope")
-local tags = require("grapple.tags")
-local state = require("grapple.state")
 local quickfix = require("grapple.quickfix")
+local scope = require("grapple.scope")
+local state = require("grapple.state")
+local tags = require("grapple.tags")
 
 local popup_tags = {}
 
@@ -15,7 +15,7 @@ local popup_tags = {}
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@return Grapple.PopupTagState
 function popup_tags.initial_state(scope_resolver)
-    local scope_ = scope.get(scope_resolver)
+    local scope_ = state.ensure_loaded(scope_resolver)
     return {
         items = state.with_keys_raw(state.scope_raw(scope_)),
         scope = scope_,
@@ -176,36 +176,6 @@ function popup_tags.actions.quickfix(popup_menu)
     local scope_state = popup.close(popup_menu)
     local full_tags = state.with_keys_raw(scope_state)
     quickfix.send(popup_menu.scope, full_tags, tags.quickfixer)
-end
-
----@param scope_resolver Grapple.ScopeResolverLike
----@param window_options table
-function popup_tags.open(scope_resolver, window_options)
-    if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = string.sub(scope.get(scope_resolver), 1, window_options.width - 6)
-        window_options.title_pos = "center"
-    end
-
-    local actions = {
-        { mode = "n", keymap = "q", action = popup_tags.actions.close },
-        { mode = "n", keymap = "<esc>", action = popup_tags.actions.close },
-        { mode = "n", keymap = "<cr>", action = popup_tags.actions.select },
-        { mode = "n", keymap = "<c-v>", action = popup_tags.actions.select_split },
-        { mode = "n", keymap = "<c-q>", action = popup_tags.actions.quickfix },
-    }
-
-    local scope_ = scope.get(scope_resolver)
-    local scope_state = state.scope_raw(scope_)
-    local items = state.with_keys_raw(scope_state)
-
-    popup.open(
-        popup.create_window(window_options),
-        popup.create_transformer(popup_tags.serialize, popup_tags.deserialize),
-        popup_tags.resolve,
-        actions,
-        items,
-        scope_
-    )
 end
 
 return popup_tags
