@@ -199,8 +199,16 @@ end
 function state.set_raw(scope_, data, key)
     local state_item = vim.deepcopy(data)
 
-    key = key or (#internal_state[scope_] + 1)
-    internal_state[scope_][key] = state_item
+    if key == nil then
+        table.insert(internal_state[scope_], state_item)
+    elseif type(key) == "number" then
+        table.insert(internal_state[scope_], key, state_item)
+    elseif type(key) == "string" then
+        internal_state[scope_][key] = state_item
+    else
+        log.error(string.format("Invalid key. key: %s", key))
+        error(string.format("Invalid key. key: %s", key))
+    end
 
     return vim.deepcopy(state_item)
 end
@@ -208,13 +216,21 @@ end
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param key Grapple.StateKey
 function state.unset(scope_resolver, key)
-    state.set(scope_resolver, nil, key)
+    local scope_ = state.ensure_loaded(scope_resolver)
+    state.unset_raw(scope_, key)
 end
 
 ---@param scope_ Grapple.Scope
 ---@param key Grapple.StateKey
 function state.unset_raw(scope_, key)
-    state.set_raw(scope_, nil, key)
+    if type(key) == "number" then
+        table.remove(internal_state[scope_], key)
+    elseif type(key) == "string" then
+        internal_state[scope_][key] = nil
+    else
+        log.error(string.format("Invalid key. key: %s", key))
+        error(string.format("Invalid key. key: %s", key))
+    end
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
