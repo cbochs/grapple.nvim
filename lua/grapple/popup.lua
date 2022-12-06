@@ -95,7 +95,7 @@ end
 ---@param popup_menu Grapple.PopupMenu
 function popup.draw(popup_menu)
     local lines = vim.tbl_map(function(item)
-        popup_menu.handler.serialize(popup_menu, item)
+        return popup_menu.handler.serialize(popup_menu, item)
     end, popup_menu.state.items)
     vim.api.nvim_buf_set_lines(popup_menu.popup.buffer, 0, -1, false, lines)
 end
