@@ -94,7 +94,7 @@ function popup_tags.actions.select(popup_menu)
     local scope_state = popup.close(popup_menu)
 
     local selected_key = state.reverse_lookup(scope_state, { file_path = partial_tag.file_path })
-    local selected_tag = state.get_raw(scope_state, selected_key)
+    local selected_tag = state.get_raw(popup_menu.state.scope, selected_key)
 
     if selected_tag ~= nil then
         tags.select(selected_tag)
