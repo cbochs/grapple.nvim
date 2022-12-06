@@ -12,20 +12,12 @@ local popup_tags = {}
 ---@field items Grapple.FullTag[]
 ---@field scope Grapple.Scope
 
----@param scope_resolver Grapple.ScopeResolverLike
----@return Grapple.PopupTagState
-function popup_tags.initial_state(scope_resolver)
-    local scope_ = state.ensure_loaded(scope_resolver)
-    return {
-        items = state.with_keys_raw(state.scope_raw(scope_)),
-        scope = scope_,
-    }
-end
+popup_tags.handler = {}
 
 ---@param popup_menu Grapple.PopupMenu
 ---@param full_tag Grapple.FullTag
 ---@return string
-function popup_tags.serialize(popup_menu, full_tag)
+function popup_tags.handler.serialize(popup_menu, full_tag)
     local scope_path = scope.scope_path(popup_menu.state.scope)
     local file_path = Path:new(full_tag.file_path)
 
@@ -41,7 +33,7 @@ end
 ---@param popup_menu Grapple.PopupMenu
 ---@param line string
 ---@return Grapple.PartialTag
-function popup_tags.deserialize(popup_menu, line)
+function popup_tags.handler.deserialize(popup_menu, line)
     if #line == 0 then
         return nil
     end
@@ -76,7 +68,7 @@ end
 
 ---@param popup_menu Grapple.PopupMenu
 ---@return Grapple.PopupTag[]
-function popup_tags.resolve(popup_menu)
+function popup_tags.handler.resolve(popup_menu)
     ---@type Grapple.PopupTag[]
     local original_tags = popup_menu.state.items
 
@@ -87,6 +79,51 @@ function popup_tags.resolve(popup_menu)
     local scope_state = state.commit_raw(popup_menu.state.scope, differences)
 
     return scope_state
+end
+
+popup_tags.actions = {}
+
+---@param popup_menu Grapple.PopupMenu
+function popup_tags.actions.close(popup_menu)
+    popup.close(popup_menu)
+end
+
+---@param popup_menu Grapple.PopupMenu
+function popup_tags.actions.select(popup_menu)
+    local partial_tag = popup.current_selection(popup_menu)
+    local scope_state = popup.close(popup_menu)
+
+    local selected_key = state.reverse_lookup(scope_state, { file_path = partial_tag.file_path })
+    local selected_tag = state.get_raw(scope_state, selected_key)
+
+    if selected_tag ~= nil then
+        tags.select(selected_tag)
+    else
+        log.debug(string.format("Unable to select tag from popup menu. tag: %s", vim.inspect(partial_tag)))
+    end
+end
+
+---@param popup_menu Grapple.PopupMenu
+function popup_tags.actions.select_vsplit(popup_menu)
+    vim.cmd("vsplit")
+    popup_tags.actions.select(popup_menu)
+end
+
+---@param popup_menu Grapple.PopupMenu
+function popup_tags.actions.quickfix(popup_menu)
+    local scope_state = popup.close(popup_menu)
+    local full_tags = state.with_keys_raw(scope_state)
+    quickfix.send(popup_menu.scope, full_tags, tags.quickfixer)
+end
+
+---@param scope_resolver Grapple.ScopeResolverLike
+---@return Grapple.PopupTagState
+function popup_tags.initial_state(scope_resolver)
+    local scope_ = state.ensure_loaded(scope_resolver)
+    return {
+        items = state.with_keys_raw(state.scope_raw(scope_)),
+        scope = scope_,
+    }
 end
 
 ---@param original_tags Grapple.FullTag[]
@@ -141,41 +178,6 @@ function popup_tags.diff(original_tags, modified_tags)
     end
 
     return change_record
-end
-
-popup_tags.actions = {}
-
----@param popup_menu Grapple.PopupMenu
-function popup_tags.actions.close(popup_menu)
-    popup.close(popup_menu)
-end
-
----@param popup_menu Grapple.PopupMenu
-function popup_tags.actions.select(popup_menu)
-    local partial_tag = popup.current_selection(popup_menu)
-    local scope_state = popup.close(popup_menu)
-
-    local selected_key = state.reverse_lookup(scope_state, { file_path = partial_tag.file_path })
-    local selected_tag = state.get_raw(scope_state, selected_key)
-
-    if selected_tag ~= nil then
-        tags.select(selected_tag)
-    else
-        log.debug(string.format("Unable to select tag from popup menu. tag: %s", vim.inspect(partial_tag)))
-    end
-end
-
----@param popup_menu Grapple.PopupMenu
-function popup_tags.actions.select_vsplit(popup_menu)
-    vim.cmd("vsplit")
-    popup_tags.actions.select(popup_menu)
-end
-
----@param popup_menu Grapple.PopupMenu
-function popup_tags.actions.quickfix(popup_menu)
-    local scope_state = popup.close(popup_menu)
-    local full_tags = state.with_keys_raw(scope_state)
-    quickfix.send(popup_menu.scope, full_tags, tags.quickfixer)
 end
 
 return popup_tags
