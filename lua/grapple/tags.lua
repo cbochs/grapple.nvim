@@ -162,7 +162,7 @@ function tags.update(scope_resolver, tag, cursor)
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
 
-        state.set(scope_resolver, new_tag, tag_key)
+        state.update(scope_resolver, new_tag, tag_key)
 
         return true
     else

@@ -233,6 +233,17 @@ function state.unset_raw(scope_, key)
     end
 end
 
+function state.update(scope_resolver, data, key)
+    local scope_ = state.ensure_loaded(scope_resolver)
+    return state.update_raw(scope_, data, key)
+end
+
+function state.update_raw(scope_, data, key)
+    local state_item = vim.deepcopy(data)
+    internal_state[scope_][key] = data
+    return vim.deepcopy(state_item)
+end
+
 ---@param scope_resolver Grapple.ScopeResolverLike
 ---@param actions Grapple.StateAction[]
 ---@return Grapple.ScopeState
