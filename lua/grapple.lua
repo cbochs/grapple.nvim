@@ -118,7 +118,6 @@ function grapple.popup_tags(scope)
     local window_options = vim.deepcopy(settings.popup_options)
     if vim.fn.has("nvim-0.9") == 1 then
         window_options.title = popup_state.scope
-        window_options.title_pos = "center"
     end
 
     require("grapple.popup").open(window_options, popup_handler, popup_state)
