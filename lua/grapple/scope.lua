@@ -26,7 +26,7 @@ local scope = {}
 
 ---@class Grapple.ScopeResolver
 ---@field key Grapple.ScopeCacheKey
----@field resolve Grapple.ScopeFunction
+---@field callback Grapple.ScopeFunction | Grapple.ScopeJob
 ---@field persist boolean
 ---@field watch = Grapple.ScopeWatch
 
@@ -117,10 +117,10 @@ function scope.reset_resolver(scope_resolver)
     end
 end
 
----@param scope_function Grapple.ScopeFunction | Grapple.ScopeJob
+---@param scope_callback Grapple.ScopeFunction | Grapple.ScopeJob
 ---@param opts? Grapple.ScopeOptions
 ---@return Grapple.ScopeResolver
-function scope.resolver(scope_function, opts)
+function scope.resolver(scope_callback, opts)
     opts = opts or {}
 
     -- Scope resolver defaults
@@ -154,7 +154,7 @@ function scope.resolver(scope_function, opts)
     end
 
     -- todo(cbochs): investigate relaxing this constraint
-    if type(scope_function) == "table" and scope_watch == false then
+    if type(scope_callback) == "table" and scope_watch == false then
         log.error("Asynchronous scope resolvers must cache their result")
         error("Asynchronous scope resolvers must cache their result")
     end
@@ -162,7 +162,7 @@ function scope.resolver(scope_function, opts)
     ---@type Grapple.ScopeResolver
     local scope_resolver = {
         key = scope_key,
-        resolve = scope_function,
+        callback = scope_callback,
         persist = scope_persist,
         watch = scope_watch,
     }
@@ -287,20 +287,20 @@ end
 function scope.update(scope_resolver)
     scope_resolver = update_watch(scope_resolver)
 
-    if type(scope_resolver.resolve) == "function" then
+    if type(scope_resolver.callback) == "function" then
         local resolved_scope = scope.resolve(scope_resolver)
         if should_cache(scope_resolver) then
             log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
             cached_scopes[scope_resolver.key] = resolved_scope
         end
         return resolved_scope
-    elseif type(scope_resolver.resolve) == "table" then
+    elseif type(scope_resolver.callback) == "table" then
         require("plenary.job")
             :new(vim.tbl_extend("keep", {
                 on_exit = function(job, return_value)
-                    cached_scopes[scope_resolver.key] = scope_resolver.resolve.on_exit(job, return_value)
+                    cached_scopes[scope_resolver.key] = scope_resolver.callback.on_exit(job, return_value)
                 end,
-            }, scope_resolver.resolve))
+            }, scope_resolver.callback))
             :sync()
         return nil
     else
@@ -313,7 +313,7 @@ end
 ---@param scope_resolver Grapple.ScopeResolver
 ---@return Grapple.Scope | nil
 function scope.resolve(scope_resolver)
-    local ok, scope_path = pcall(scope_resolver.resolve)
+    local ok, scope_path = pcall(scope_resolver.callback)
     if not ok or type(scope_path) ~= "string" then
         log.debug(
             string.format(
