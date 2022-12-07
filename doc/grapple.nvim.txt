@@ -120,7 +120,8 @@ There are a couple types of tag types available, each with a different use-case
 in mind. The options available are |grapple.nvim-anonymous| and
 |grapple.nvim-named| tags. In addition, tags are |grapple.nvim-scoped| to
 prevent tags in one project polluting the namespace of another. For command and
-API information, please see the |grapple.nvim-usage| below.
+API information, please see the |grapple.nvim-usage| below. For additional
+examples, see the Wiki <https://github.com/cbochs/grapple.nvim/wiki/File-Tags>.
 
 ANONYMOUS TAGS ~
 
@@ -169,9 +170,9 @@ A **project scope** is determined by means of a
 
 
 There are three additional scope resolvers which should be preferred when
-creating a **|grapple.nvim-fallback-scope-resolver|**. These resolvers act
-identically to their similarly named counterparts, but do not have default
-fallbacks.
+creating a **|grapple.nvim-fallback-scope-resolver|** or
+**|grapple.nvim-suffix-scope-resolver|**. These resolvers act identically to
+their similarly named counterparts, but do not have default fallbacks.
 
 
 - `lsp_fallback`: the same as `lsp`, but without a fallback
@@ -182,7 +183,7 @@ fallbacks.
 It is also possible to create your own **custom scope resolver**. For the
 available scope resolver types, please see the Scope API in
 |grapple.nvim-usage|. For additional examples, see the Wiki
-<https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes>.
+<https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes>.
 
 **Examples**
 
