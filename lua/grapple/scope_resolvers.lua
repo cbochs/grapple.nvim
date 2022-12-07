@@ -41,7 +41,7 @@ resolvers.git_branch_suffix = scope.resolver({
             return nil
         end
     end,
-}, { cache = 1000 })
+}, { cache = { "FileType", "BufEnter", "FocusGained" } })
 
 ---Scope: "git"
 ---Fallback: "static"
