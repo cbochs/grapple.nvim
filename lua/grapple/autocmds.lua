@@ -20,15 +20,17 @@ function M.create()
         group = "Grapple",
         pattern = "*",
         callback = function()
-            local settings = require("grapple.settings")
-            local ok, tag = pcall(require("grapple").find)
+            local ok, _ = pcall(function()
+                local settings = require("grapple.settings")
+                local tag = require("grapple").find()
+                if tag ~= nil then
+                    local cursor = vim.api.nvim_win_get_cursor(0)
+                    local scope = require("grapple.state").ensure_loaded(settings.scope)
+                    require("grapple.tags").update(scope, tag, cursor)
+                end
+            end)
             if not ok then
                 require("grapple.log").warn("Failed to lookup tag for current buffer on BufLeave")
-                return
-            end
-            if tag ~= nil then
-                local cursor = vim.api.nvim_win_get_cursor(0)
-                require("grapple.tags").update(settings.scope, tag, cursor)
             end
         end,
     })

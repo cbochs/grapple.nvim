@@ -8,8 +8,7 @@ local function create_serializer()
     ---@param scope Grapple.Scope
     ---@return string
     return function(scope)
-        local scope_resolver = state.resolver(scope)
-        local text = " [" .. state.count(scope_resolver) .. "] " .. scope
+        local text = " [" .. state.count(scope) .. "] " .. scope
         return text
     end
 end
@@ -44,8 +43,7 @@ local function resolve(popup_, parser)
     -- Reset scopes that were removed from the popup menu
     for _, scope in ipairs(state.scopes()) do
         if not remaining_scopes[scope] then
-            local scope_resolver = state.resolver(scope)
-            state.reset(scope_resolver)
+            state.reset(scope)
         end
     end
 end
