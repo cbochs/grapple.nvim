@@ -75,7 +75,7 @@ require("grapple").setup({
 
 A **tag** is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
 
-There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below.
+There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below. For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/File-Tags).
 
 ### Anonymous Tags
 
@@ -105,13 +105,13 @@ A **project scope** is determined by means of a **[scope resolver](#grapplescope
 * `git`: tags are scoped to the current git repository, **fallback**: `static`
 * `git_branch`: tags are scoped to the current git repository and branch, **fallback**: `static`
 
-There are three additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
+There are three additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)** or **[suffix scope resolver](#grapplescopesuffix)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
 
 * `lsp_fallback`: the same as `lsp`, but without a fallback
 * `git_fallback`: the same as `git`, but without a fallback
 * `git_branch_suffix`: resolves suffix (branch) for `git_branch`
 
-It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes).
+It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
 
 **Examples**
 
