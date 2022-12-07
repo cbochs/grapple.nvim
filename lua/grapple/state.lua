@@ -9,6 +9,8 @@ local state = {}
 
 ---@alias Grapple.StateItem Grapple.Tag
 
+---@alias Grapple.FullStateItem Grapple.FullTag
+
 ---@alias Grapple.ScopeState table<Grapple.StateKey, Grapple.StateItem>
 
 ---@class Grapple.ScopePair
@@ -233,6 +235,17 @@ end
 ---@return Grapple.ScopeState
 function state.scope(scope_)
     return vim.deepcopy(internal_state[scope_])
+end
+
+---@param scope_ Grapple.Scope
+---@return Grapple.FullStateItem[]
+function state.with_keys(scope_)
+    local with_keys = {}
+    for key, item in pairs(state.scope(scope_)) do
+        item.key = key
+        table.insert(with_keys, item)
+    end
+    return with_keys
 end
 
 ---@param scope_ Grapple.Scope
