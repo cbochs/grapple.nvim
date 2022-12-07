@@ -147,8 +147,24 @@ function grapple.popup_tags(scope)
 end
 
 function grapple.popup_scopes()
+    local popup_scopes = require("grapple.popup_scopes")
+    local popup_handler = popup_scopes.handler
+    local popup_state = {}
+    local popup_items = require("grapple.state").scopes()
+    local popup_keymaps = {
+        { mode = "n", key = "q", action = popup_scopes.actions.close },
+        { mode = "n", key = "<esc>", action = popup_scopes.actions.close },
+    }
+
     local window_options = vim.deepcopy(settings.popup_options)
-    require("grapple.popup_scopes").open(window_options)
+    if vim.fn.has("nvim-0.9") == 1 then
+        window_options.title = "Loaded Scopes"
+    end
+
+    local popup = require("grapple.popup")
+    local popup_menu = popup.open(window_options, popup_handler, popup_state)
+    popup.update(popup_menu, popup_items)
+    popup.keymap(popup_menu, popup_keymaps)
 end
 
 function grapple.save()
