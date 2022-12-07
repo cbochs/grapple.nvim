@@ -580,7 +580,7 @@ require("grapple").popup_tags("global")
 
 ### Scope Popup Menu
 
-The **scopes popup menu** opens a floating window containing all the loaded project scopes that have been created. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the project scope.
+The **scopes popup menu** opens a floating window containing all the loaded project scopes. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the project scope.
 
 **Command**: `:GrapplePopup scopes`
 
@@ -595,11 +595,11 @@ require("grapple").popup_scopes()
 
 ## Persistent State
 
-Grapple saves all [project scopes](#project-scopes) to a common directory. This directory is aptly named `grapple` and lives in Neovim's `"data"` standard path (see: [`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each non-empty scope (scope contains at least one item) will be saved as an individiual scope file; serialized as a JSON blob, and named using the resolved scope's path.
+Grapple saves all [project scopes](#project-scopes) to a common directory. This directory is aptly named `grapple` and lives in Neovim's `"data"` directory (see: [`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each non-empty scope (scope contains at least one item) will be saved as an individiual scope file; serialized as a JSON blob, and named using the resolved scope's path.
 
 Each tag in a scope will contain two pieces of information: the absolute `file path` of the tagged file and its last known `cursor` location.
 
-When a user loads Grapple, no scopes are loaded initially. Instead, Grapple will wait until the user requests a project scope (e.g. [tagging a file](#grappletag) or opening the [tags popup menu](#tag-popup-menu)). At that point, one of three things can occur:
+When a user starts Neovim, no scopes are initially loaded. Instead, Grapple will wait until the user requests a project scope (e.g. [tagging a file](#grappletag) or opening the [tags popup menu](#tag-popup-menu)). At that point, one of three things can occur:
 * the scope is **already loaded**, nothing is needed to be done
 * the scope has **not been loaded**, attempt to load scope state from its associated scope file
 * the scope file was **not found**, initialize the scope state as an empty table
