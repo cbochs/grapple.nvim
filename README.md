@@ -19,7 +19,7 @@ To get started, [install](#installation) the plugin using your preferred package
 
 ## Requirements
 
-* [Neovim >= 0.5](https://github.com/neovim/neovim/releases/tag/v0.5.0)
+* [Neovim >= 0.8](https://github.com/neovim/neovim/releases/tag/v0.8.0)
 * Neovim >= 0.9 - optional, for [floating window title](https://github.com/neovim/neovim/issues/17458)
 * [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 
@@ -364,7 +364,7 @@ require("grapple").quickfix("global")
 
 </details>
 
-<details open>
+<details>
 <summary>Scope API</summary>
 
 #### `grapple.scope#resolver`
@@ -639,6 +639,24 @@ require("lualine").setup({
             {
                 require("grapple").key,
                 cond = require("grapple").exists
+            }
+        }
+    }
+})
+```
+
+**Slightly nicer [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
+
+```lua
+require("lualine").setup({
+    sections = {
+        lualine_b = {
+            {
+                function()
+                    local key = require("grapple").key()
+                    return "  [" .. key .. "]"
+                end,
+                cond = require("grapple").exists,
             }
         }
     }
