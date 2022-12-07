@@ -9,6 +9,8 @@ local initialized = false
 --- @field file_path string
 --- @field key Grapple.TagKey
 
+grapple.resolvers = require("grapple.scope_resolvers")
+
 ---@param overrides? Grapple.Settings
 function grapple.initialize()
     if initialized then
@@ -18,8 +20,6 @@ function grapple.initialize()
 
     require("grapple.autocmds").create()
     require("grapple.commands").create()
-    require("grapple.scope").reset()
-    require("grapple.scope_resolvers").create()
     require("grapple.migrations").migrate()
 end
 
@@ -27,7 +27,8 @@ end
 function grapple.setup(overrides)
     settings.update(overrides)
     require("grapple.log").global({ log_level = settings.log_level })
-    require("grapple.migrations").migrate()
+
+    grapple.initialize()
 end
 
 ---@param opts? Grapple.Options

@@ -8,8 +8,9 @@ local DEFAULT_SETTINGS = {
     ---@type "debug" | "info" | "warn" | "error"
     log_level = "warn",
 
-    ---The scope used when creating, selecting, and deleting tags
-    ---@type Grapple.ScopeKey | Grapple.ScopeResolver
+    ---Can be either the name of a builtin scope resolver,
+    ---or a custom scope resolver
+    ---@type string | Grapple.ScopeResolver
     scope = "git",
 
     ---The save location for tags
