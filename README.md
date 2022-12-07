@@ -103,13 +103,13 @@ A **project scope** is determined by means of a **[scope resolver](#grapplescope
 * `directory`: tags are scoped to the current working directory
 * `lsp`: tags are scoped using the `root_dir` of the current buffer's attached LSP server, **fallback**: `static`
 * `git`: tags are scoped to the current git repository, **fallback**: `static`
-* `git_branch`: tags are scoped to the current git repository and branch, **fallback**: `static`
+* `git_branch`: tags are scoped to the current git repository and branch (async), **fallback**: `static`
 
 There are three additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)** or **[suffix scope resolver](#grapplescopesuffix)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
 
 * `lsp_fallback`: the same as `lsp`, but without a fallback
 * `git_fallback`: the same as `git`, but without a fallback
-* `git_branch_suffix`: resolves suffix (branch) for `git_branch`
+* `git_branch_suffix`: resolves suffix (branch) for `git_branch` (async)
 
 It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
 
