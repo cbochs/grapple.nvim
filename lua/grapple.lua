@@ -9,6 +9,8 @@ local initialized = false
 --- @field file_path string
 --- @field key Grapple.TagKey
 
+grapple.resolvers = require("grapple.scope_resolvers")
+
 ---@param overrides? Grapple.Settings
 function grapple.initialize()
     if initialized then
