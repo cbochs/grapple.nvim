@@ -1,4 +1,4 @@
-*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 December 01
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 December 07
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -86,8 +86,9 @@ but settings may be overridden by passing them as table arguments to the
         ---@type "debug" | "info" | "warn" | "error"
         log_level = "warn",
     
-        ---The scope used when creating, selecting, and deleting tags
-        ---@type Grapple.ScopeKey | Grapple.ScopeResolver
+        ---Can be either the name of a builtin scope resolver,
+        ---or a custom scope resolver
+        ---@type string | Grapple.ScopeResolver
         scope = "git",
     
         ---Window options used for the popup menu
@@ -148,22 +149,22 @@ runtime, scopes are typically resolved into an absolute directory path
 (i.e. current working directory), which - in turn - is used as the "root"
 location for a set of tags.
 
-Scope paths are _cached by default_, and will only update when triggered when
-the cache is explicitly invalidated, or when an associated event (|`:h
-autocmd`|) is triggered. For example, the `static` scope never updates once
-cached; the `directory` scope only updates on `DirChanged`; and the `lsp` scope
-updates on either `LspAttach` or `LspDetach`.
+Project scopes are _cached by default_, and will only update when the cache is
+|grapple.nvim-explicitly-invalidated|, an associated (|`:h autocmd`|) is
+triggered, or at a specified interval. For example, the `static` scope never
+updates once cached; the `directory` scope only updates on `DirChanged`; and
+the `lsp` scope updates on either `LspAttach` or `LspDetach`.
 
-A **scope path** is determined by means of a **|grapple.nvim-scope-resolver|**.
-The builtin options are as follows:
+A **project scope** is determined by means of a
+**|grapple.nvim-scope-resolver|**. The builtin options are as follows:
 
 
-- `none`: Tags are ephemeral and deleted on exit
-- `global`: Tags are scoped to a global namespace
-- `static`: Tags are scoped to neovim’s initial working directory
-- `directory`: Tags are scoped to the current working directory
-- `git`: Tags are scoped to the current git repository. **Fallback**: `static`
-- `lsp`: Tags are scoped using the `root_dir` of the current buffer’s attached LSP server. **Fallback**: `static`
+- `none`: tags are ephemeral and deleted on exit
+- `global`: tags are scoped to a global namespace
+- `static`: tags are scoped to neovim’s initial working directory
+- `directory`: tags are scoped to the current working directory
+- `git`: tags are scoped to the current git repository, **fallback**: `static`
+- `lsp`: tags are scoped using the `root_dir` of the current buffer’s attached LSP server, **fallback**: `static`
 
 
 There are two additional scope resolvers which should be preferred when
@@ -172,24 +173,24 @@ identically to their similarly named counterparts, but do not have default
 fallbacks.
 
 
-- `git_fallback`: The same as `git`, but without a fallback
-- `lsp_fallback`: The same as `lsp`, but without a fallback
+- `git_fallback`: the same as `git`, but without a fallback
+- `lsp_fallback`: the same as `lsp`, but without a fallback
 
+
+It is also possible to create your own **custom scope resolver**. For the
+available scope resolver types, please see the Scope API in
+|grapple.nvim-usage|. For additional examples, see the Wiki
+<https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes>.
 
 **Examples**
 
 >
-    -- Setup using a scope resolver's name
+    -- Setup using a builtin scope resolver
     require("grapple").setup({
-        scope = "static"
+        scope = require("grapple").resolvers.static
     })
     
-    -- Or, using the scope resolver itself
-    require("grapple").setup({
-        scope = require("grapple.scope").resolvers.static
-    })
-    
-    -- Or, a custom scope resolver
+    -- Setup using a custom scope resolver
     require("grapple").setup({
         scope = require("grapple.scope").resolver(function()
             return vim.fn.getcwd()
@@ -198,12 +199,7 @@ fallbacks.
 <
 
 
-For usage and examples, please see the |grapple.nvim-usage| and Wiki
-<https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes>, respectively.
-
 USAGE ~
-
-<details open>
 
 Grapple API
 
@@ -443,7 +439,8 @@ exists for the given file or buffer, it will be overridden with the new tag.
 
                                                  *grapple.nvim-`grapplereset`*
 
-`grapplereset`                         Clear all tags for a given tag scope.
+`grapplereset`                         Clear all tags for a given project
+                                       scope.
 
 
 **Command**: `:GrappleReset [scope]`
@@ -494,20 +491,19 @@ Scope API
                                         *grapple.nvim-`grapple.scoperesolver`*
 
 `grapple.scoperesolver`                Create a scope resolver that generates a
-                                       scope path.
+                                       project scope.
 
 
-**API**: `require("grapple.scope").resolver(scope_function, opts)`
+**API**: `require("grapple.scope").resolver(scope_callback, opts)`
 
 **`returns`**: |grapple.nvim-`grapple.scoperesolver`|
 
-**`scope_function`**: |grapple.nvim-`grapple.scopefunction`|
+**`scope_callback`**: |grapple.nvim-`grapple.scopefunction`|
 
 **`opts?`**: |grapple.nvim-`grapple.scopeoptions`|
 
 
-- **`key?`**: `string`
-- **`cache?`**: `boolean` | `string` | `string[]` (default: `true`)
+- **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `true`)
 - **`persist?`**: `boolean` (default: `true`)
 
 
@@ -525,7 +521,7 @@ Scope API
                                             *grapple.nvim-`grapple.scoperoot`*
 
 `grapple.scoperoot`                    Create a scope resolver that generates a
-                                       scope path by looking upwards for
+                                       project scope by looking upwards for
                                        directories containing a specific file
                                        or directory.
 
@@ -539,8 +535,7 @@ Scope API
 **`opts?`**: |grapple.nvim-`grapple.scopeoptions`|
 
 
-- **`key?`**: `string`
-- **`cache?`**: `boolean` | `string` | `string[]` (default: `"DirChanged"`)
+- **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `"DirChanged"`)
 - **`persist?`**: `boolean` (default: `true`)
 
 
@@ -558,7 +553,7 @@ Scope API
     -- directory for your neovim session
     require("grapple.scope").fallback({
         require("grapple.scope").root(".git"),
-        require("grapple.scope").resolvers.static,
+        require("grapple").resolvers.static,
     })
 <
 
@@ -566,9 +561,9 @@ Scope API
                                         *grapple.nvim-`grapple.scopefallback`*
 
 `grapple.scopefallback`                Create a scope resolver that generates a
-                                       scope path by attempting to get the
-                                       scope path of other scope resolvers, in
-                                       order.
+                                       project scope by attempting to get the
+                                       project scope of other scope resolvers,
+                                       in order.
 
 
 **API**: `require("grapple.scope").fallback(scope_resolvers, opts)`
@@ -580,8 +575,7 @@ Scope API
 **`opts?`**: |grapple.nvim-`grapple.scopeoptions[]`|
 
 
-- **`key?`**: `string`
-- **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
+- **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **`persist?`**: `boolean` (default: `true`)
 
 
@@ -592,9 +586,9 @@ Scope API
     -- path, then looks for a ".git" repository, and finally falls back on using
     -- the initial working directory that neovim was started in
     require("grapple.scope").fallback({
-        require("grapple.scope").resolvers.lsp_fallback,
-        require("grapple.scope").resolvers.git_fallback,
-        require("grapple.scope").resolvers.static
+        require("grapple").resolvers.lsp_fallback,
+        require("grapple").resolvers.git_fallback,
+        require("grapple").resolvers.static
     }, { key = "my_fallback" })
 <
 
@@ -624,8 +618,7 @@ opts)`
 **`opts?`**: |grapple.nvim-`grapple.scopeoptions[]`|
 
 
-- **`key?`**: `string`
-- **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
+- **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **`persist?`**: `boolean` (default: `true`)
 
 
@@ -663,8 +656,7 @@ opts)`
 **`opts?`**: |grapple.nvim-`grapple.scopeoptions[]`|
 
 
-- **`key?`**: `string`
-- **`cache?`**: `boolean` | `string` | `string[]` (default: `false`)
+- **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **`persist?`**: `boolean` (default: `true`)
 
 
@@ -677,7 +669,7 @@ opts)`
     -- Create a suffic scope resolver that appends the string "commands"
     -- to the end of a "git" scope resolver
     require("grapple.scope").suffix(
-        require("grapple.scope").resolvers.git,
+        require("grapple").resolvers.git,
         require("grapple.scope").static("commands")
     )
 <
@@ -685,23 +677,22 @@ opts)`
 
                                       *grapple.nvim-`grapple.scopeinvalidate`*
 
-`grapple.scopeinvalidate`              Clear the cached scope path, forcing the
-                                       next call to `grapple.scopeget` to
-                                       resolve the scope path instead of using
-                                       its previously cached value.
+`grapple.scopeinvalidate`              Clear the cached project scope, forcing
+                                       the next call to `grapple.scopeget` to
+                                       resolve the project scope instead of
+                                       using its previously cached value.
 
 
 **API**: `require("grapple.scope").invalidate(scooe_resolver)`
 
-**`scope_resolver`**: |grapple.nvim-`grapple.scopekey`| |
-|grapple.nvim-`grapple.scoperesolver`|
+**`scope_resolver`**: |grapple.nvim-`grapple.scoperesolverlike`|
 
 **Example**
 
 >
-    require("grapple.scope").resolver(function()
+    local my_resolver = require("grapple.scope").resolver(function()
         return vim.fn.getcwd()
-    end, { key = "my resolver" })
+    end)
     
     -- Invalidate a cached scope by its key name
     require("grapple.scope").invalidate("my resolver")
@@ -756,11 +747,12 @@ tag selection, but the tagged file opened in a vertical split
 
 SCOPE POPUP MENU ~
 
-The **scopes popup menu** opens a floating window containing all the scope
-paths that have been created. A scope (or scopes) can be deleted with typical
-vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited
-with either `q` or any keybinding that is bound to `<esc>`. The total number of
-tags within a scope will be displayed to the left of the scope path.
+The **scopes popup menu** opens a floating window containing all the loaded
+project scopes that have been created. A scope (or scopes) can be deleted with
+typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can
+be exited with either `q` or any keybinding that is bound to `<esc>`. The total
+number of tags within a scope will be displayed to the left of the project
+scope.
 
 **Command**: `:GrapplePopup scopes`
 
@@ -776,7 +768,7 @@ tags within a scope will be displayed to the left of the scope path.
 
 PERSISTENT STATE                               *grapple.nvim-persistent-state*
 
-Grapple saves all |grapple.nvim-tag-scopes| to a common directory. This
+Grapple saves all |grapple.nvim-project-scopes| to a common directory. This
 directory is aptly named `grapple` and lives in Neovim’s `"data"` standard
 path (see: |`:h standard-path`|). Each non-empty scope (scope contains at least
 one item) will be saved as an individiual scope file; serialized as a JSON
@@ -912,54 +904,71 @@ A tag may be referenced as an |grapple.nvim-anonymous-tag| by its index
 
 `GRAPPLE.SCOPEOPTIONS` ~
 
-Options available when creating custom scope resolvers. Giving a scope resolver
-a `key` will allow it to be identified within the
-`require("grapple.scope").resolvers` table. For a scope to persisted, the
-`persist` options must be set to `true`; otherwise, any scope that is resolved
-by the scope resolver will be deleted when Neovim exits.
+Options available when creating custom scope resolvers. Builtin resolvers
+
+Giving a scope resolver a `key` will allow it to be identified within the
+`require("grapple").resolvers` table. For a scope to persisted, the `persist`
+options must be set to `true`; otherwise, any scope that is resolved by the
+scope resolver will be deleted when Neovim exits.
 
 In addition to scope persistence, a scope may also be cached for faster access
 during a Neovim session. The `cache` option may be one of the following: `cache
-= true`: scope path is resolved once and cached until explicitly invalidated
-`cache = false` scope path is never cached and must always be resolved `cache =
-string | string[]` scope path is cached and invalidated when a given
-autocommand event is triggered (see: |`:h autocmd`|)
+= true`: project scope is resolved once and cached until explicitly invalidated
+`cache = false` project scope is never cached and must always be resolved
+`cache = string | string[]` project scope is cached and invalidated when a
+given autocommand event is triggered (see: |`:h autocmd`|) `cache = integer`
+project scope is cached and updated on a given interval (in milliseconds)
 
 **Type**: `table`
 
 
-- **`key`**: `string`
-- **`cache`**: `boolean` | `string` | `string[]`
-- **`persist?`**: `boolean`
+- **`cache`**: `boolean` | `string` | `string[]` | `integer`
+- **`persist`**: `boolean`
 
-
-------------------------------------------------------------------------------
-
-`GRAPPLE.SCOPEKEY` ~
-
-A **|grapple.nvim-scope-resolver|** is identified by its **scope key** in the
-`require("grapple.scope").resolvers` table. When not explicitly set in
-|grapple.nvim-`grapple.scopeoptions`|, a scope resolver will be appended to the
-end of the `resolvers` table and the resolver’s key will be given that index.
-
-**Type**: `string` | `integer`
 
 ------------------------------------------------------------------------------
 
 `GRAPPLE.SCOPEFUNCTION` ~
 
-**Type**: `fun(): Grapple.ScopePath | nil`
+A _synchronous_ scope resolving callback function. Used when creating a scope
+resolver.
+
+**Type**: `fun(): Grapple.Scope | nil`
+
+------------------------------------------------------------------------------
+
+`GRAPPLE.SCOPEJOB` ~
+
+An _asynchronous_ scope resolving callback command. Used when creating a scope
+resolver. The `command` and `args` should specify a complete shell command to
+execute. The `on_exit` callback should understand how to parse the output of
+the command into a project scope (|grapple.nvim-`grapple.scope`|), or return
+`nil` on execution failure. The `cwd` must be specified as the directory which
+the command should be executed in.
+
+**Type**: `table`
+
+
+- **`command`**: `string`
+- **`args`**: `string[]`
+- **`cwd`**: `string`
+- **`on_exit`**: `fun(job, return_value): Grapple.Scope | nil`
+
 
 ------------------------------------------------------------------------------
 
 `GRAPPLE.SCOPERESOLVER` ~
 
+Resolves into a |grapple.nvim-`grapple.scope`|. Should be created using the
+Scope API (e.g. |grapple.nvim-`grapple.scoperesolver`|). For more information,
+see |grapple.nvim-project-scopes|.
+
 **Type**: `table`
 
 
-- **`key`**: |grapple.nvim-`grapple.scopekey`|
-- **`resolve`**: |grapple.nvim-`grapple.scopefunction`|
-- **`cache`**: `boolean` | `string` | `string[]`
+- **`key`**: `integer`
+- **`callback`**: |grapple.nvim-`grapple.scopefunction`| | |grapple.nvim-`grapple.scopejob`|
+- **`cache`**: `boolean` | `string` | `string[]` | `integer`
 - **`autocmd`**: `number` | `nil`
 
 
@@ -967,12 +976,17 @@ end of the `resolvers` table and the resolver’s key will be given that index.
 
 `GRAPPLE.SCOPERESOLVERLIKE` ~
 
-**Type**: |grapple.nvim-`grapple.scopekey`| |
-|grapple.nvim-`grapple.scoperesolver`|
+Either the name of a |grapple.nvim-builtin| scope resolver, or a scope
+resolver.
+
+**Type**: `string` | |grapple.nvim-`grapple.scoperesolver`|
 
 ------------------------------------------------------------------------------
 
 `GRAPPLE.SCOPE` ~
+
+The name of a project scope that has been resolved from a
+|grapple.nvim-`grapple.scoperesolver`|.
 
 **Type**: `string`
 
