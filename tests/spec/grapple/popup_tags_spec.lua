@@ -92,11 +92,7 @@ describe("popup_tags", function()
         it("identifies no changes", function()
             local scope = require("grapple.state").ensure_loaded(basic_resolver)
             local original_tags = require("grapple.state").with_keys(scope)
-            local modified_tags = {
-                { file_path = "/one_file", key = 1 },
-                { file_path = "/two_file", key = 2 },
-                { file_path = "/yek_file", key = "yek" },
-            }
+            local modified_tags = original_tags
             require("grapple.popup_tags").resolve_differences(scope, original_tags, modified_tags)
 
             local resulting_tags = require("grapple.state").scope(scope)
