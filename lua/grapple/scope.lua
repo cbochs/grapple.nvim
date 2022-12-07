@@ -50,8 +50,22 @@ local watch_type = {
 
 scope.separator = "#"
 
+---@param scope_resolver Grapple.ScopeResolver
 local function should_cache(scope_resolver)
     return scope_resolver.watch.cache
+end
+
+-- luacheck: ignore
+---@param scope_resolver Grapple.ScopeResolver
+---@return boolean
+local function is_sync(scope_resolver)
+    return type(scope_resolver.callback) == "function"
+end
+
+---@param scope_resolver Grapple.ScopeResolver
+---@return boolean
+local function is_async(scope_resolver)
+    return type(scope_resolver.callback) == "table"
 end
 
 ---@private
@@ -69,7 +83,11 @@ local function update_watch(scope_resolver)
         scope_resolver.watch.autocmd = vim.api.nvim_create_autocmd(scope_resolver.watch.events, {
             group = group,
             callback = function()
-                scope.invalidate(scope_resolver)
+                if is_async(scope_resolver) then
+                    scope.update(scope_resolver)
+                else
+                    scope.invalidate(scope_resolver)
+                end
             end,
         })
     elseif scope_resolver.watch.type == watch_type.timer then
@@ -80,7 +98,11 @@ local function update_watch(scope_resolver)
         local interval = scope_resolver.watch.interval
         local timer = vim.loop.new_timer()
         timer:start(interval, interval, function()
-            scope.update(scope_resolver)
+            if is_async(scope_resolver) then
+                scope.update(scope_resolver)
+            else
+                scope.invalidate(scope_resolver)
+            end
         end)
 
         scope_resolver.watch.timer = timer
@@ -298,7 +320,11 @@ function scope.update(scope_resolver)
         require("plenary.job")
             :new(vim.tbl_extend("keep", {
                 on_exit = function(job, return_value)
-                    cached_scopes[scope_resolver.key] = scope_resolver.callback.on_exit(job, return_value)
+                    local ok, scope_ = pcall(scope_resolver.callback.on_exit, job, return_value)
+                    if not ok or type(scope_) ~= "string" then
+                        return nil
+                    end
+                    cached_scopes[scope_resolver.key] = scope_
                 end,
             }, scope_resolver.callback))
             :sync()
@@ -313,19 +339,19 @@ end
 ---@param scope_resolver Grapple.ScopeResolver
 ---@return Grapple.Scope | nil
 function scope.resolve(scope_resolver)
-    local ok, scope_path = pcall(scope_resolver.callback)
-    if not ok or type(scope_path) ~= "string" then
+    local ok, scope_ = pcall(scope_resolver.callback)
+    if not ok or type(scope_) ~= "string" then
         log.debug(
             string.format(
                 "Unable to resolve scope. ok: %s. result: %s. resolver: %s",
                 ok,
-                scope_path,
+                scope_,
                 vim.inspect(scope_resolver)
             )
         )
         return nil
     end
-    return scope_path
+    return scope_
 end
 
 ---@private
