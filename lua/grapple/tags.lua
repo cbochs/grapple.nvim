@@ -1,6 +1,5 @@
 local Path = require("plenary.path")
 local log = require("grapple.log")
-local scope = require("grapple.scope")
 local state = require("grapple.state")
 local types = require("grapple.types")
 
@@ -45,10 +44,10 @@ function tags.reset(scope_resolver)
     state.reset(scope_resolver)
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
-function tags.quickfix(scope_resolver)
+---@param scope Grapple.Scope
+function tags.quickfix(scope)
     local quickfix_items = {}
-    for tag_key, tag in pairs(state.scope(scope_resolver)) do
+    for tag_key, tag in pairs(state.scope(scope)) do
         local quickfix_item = {
             filename = tag.file_path,
             lnum = tag.cursor and tag.cursor[1] or 1,
@@ -58,13 +57,13 @@ function tags.quickfix(scope_resolver)
         table.insert(quickfix_items, quickfix_item)
     end
     vim.fn.setqflist(quickfix_items, "r")
-    vim.fn.setqflist({}, "a", { title = scope.get(scope_resolver) })
+    vim.fn.setqflist({}, "a", { title = scope })
     vim.api.nvim_cmd({ cmd = "copen" }, {})
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@param opts Grapple.Options
-function tags.tag(scope_resolver, opts)
+function tags.tag(scope, opts)
     local file_path
     local cursor
 
@@ -98,7 +97,7 @@ function tags.tag(scope_resolver, opts)
         cursor = cursor,
     }
 
-    local old_key = tags.key(scope_resolver, { file_path = file_path })
+    local old_key = tags.key(scope, { file_path = file_path })
     if old_key ~= nil then
         log.debug(
             string.format(
@@ -108,9 +107,9 @@ function tags.tag(scope_resolver, opts)
                 tag.file_path
             )
         )
-        local old_tag = tags.find(scope_resolver, { key = old_key })
+        local old_tag = tags.find(scope, { key = old_key })
         tag.cursor = old_tag.cursor
-        tags.untag(scope_resolver, { file_path = file_path })
+        tags.untag(scope, { file_path = file_path })
     end
 
     -- todo(cbochs): negative indices should probably be permitted
@@ -119,22 +118,22 @@ function tags.tag(scope_resolver, opts)
     local key = opts.key
     if type(key) == "number" then
         -- Clamp the key between [1, #tags + 1], inclusive
-        key = math.min(tags.count(scope_resolver) + 1, key)
+        key = math.min(tags.count(scope) + 1, key)
         key = math.max(1, key)
     end
 
-    return state.set(scope_resolver, tag, key)
+    return state.set(scope, tag, key)
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@param opts Grapple.Options
-function tags.untag(scope_resolver, opts)
-    local tag_key = tags.key(scope_resolver, opts)
+function tags.untag(scope, opts)
+    local tag_key = tags.key(scope, opts)
     if tag_key == nil then
         log.debug(string.format("Unable to remove tag. opts: ", vim.inspect(opts)))
         return
     end
-    state.unset(scope_resolver, tag_key)
+    state.unset(scope, tag_key)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
@@ -178,40 +177,40 @@ function tags.select(tag)
     return true
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@param opts Grapple.Options
 ---@return Grapple.Tag | nil
-function tags.find(scope_resolver, opts)
-    local tag_key = tags.key(scope_resolver, opts)
+function tags.find(scope, opts)
+    local tag_key = tags.key(scope, opts)
     if tag_key == nil then
         return nil
     end
-    return state.get(scope_resolver, tag_key)
+    return state.get(scope, tag_key)
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@param opts Grapple.Options
 ---@return Grapple.TagKey | nil
-function tags.key(scope_resolver, opts)
-    if opts.key and state.exists(scope_resolver, opts.key) then
+function tags.key(scope, opts)
+    if opts.key and state.exists(scope, opts.key) then
         return opts.key
     end
 
     if opts.file_path then
         local file_path = resolve_file_path(opts.file_path)
-        return state.key(scope_resolver, { file_path = file_path })
+        return state.key(scope, { file_path = file_path })
     end
 
     if opts.buffer and vim.api.nvim_buf_is_valid(opts.buffer) then
         local file_path = vim.api.nvim_buf_get_name(opts.buffer)
-        return state.key(scope_resolver, { file_path = file_path })
+        return state.key(scope, { file_path = file_path })
     end
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@return Grapple.TagKey[]
-function tags.keys(scope_resolver)
-    return state.keys(scope_resolver)
+function tags.keys(scope)
+    return state.keys(scope)
 end
 
 ---@return string[]
