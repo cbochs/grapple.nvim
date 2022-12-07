@@ -1,63 +1,81 @@
 local scope = require("grapple.scope")
 
-local M = {}
+local resolvers = {}
 
-function M.create()
-    ---Scope: "none"
-    ---Tags are ephemeral and are deleted on exit
-    scope.resolver(function()
-        return "__none__"
-    end, { key = "none" })
+---Scope: "none"
+---Uses a temporary namespace for the project scope. Scope is not persisted
+resolvers.none = scope.static("__none__", { persist = false })
 
-    ---Scope: "global"
-    ---Uses a global keyspace for tags
-    scope.resolver(function()
-        return "__global__"
-    end, { key = "global" })
+---Scope: "global"
+---Uses a global namespace for the project scope
+resolvers.global = scope.static("__global__")
 
-    ---Scope: "static"
-    ---Uses the working directory set at startup
-    scope.resolver(function()
-        return vim.fn.getcwd()
-    end, { key = "static" })
+---Scope: "static"
+---Uses the working directory set at startup as the project scope
+resolvers.static = scope.resolver(function()
+    return vim.fn.getcwd()
+end)
 
-    ---Scope: "directory"
-    ---Uses the current working directory as the tag keyspace
-    scope.resolver(function()
-        return vim.fn.getcwd()
-    end, { key = "directory", cache = "DirChanged" })
+---Scope: "directory"
+---Uses the current working directory as the project scope
+resolvers.directory = scope.resolver(function()
+    return vim.fn.getcwd()
+end, { cache = "DirChanged" })
 
-    ---Scope: "git_fallback"
-    ---Fallback: nil
-    ---Uses the current git repository as the tag namespace.
-    scope.root(".git", { key = "git_fallback" })
+---Scope: "git_fallback"
+---Fallback: nil
+---Uses the current git repository as the project scope
+resolvers.git_fallback = scope.root(".git")
 
-    ---Scope: "git"
-    ---Fallback: "static"
-    ---Uses the current git repository as the tag namespace.
-    scope.fallback({
-        scope.resolvers.git_fallback,
-        scope.resolvers.static,
-    }, { key = "git" })
-
-    ---Scope: "lsp_fallback"
-    ---Fallback: nil
-    ---Uses the reported "root_dir" from LSP clients as the tag keyspace
-    scope.resolver(function()
-        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
-        if #clients > 0 then
-            local client = clients[1]
-            return client.config.root_dir
+---Scope: "git_branch_suffix"
+---Fallback: nil
+---Uses the current git branch as the project scope
+resolvers.git_branch_suffix = scope.resolver({
+    command = "git",
+    args = { "symbolic-ref", "--short", "HEAD" },
+    cwd = vim.fn.getcwd(),
+    on_exit = function(job, return_value)
+        if return_value == 0 then
+            return job:result()[1]
+        else
+            return nil
         end
-    end, { key = "lsp_fallback", cache = { "LspAttach", "LspDetach" } })
+    end,
+}, { cache = 1000 })
 
-    ---Scope: "lsp"
-    ---Fallback: "static"
-    ---Uses the reported "root_dir" from LSP clients as the tag keyspace
-    scope.fallback({
-        scope.resolvers.lsp_fallback,
-        scope.resolvers.static,
-    }, { key = "lsp" })
-end
+---Scope: "git"
+---Fallback: "static"
+---Uses the current git repository as the project scope
+resolvers.git = scope.fallback({
+    "git_fallback",
+    "static",
+})
 
-return M
+---Scope: "git_branch"
+---Fallback: "static"
+---Uses the current git repository and its branch as the project scope
+resolvers.git_branch = scope.fallback({
+    scope.suffix("git_fallback", "git_branch_suffix"),
+    "static",
+})
+
+---Scope: "lsp_fallback"
+---Fallback: nil
+---Uses the reported "root_dir" from LSP clients as the project scope
+resolvers.lsp_fallback = scope.resolver(function()
+    local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+    if #clients > 0 then
+        local client = clients[1]
+        return client.config.root_dir
+    end
+end, { cache = { "LspAttach", "LspDetach" } })
+
+---Scope: "lsp"
+---Fallback: "static"
+---Uses the reported "root_dir" from LSP clients as the project scope
+resolvers.lsp = scope.fallback({
+    "lsp_fallback",
+    "static",
+})
+
+return resolvers
