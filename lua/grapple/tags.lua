@@ -26,22 +26,22 @@ local function resolve_file_path(path)
 end
 
 ---@private
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@ereturn Grapple.TagTable
-function tags.tags(scope_resolver)
-    return state.scope(scope_resolver)
+function tags.tags(scope)
+    return state.scope(scope)
 end
 
 ---@private
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@return integer
-function tags.count(scope_resolver)
-    return state.count(scope_resolver)
+function tags.count(scope)
+    return state.count(scope)
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
-function tags.reset(scope_resolver)
-    state.reset(scope_resolver)
+---@param scope Grapple.Scope
+function tags.reset(scope)
+    state.reset(scope)
 end
 
 ---@param scope Grapple.Scope
@@ -136,19 +136,19 @@ function tags.untag(scope, opts)
     state.unset(scope, tag_key)
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@param tag Grapple.Tag
 ---@param cursor Grapple.Cursor
 ---@return boolean
-function tags.update(scope_resolver, tag, cursor)
-    local tag_key = tags.key(scope_resolver, { file_path = tag.file_path })
+function tags.update(scope, tag, cursor)
+    local tag_key = tags.key(scope, { file_path = tag.file_path })
     if tag_key ~= nil then
         log.debug(string.format("Updating tag cursor. tag: %s. new cursor: %s", vim.inspect(tag), vim.inspect(cursor)))
 
         local new_tag = vim.deepcopy(tag)
         new_tag.cursor = cursor
 
-        state.set(scope_resolver, new_tag, tag_key)
+        state.set(scope, new_tag, tag_key)
 
         return true
     else
@@ -218,19 +218,19 @@ function tags.scopes()
     return state.scopes()
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
-function tags.compact(scope_resolver)
+---@param scope Grapple.Scope
+function tags.compact(scope)
     local numbered_keys = vim.tbl_filter(function(key)
         return type(key) == "number"
-    end, tags.keys(scope_resolver))
+    end, tags.keys(scope))
     table.sort(numbered_keys)
 
     local index = 1
     for _, key in ipairs(numbered_keys) do
         if key ~= index then
             log.debug(string.format("Found hole in scoped tags. Tag key: %s. Expected index: %s", key, index))
-            tags.tag(scope_resolver, {
-                file_path = tags.find(scope_resolver, { key = key }).file_path,
+            tags.tag(scope, {
+                file_path = tags.find(scope, { key = key }).file_path,
                 key = index,
             })
         end
@@ -238,12 +238,12 @@ function tags.compact(scope_resolver)
     end
 end
 
----@param scope_resolver Grapple.ScopeResolverLike
+---@param scope Grapple.Scope
 ---@param start_index integer
 ---@param direction Grapple.Direction
 ---@return Grapple.Tag | nil
-function tags.next(scope_resolver, start_index, direction)
-    local scoped_tags = tags.tags(scope_resolver)
+function tags.next(scope, start_index, direction)
+    local scoped_tags = tags.tags(scope)
     if #scoped_tags == 0 then
         return nil
     end
