@@ -101,13 +101,15 @@ A **project scope** is determined by means of a **[scope resolver](#grapplescope
 * `global`: tags are scoped to a global namespace
 * `static`: tags are scoped to neovim's initial working directory
 * `directory`: tags are scoped to the current working directory
-* `git`: tags are scoped to the current git repository, **fallback**: `static`
 * `lsp`: tags are scoped using the `root_dir` of the current buffer's attached LSP server, **fallback**: `static`
+* `git`: tags are scoped to the current git repository, **fallback**: `static`
+* `git_branch`: tags are scoped to the current git repository and branch, **fallback**: `static`
 
-There are two additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
+There are three additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
 
-* `git_fallback`: the same as `git`, but without a fallback
 * `lsp_fallback`: the same as `lsp`, but without a fallback
+* `git_fallback`: the same as `git`, but without a fallback
+* `git_branch_suffix`: resolves suffix (branch) for `git_branch`
 
 It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Tag-Scopes).
 
@@ -116,7 +118,7 @@ It is also possible to create your own **custom scope resolver**. For the availa
 ```lua
 -- Setup using a builtin scope resolver
 require("grapple").setup({
-    scope = require("grapple").resolvers.static
+    scope = require("grapple").resolvers.git
 })
 
 -- Setup using a custom scope resolver
@@ -373,7 +375,7 @@ Create a scope resolver that generates a project scope.
 
 **`returns`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
 
-**`scope_callback`**: [`Grapple.ScopeFunction`](#grapplescopefunction)
+**`scope_callback`**: [`Grapple.ScopeFunction`](#grapplescopefunction) | [`Grapple.ScopeJob`](#grapplescopejob)
 
 **`opts?`**: [`Grapple.ScopeOptions`](#grapplescopeoptions)
 
@@ -388,6 +390,17 @@ Create a scope resolver that generates a project scope.
 require("grapple.scope").resolver(function()
     return vim.fn.getcwd()
 end, { cache = "DirChanged" })
+
+-- Create an scope resolver that asynchronously runs the "echo"
+-- shell command and uses its output as the resolved scope
+require("grapple.scope").resolver({
+    command = "echo",
+    args = [ "hello_world" ],
+    cwd = vim.fn.getcwd(),
+    on_exit = function(job, return_value)
+        return job:result()[1]
+    end
+})
 ```
 
 #### `grapple.scope#root`
