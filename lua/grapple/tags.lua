@@ -3,13 +3,20 @@ local log = require("grapple.log")
 local state = require("grapple.state")
 local types = require("grapple.types")
 
----@class Grapple.Tag
----@field file_path string
----@field cursor table
-
----@alias Grapple.TagKey string | integer
+---@alias Grapple.FilePath string
 
 ---@alias Grapple.Cursor table
+
+---@class Grapple.Tag
+---@field file_path Grapple.FilePath
+---@field cursor Grapple.Cursor
+
+---@class Grapple.FullTag
+---@field key Grapple.TagKey
+---@field file_path Grapple.FilePath
+---@field cursor Grapple.Cursor
+
+---@alias Grapple.TagKey string | integer
 
 local tags = {}
 
@@ -30,6 +37,13 @@ end
 ---@ereturn Grapple.TagTable
 function tags.tags(scope)
     return state.scope(scope)
+end
+
+---@private
+---@param scope Grapple.Scope
+---@ereturn Grapple.FullTag[]
+function tags.full_tags(scope)
+    return state.with_keys(scope)
 end
 
 ---@private

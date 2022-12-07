@@ -1,82 +1,59 @@
 local popup = require("grapple.popup")
 local state = require("grapple.state")
 
-local M = {}
+local popup_scopes = {}
 
----@return Grapple.Serializer<Grapple.ScopePair>
-local function create_serializer()
-    ---@param scope Grapple.Scope
-    ---@return string
-    return function(scope)
-        local text = " [" .. state.count(scope) .. "] " .. scope
-        return text
-    end
+popup_scopes.handler = {}
+
+---@param popup_menu Grapple.PopupMenu
+---@param scope Grapple.FullTag
+---@return string
+function popup_scopes.handler.serialize(_, scope)
+    local count = state.count(scope)
+    local text = " [" .. count .. "] " .. scope
+    return text
 end
 
----@return Grapple.Parser<Grapple.Scope>
-local function create_parser()
-    ---@param line string
-    ---@return Grapple.Scope
-    return function(line)
-        local pattern = "%] (.*)"
-        local scope = string.match(line, pattern)
-        return scope
-    end
+---@param popup_menu Grapple.PopupMenu
+---@param line string
+---@return Grapple.Scope
+function popup_scopes.handler.deserialize(_, line)
+    local pattern = "%] (.*)"
+    local scope = string.match(line, pattern)
+    return scope
 end
 
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.Scope>
-local function resolve(popup_, parser)
-    ---@type string[]
-    local lines = vim.api.nvim_buf_get_lines(popup_.buffer, 0, -1, false)
+---@param popup_menu Grapple.PopupMenu
+function popup_scopes.handler.resolve(popup_menu)
+    ---@type Grapple.PopupTag[]
+    local original_scopes = popup_menu.items
 
-    ---@type string[]
-    local scope_paths = vim.tbl_map(parser, lines)
+    ---@type Grapple.PartialTag[]
+    local modified_scopes = popup.items(popup_menu)
 
-    -- Determine which scopes have been modified and which were deleted
-    ---@type table<string, boolean>
-    local remaining_scopes = {}
-    for _, scope in ipairs(scope_paths) do
-        remaining_scopes[scope] = true
+    popup_scopes.resolve_differences(original_scopes, modified_scopes)
+end
+
+function popup_scopes.resolve_differences(original_scopes, modified_scopes)
+    ---@type table<string, Grapple.PartialTag>
+    local scope_lookup = {}
+    for _, scope in ipairs(modified_scopes) do
+        scope_lookup[scope] = true
     end
 
     -- Reset scopes that were removed from the popup menu
-    for _, scope in ipairs(state.scopes()) do
-        if not remaining_scopes[scope] then
+    for _, scope in ipairs(original_scopes) do
+        if not scope_lookup[scope] then
             state.reset(scope)
         end
     end
 end
 
----@param popup_ Grapple.Popup
----@param parser Grapple.Parser<Grapple.Scope>
-local function action_close(popup_, parser)
-    return function()
-        resolve(popup_, parser)
-        popup.close(popup_)
-    end
+popup_scopes.actions = {}
+
+---@param popup_menu Grapple.PopupMenu
+function popup_scopes.actions.close(popup_menu)
+    popup.close(popup_menu)
 end
 
----@param window_options table
-function M.open(window_options)
-    if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = "Loaded Scopes"
-        window_options.title_pos = "center"
-    end
-
-    local serializer = create_serializer()
-    local parser = create_parser()
-
-    local lines = vim.tbl_map(serializer, state.scopes())
-    local popup_ = popup.open(window_options)
-    popup.update(popup_, lines)
-
-    local close = action_close(popup_, parser)
-
-    local keymap_options = { buffer = popup_.buffer, nowait = true }
-    vim.keymap.set("n", "q", close, keymap_options)
-    vim.keymap.set("n", "<esc>", close, keymap_options)
-    popup.on_leave(popup_, close)
-end
-
-return M
+return popup_scopes
