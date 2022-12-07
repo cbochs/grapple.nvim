@@ -3,6 +3,7 @@ local log = require("grapple.log")
 local popup = require("grapple.popup")
 local scope = require("grapple.scope")
 local tags = require("grapple.tags")
+local state = require("grapple.state")
 
 local M = {}
 
@@ -107,9 +108,11 @@ local function resolve(scope_resolver, popup_, parser)
     ---@type Grapple.PartialTag[]
     local modified_tags = {}
 
+    local scope_ = state.ensure_loaded(scope_resolver)
+
     -- Determine which tags have been modified and which were deleted
     for _, partial_tag in ipairs(partial_tags) do
-        local key = tags.key(scope_resolver, { file_path = partial_tag.file_path })
+        local key = tags.key(scope_, { file_path = partial_tag.file_path })
         if key ~= nil then
             if partial_tag.key ~= key then
                 table.insert(modified_tags, partial_tag)
@@ -121,19 +124,19 @@ local function resolve(scope_resolver, popup_, parser)
     end
 
     -- Delete tags that do not exist anymore
-    for _, key in ipairs(tags.keys(scope_resolver)) do
+    for _, key in ipairs(tags.keys(scope_)) do
         if not remaining_tags[key] then
-            tags.untag(scope_resolver, { key = key })
+            tags.untag(scope_, { key = key })
         end
     end
 
     -- Update tags that now have a different key
     for _, partial_tag in ipairs(modified_tags) do
-        tags.tag(scope_resolver, { file_path = partial_tag.file_path, key = partial_tag.key })
+        tags.tag(scope_, { file_path = partial_tag.file_path, key = partial_tag.key })
     end
 
     -- Fill any "holes" that were made from deletion and updating
-    tags.compact(scope_resolver)
+    tags.compact(scope_)
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
@@ -155,7 +158,8 @@ local function action_select(scope_resolver, popup_, parser)
         local partial_tag = parser(current_line)
         action_close(scope_resolver, popup_, parser)()
 
-        local selected_tag = tags.find(scope_resolver, { file_path = partial_tag.file_path })
+        local scope_ = state.ensure_loaded(scope_resolver)
+        local selected_tag = tags.find(scope_, { file_path = partial_tag.file_path })
         if selected_tag ~= nil then
             tags.select(selected_tag)
         end
@@ -169,7 +173,9 @@ local function action_quickfix(scope_resolver, popup_, parser)
     return function()
         resolve(scope_resolver, popup_, parser)
         popup.close(popup_)
-        tags.quickfix(scope_resolver)
+
+        local scope_ = state.ensure_loaded(scope_resolver)
+        tags.quickfix(scope_)
     end
 end
 
@@ -185,7 +191,8 @@ function M.open(scope_resolver, window_options)
     local parser = create_parser(scope_resolver)
 
     local popup_tags = {}
-    for key, tag in pairs(tags.tags(scope_resolver)) do
+    local scope_ = state.ensure_loaded(scope_resolver)
+    for key, tag in pairs(tags.tags(scope_)) do
         table.insert(popup_tags, into_popup_tag(key, tag))
     end
 
