@@ -760,11 +760,10 @@ tag selection, but the tagged file opened in a vertical split
 SCOPE POPUP MENU ~
 
 The **scopes popup menu** opens a floating window containing all the loaded
-project scopes that have been created. A scope (or scopes) can be deleted with
-typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can
-be exited with either `q` or any keybinding that is bound to `<esc>`. The total
-number of tags within a scope will be displayed to the left of the project
-scope.
+project scopes. A scope (or scopes) can be deleted with typical vim edits
+(i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with
+either `q` or any keybinding that is bound to `<esc>`. The total number of tags
+within a scope will be displayed to the left of the project scope.
 
 **Command**: `:GrapplePopup scopes`
 
@@ -781,15 +780,15 @@ scope.
 PERSISTENT STATE                               *grapple.nvim-persistent-state*
 
 Grapple saves all |grapple.nvim-project-scopes| to a common directory. This
-directory is aptly named `grapple` and lives in Neovim’s `"data"` standard
-path (see: |`:h standard-path`|). Each non-empty scope (scope contains at least
-one item) will be saved as an individiual scope file; serialized as a JSON
-blob, and named using the resolved scope’s path.
+directory is aptly named `grapple` and lives in Neovim’s `"data"` directory
+(see: |`:h standard-path`|). Each non-empty scope (scope contains at least one
+item) will be saved as an individiual scope file; serialized as a JSON blob,
+and named using the resolved scope’s path.
 
 Each tag in a scope will contain two pieces of information: the absolute `file
 path` of the tagged file and its last known `cursor` location.
 
-When a user loads Grapple, no scopes are loaded initially. Instead, Grapple
+When a user starts Neovim, no scopes are initially loaded. Instead, Grapple
 will wait until the user requests a project scope
 (e.g. |grapple.nvim-tagging-a-file| or opening the
 |grapple.nvim-tags-popup-menu|). At that point, one of three things can occur:
