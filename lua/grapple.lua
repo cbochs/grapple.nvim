@@ -34,13 +34,17 @@ end
 ---@param opts? Grapple.Options
 function grapple.tag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    require("grapple.tags").tag(settings.scope, opts)
+
+    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    require("grapple.tags").tag(scope, opts)
 end
 
 ---@param opts? Grapple.Options
 function grapple.untag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    require("grapple.tags").untag(settings.scope, opts)
+
+    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    require("grapple.tags").untag(scope, opts)
 end
 
 ---@param opts? Grapple.Options
@@ -63,13 +67,17 @@ end
 ---@param opts? Grapple.Options
 function grapple.find(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    return require("grapple.tags").find(settings.scope, opts)
+
+    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    return require("grapple.tags").find(scope, opts)
 end
 
 ---@param opts? Grapple.Options
 function grapple.key(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
-    return require("grapple.tags").key(settings.scope, opts)
+
+    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    return require("grapple.tags").key(scope, opts)
 end
 
 ---@param opts? Grapple.Options
@@ -82,7 +90,8 @@ end
 function grapple.cycle(opts, direction)
     local tag_key = grapple.key(opts)
     local start_index = (type(tag_key) == "number") and tag_key or 0
-    local tag = require("grapple.tags").next(settings.scope, start_index, direction)
+    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    local tag = require("grapple.tags").next(scope, start_index, direction)
     if tag ~= nil then
         require("grapple.tags").select(tag)
     end
@@ -100,12 +109,14 @@ end
 
 ---@param scope? Grapple.ScopeResolverLike
 function grapple.reset(scope)
-    require("grapple.tags").reset(scope or settings.scope)
+    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
+    require("grapple.state").reset(scope)
 end
 
 ---@param scope? Grapple.ScopeResolverLike
 function grapple.quickfix(scope)
-    require("grapple.tags").quickfix(scope or settings.scope)
+    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
+    require("grapple.tags").quickfix(scope)
 end
 
 ---@param scope? Grapple.ScopeResolverLike
