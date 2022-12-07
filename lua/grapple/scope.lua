@@ -12,7 +12,7 @@ local scope = {}
 
 ---@class Grapple.ScopeJob
 ---@field command string,
----@field args table
+---@field args string[]
 ---@field cwd string
 ---@field on_exit fun(job, return_value): string | nil
 
