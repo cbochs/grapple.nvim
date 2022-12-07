@@ -424,13 +424,13 @@ Create a scope resolver that generates a project scope by looking upwards for di
 
 ```lua
 -- Create a root scope resolver that looks for a directory containing
--- a ".git" folder
-require("grapple.scope").root(".git")
+-- a "Cargo.toml" file
+require("grapple.scope").root("Cargo.toml")
 
 -- Create a root scope resolver that falls back to using the initial working
 -- directory for your neovim session
 require("grapple.scope").fallback({
-    require("grapple.scope").root(".git"),
+    require("grapple.scope").root("Cargo.toml"),
     require("grapple").resolvers.static,
 })
 ```
@@ -460,7 +460,7 @@ require("grapple.scope").fallback({
     require("grapple").resolvers.lsp_fallback,
     require("grapple").resolvers.git_fallback,
     require("grapple").resolvers.static
-}, { key = "my_fallback" })
+})
 ```
 
 #### `grapple.scope#suffix`
@@ -484,15 +484,10 @@ Create a scope resolver that takes in two scope resolvers: a **path resolver** a
 
 ```lua
 -- Create a suffix scope resolver that duplicates a static resolver
--- and appends it to itself. The result would look a bit like:
---
--- > require("grapple.scope").get("duplicator")
--- asdf#asdf
---
+-- and appends it to itself (e.g. "asdf#asdf")
 require("grapple.scope").suffix(
     require("grapple.scope").static("asdf"),
     require("grapple.scope").static("asdf"),
-    { key = "duplicator" }
 )
 ```
 
@@ -517,8 +512,8 @@ Create a scope resolver that simply returns a static string. Useful when creatin
 -- Create a static scope resolver that simply returns "I'm a teapot"
 require("grapple.scope").static("I'm a teapot")
 
--- Create a suffic scope resolver that appends the string "commands"
--- to the end of a "git" scope resolver
+-- Create a suffix scope resolver that appends the suffix "commands"
+-- to the end of the git scope resolver
 require("grapple.scope").suffix(
     require("grapple").resolvers.git,
     require("grapple.scope").static("commands")
@@ -540,8 +535,8 @@ local my_resolver = require("grapple.scope").resolver(function()
     return vim.fn.getcwd()
 end)
 
--- Invalidate a cached scope by its key name
-require("grapple.scope").invalidate("my resolver")
+-- Invalidate a cached scope associated to a scope resolver
+require("grapple.scope").invalidate(my_resolver)
 ```
 
 </details>
