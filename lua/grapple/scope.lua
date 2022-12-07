@@ -85,8 +85,8 @@ local function update_watch(scope_resolver)
 
         scope_resolver.watch.timer = timer
     else
-        log.error(string.format("Invalid cache invalidation type. type: %s", scope_resolver.watch.type))
-        error(string.format("Invalid cache invalidation type. type: %s", scope_resolver.watch.type))
+        log.error(string.format("Invalid cache type. type: %s", scope_resolver.watch.type))
+        error(string.format("Invalid cache type. type: %s", scope_resolver.watch.type))
     end
 
     ::fallthrough::
@@ -304,8 +304,8 @@ function scope.update(scope_resolver)
             :sync()
         return nil
     else
-        log.error("Invalid scope resolver.")
-        error("Invalid scope resolver.")
+        log.error(string.format("Invalid scope resolver. resolver: %s", vim.inspect(scope_resolver)))
+        error(string.format("Invalid scope resolver. resolver: %s", vim.inspect(scope_resolver)))
     end
 end
 
