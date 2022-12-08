@@ -1,3 +1,5 @@
+local log = require("grapple.log")
+
 local popup = {}
 
 ---@class Grapple.Popup
@@ -22,9 +24,9 @@ local popup = {}
 ---@class Grapple.PopupHandler<T>
 ---@field serialize Grapple.PopupSerializer<T>
 ---@field deserialize Grapple.PopupDeserializer<T>
----@field resolve Grapple.PopupFunction
+---@field resolve? Grapple.PopupFunction
 
----@class Grapple.PopupState
+---@alias Grapple.PopupState any
 
 ---@generic T
 ---@class Grapple.PopupMenu<T>
@@ -33,9 +35,20 @@ local popup = {}
 ---@field state Grapple.PopupState
 ---@field items T[]
 
+local current_popup = nil
+
+---@return Grapple.PopupMenu
+function popup.current()
+    if current_popup == nil then
+        log.warn("No popup menu is currently open")
+    end
+    return current_popup
+end
+
 ---@generic T
 ---@param window_options Grapple.WindowOptions
 ---@param popup_handler Grapple.PopupHandler
+---@param popup_state Grapple.PopupState
 ---@return Grapple.PopupMenu
 function popup.open(window_options, popup_handler, popup_state)
     local popup_menu = {
@@ -53,6 +66,8 @@ function popup.open(window_options, popup_handler, popup_state)
             popup.close(popup_menu)
         end,
     })
+
+    current_popup = popup_menu
 
     return popup_menu
 end
@@ -84,7 +99,7 @@ function popup.create_window(window_options)
 end
 
 ---@param popup_menu Grapple.PopupMenu
-function popup.draw(popup_menu)
+function popup.render(popup_menu)
     local lines = vim.tbl_map(function(item)
         return popup_menu.handler.serialize(popup_menu, item)
     end, popup_menu.items)
@@ -95,7 +110,7 @@ end
 ---@param items table
 function popup.update(popup_menu, items)
     popup_menu.items = items
-    popup.draw(popup_menu)
+    popup.render(popup_menu)
 end
 
 ---@param popup_menu Grapple.PopupMenu
@@ -131,10 +146,16 @@ end
 ---@generic T
 ---@param popup_menu Grapple.PopupMenu<T>
 function popup.close(popup_menu)
-    popup_menu.handler.resolve(popup_menu)
+    if popup_menu.handler.resolve ~= nil then
+        local ok, _ = pcall(popup_menu.handler.resolve)
+        if not ok then
+            log.warn("Failed to resolve popup menu before closing")
+        end
+    end
     if vim.api.nvim_win_is_valid(popup_menu.popup.window) then
         vim.api.nvim_win_close(popup_menu.popup.window, true)
     end
+    current_popup = nil
 end
 
 return popup
