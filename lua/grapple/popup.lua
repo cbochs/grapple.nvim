@@ -147,7 +147,7 @@ end
 ---@param popup_menu Grapple.PopupMenu<T>
 function popup.close(popup_menu)
     if popup_menu.handler.resolve ~= nil then
-        local ok, _ = pcall(popup_menu.handler.resolve)
+        local ok, _ = pcall(popup_menu.handler.resolve, popup_menu)
         if not ok then
             log.warn("Failed to resolve popup menu before closing")
         end
