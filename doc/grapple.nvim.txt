@@ -1,4 +1,4 @@
-*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 December 07
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 December 08
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
