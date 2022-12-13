@@ -1,4 +1,4 @@
-*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 December 08
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2022 December 13
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -71,6 +71,7 @@ PACKER <HTTPS://GITHUB.COM/WBTHOMASON/PACKER.NVIM> ~
 VIM-PLUG <HTTPS://GITHUB.COM/JUNEGUNN/VIM-PLUG> ~
 
 >
+    Plug "nvim-lua/plenary.nvim"
     Plug "cbochs/grapple.nvim"
 <
 
