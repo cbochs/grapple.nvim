@@ -36,7 +36,8 @@ use {
 
 ### [vim-plug](https://github.com/junegunn/vim-plug)
 
-```
+```vim
+Plug "nvim-lua/plenary.nvim"
 Plug "cbochs/grapple.nvim"
 ```
 
