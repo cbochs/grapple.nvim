@@ -1,8 +1,8 @@
 # Grapple.nvim
 
-https://user-images.githubusercontent.com/2467016/204135078-c1c59f19-49b8-4c38-a76d-2892903816db.mov
+![grapple_showcase](https://user-images.githubusercontent.com/2467016/207667062-13883515-fd21-4d40-be87-656665de3d0e.gif)
 
-_Theme: [catppuccin](https://github.com/catppuccin/nvim)_
+_Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
 ## Introduction
 
@@ -546,7 +546,7 @@ require("grapple.scope").invalidate(my_resolver)
 
 A popup menu is available to enable easy management of tags and scopes. The opened buffer (filetype: `grapple`) can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
 
-<img width="1073" alt="Screenshot 2022-11-27 at 05 59 52" src="https://user-images.githubusercontent.com/2467016/204136568-85100000-81fa-412e-8ca0-26df538cccee.png">
+<img width="1073" alt="grapple_popup_menu" src="https://user-images.githubusercontent.com/2467016/207667830-8a1341a1-6235-4826-8eb9-8fd13bd40d8e.png">
 
 ### Tag Popup Menu
 
