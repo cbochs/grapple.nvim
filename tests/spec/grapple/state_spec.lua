@@ -1,4 +1,3 @@
-local Path = require("plenary.path")
 local with = require("plenary.context_manager").with
 
 local resolvers = {
@@ -37,6 +36,7 @@ local function files(dir_path)
 end
 
 local function temp_dir()
+    local Path = require("plenary.path")
     local dir_path = Path:new(vim.fn.tempname())
     dir_path:mkdir()
 
@@ -60,7 +60,6 @@ describe("state", function()
             with(temp_dir(), function(dir_path)
                 require("grapple.state").save(dir_path)
                 assert.equals(2, #files(dir_path))
-                vim.pretty_print(files(dir_path))
                 assert.is_true(vim.tbl_contains(files(dir_path), "scope%5Fbasic"))
                 assert.is_true(vim.tbl_contains(files(dir_path), "scope%5Findexed"))
             end)

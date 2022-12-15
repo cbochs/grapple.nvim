@@ -1,5 +1,5 @@
-local Path = require("plenary.path")
 local log = require("grapple.log")
+local path = require("grapple.path")
 local scope = require("grapple.scope")
 local settings = require("grapple.settings")
 
@@ -25,17 +25,19 @@ local internal_state = {}
 ---@param plain_string string
 ---@return string
 function state.encode(plain_string)
-    return string.gsub(plain_string, "([^%w])", function(match)
+    local encoded_string = string.gsub(plain_string, "([^%w])", function(match)
         return string.upper(string.format("%%%02x", string.byte(match)))
     end)
+    return encoded_string
 end
 
 ---@param encoded_string string
 ---@return string
 function state.decode(encoded_string)
-    return string.gsub(encoded_string, "%%(%x%x)", function(match)
+    local decoded_string = string.gsub(encoded_string, "%%(%x%x)", function(match)
         return string.char(tonumber(match, 16))
     end)
+    return decoded_string
 end
 
 ---@param state_ table
@@ -88,10 +90,10 @@ end
 
 ---@param save_dir? string
 function state.save(save_dir)
-    save_dir = Path:new(save_dir or settings.save_path)
-    if not save_dir:exists() then
+    save_dir = save_dir or settings.save_path
+    if not path.exists(save_dir) then
         log.info(string.format("Save directory does not exist, creating. path: %s", save_dir))
-        save_dir:mkdir()
+        path.mkdir(save_dir)
     end
 
     log.debug(string.format("Saving state. save_dir: %s", save_dir))
@@ -105,8 +107,8 @@ function state.save(save_dir)
             goto continue
         end
 
-        local save_path = save_dir / state.encode(scope_)
-        save_path:write(state.serialize(scope_state), "w")
+        local save_path = path.append(save_dir, state.encode(scope_))
+        path.write(save_path, state.serialize(scope_state), "w")
         log.debug(string.format("Saved scope state. path: %s", save_path))
 
         ::continue::
@@ -119,14 +121,14 @@ end
 function state.load(scope_, save_dir)
     log.debug(string.format("Loading scope state. scope: %s", scope_))
 
-    save_dir = Path:new(save_dir or settings.save_path)
-    local save_path = save_dir / state.encode(scope_)
-    if not save_path:exists() then
+    save_dir = save_dir or settings.save_path
+    local save_path = path.append(save_dir, state.encode(scope_))
+    if not path.exists(save_path) then
         log.debug(string.format("Cannot load scope state from disk, save path does not exist. path: %s", save_path))
         return nil
     end
 
-    local serialized_state = save_path:read()
+    local serialized_state = path.read(save_path)
     local scope_state = state.deserialize(serialized_state)
     log.debug(string.format("Loaded scope state. scope: %s. ", scope_))
 
@@ -135,12 +137,11 @@ end
 
 ---@param save_dir? string
 function state.prune(save_dir)
-    save_dir = Path:new(save_dir or settings.save_path)
     for scope_, scope_state in pairs(internal_state) do
-        local save_path = save_dir / state.encode(scope_)
-        if vim.tbl_isempty(scope_state) and save_path:exists() then
+        local save_path = path.append(save_dir, state.encode(scope_))
+        if vim.tbl_isempty(scope_state) and path.exists(save_path) then
             log.debug(string.format("Pruning: scope is empty. scope: %s", scope_))
-            save_path:rm()
+            path.rm(save_path)
         end
     end
 end
