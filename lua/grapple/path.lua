@@ -1,7 +1,8 @@
 local Path = require("plenary.path")
 
----@alias Plenary.Path table
 ---@alias Grapple.Path string
+
+---@alias Plenary.Path table
 
 local path = {}
 
@@ -16,6 +17,7 @@ end
 function path.append(...)
     local final_path
     for _, path_piece in ipairs({ ... }) do
+        path_piece = tostring(path_piece)
         if final_path == nil then
             final_path = Path:new(path_piece)
         else
