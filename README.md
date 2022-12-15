@@ -523,9 +523,9 @@ require("grapple.scope").suffix(
 
 #### `grapple.scope#invalidate`
 
-Clear the cached project scope, forcing the next call to `grapple.scope#get` to resolve the project scope instead of using its previously cached value.
+Clear the cached project scope, forcing the next call to get the project scope to re-resolve and re-instantiate the cache.
 
-**API**: `require("grapple.scope").invalidate(scooe_resolver)`
+**API**: `require("grapple.scope").invalidate(scope_resolver)`
 
 **`scope_resolver`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
 
@@ -536,8 +536,27 @@ local my_resolver = require("grapple.scope").resolver(function()
     return vim.fn.getcwd()
 end)
 
--- Invalidate a cached scope associated to a scope resolver
+-- Invalidate a cached scope associated with a scope resolver
 require("grapple.scope").invalidate(my_resolver)
+```
+
+#### `grapple.scope#update`
+
+Update the cached project scope. Unlike [`grapple.scope#invalidate`](#grapplescopeinvalidate) which lazily updates the project scope, this immediately updates the cached project scope.
+
+**API**: `require("grapple.scope").update(scope_resolver)`
+
+**`scope_resolver`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
+
+**Example**
+
+```lua
+local my_resolver = require("grapple.scope").resolver(function()
+    return vim.fn.getcwd()
+end)
+
+-- Update a cached scope associated with a scope resolver
+require("grapple.scope").update(my_resolver)
 ```
 
 </details>
