@@ -34,11 +34,17 @@ local DEFAULT_SETTINGS = {
 }
 
 ---@type Grapple.Settings
-local _settings = DEFAULT_SETTINGS
+local _settings
+
+settings.reset()
+
+function settings.reset()
+    _settings = vim.deepcopy(DEFAULT_SETTINGS)
+end
 
 ---@param overrides? Grapple.Settings
 function settings.update(overrides)
-    _settings = vim.tbl_deep_extend("force", DEFAULT_SETTINGS, overrides or {})
+    _settings = vim.tbl_deep_extend("force", _settings, overrides or {})
 end
 
 setmetatable(settings, {

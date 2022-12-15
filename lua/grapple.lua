@@ -25,10 +25,16 @@ end
 
 ---@param overrides? Grapple.Settings
 function grapple.setup(overrides)
+    settings.reset()
     settings.update(overrides)
     require("grapple.log").global({ log_level = settings.log_level })
 
     grapple.initialize()
+end
+
+---@param scope Grapple.ScopeResolverLike
+function grapple.use_scope(scope)
+    settings.update({ scope = scope })
 end
 
 ---@param opts? Grapple.Options
