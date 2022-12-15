@@ -1,4 +1,4 @@
-local Path = require("plenary.path")
+local path = require("grapple.path")
 
 ---@type Grapple.Settings
 local settings = {}
@@ -15,7 +15,7 @@ local DEFAULT_SETTINGS = {
 
     ---The save location for tags
     ---@type string
-    save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
+    save_path = path.append(vim.fn.stdpath("data"), "grapple"),
 
     ---Window options used for the popup menu
     popup_options = {

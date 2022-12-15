@@ -1,11 +1,10 @@
-local Path = require("plenary.path")
-
 describe("settings", function()
     it("has correct default", function()
+        local path = require("grapple.path")
         local settings = require("grapple.settings")
         assert.equals("warn", settings.log_level)
         assert.equals("git", settings.scope)
-        assert.equals(tostring(Path:new(vim.fn.stdpath("data")) / "grapple"), settings.save_path)
+        assert.equals(path.append(vim.fn.stdpath("data"), "grapple"), settings.save_path)
 
         assert.equals("editor", settings.popup_options.relative)
         assert.equals(60, settings.popup_options.width)
