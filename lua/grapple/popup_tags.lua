@@ -1,5 +1,5 @@
-local Path = require("plenary.path")
 local log = require("grapple.log")
+local path = require("grapple.path")
 local popup = require("grapple.popup")
 local scope = require("grapple.scope")
 local state = require("grapple.state")
@@ -17,10 +17,10 @@ popup_tags.handler = {}
 ---@return string
 function popup_tags.handler.serialize(popup_menu, full_tag)
     local scope_path = scope.scope_path(popup_menu.state.scope)
-    local file_path = Path:new(full_tag.file_path)
+    local file_path = full_tag.file_path
 
     if vim.fn.isdirectory(scope_path) == 1 then
-        file_path = file_path:make_relative(scope_path)
+        file_path = path.make_relative(file_path, scope_path)
     end
 
     local text = " [" .. full_tag.key .. "] " .. tostring(file_path)
@@ -49,16 +49,16 @@ function popup_tags.handler.deserialize(popup_menu, line)
     end
 
     local file_path
-    if Path:new(parsed_path):is_absolute() then
+    if path.is_absolute(parsed_path) then
         file_path = parsed_path
     else
-        file_path = Path:new(scope_path) / parsed_path
+        file_path = path.append(scope_path, parsed_path)
     end
 
     ---@type Grapple.PartialTag
     local partial_tag = {
         key = tonumber(key) or key,
-        file_path = tostring(file_path),
+        file_path = file_path,
     }
 
     return partial_tag
