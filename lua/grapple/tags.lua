@@ -1,5 +1,5 @@
-local Path = require("plenary.path")
 local log = require("grapple.log")
+local path = require("grapple.path")
 local state = require("grapple.state")
 local types = require("grapple.types")
 
@@ -19,18 +19,6 @@ local types = require("grapple.types")
 ---@alias Grapple.TagKey string | integer
 
 local tags = {}
-
----@param path string
----@return string
-local function resolve_file_path(path)
-    if path == nil or path == "" then
-        return ""
-    end
-
-    local expanded_path = Path:new(path):expand()
-    local absolute_path = Path:new(expanded_path):absolute()
-    return absolute_path
-end
 
 ---@private
 ---@param scope Grapple.Scope
@@ -82,7 +70,7 @@ function tags.tag(scope, opts)
     local cursor
 
     if opts.file_path then
-        file_path = resolve_file_path(opts.file_path)
+        file_path = path.normalize(opts.file_path)
     elseif opts.buffer then
         if not vim.api.nvim_buf_is_valid(opts.buffer) then
             log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
@@ -179,7 +167,7 @@ function tags.select(tag)
         return true
     end
 
-    if not Path:new(tag.file_path):exists() then
+    if not path.exists(tag.file_path) then
         log.warn("Tagged file does not exist.")
     end
 
@@ -211,7 +199,7 @@ function tags.key(scope, opts)
     end
 
     if opts.file_path then
-        local file_path = resolve_file_path(opts.file_path)
+        local file_path = path.normalize(opts.file_path)
         return state.key(scope, { file_path = file_path })
     end
 
