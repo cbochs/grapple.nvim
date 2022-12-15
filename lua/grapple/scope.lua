@@ -48,7 +48,10 @@ local watch_type = {
     timer = "timer",
 }
 
-scope.separator = "#"
+scope.SUFFIX_SEPARATOR = "#"
+
+---@class Grapple.ScopeNone
+scope.NONE = {}
 
 ---@param scope_resolver Grapple.ScopeResolver
 local function should_cache(scope_resolver)
@@ -229,7 +232,7 @@ function scope.suffix(path_resolver, suffix_resolver, opts)
     return scope.resolver(function()
         local scope_path = scope.get_safe(path_resolver)
         if scope_path == nil then
-            return
+            return nil
         end
 
         local scope_suffix = scope.get_safe(suffix_resolver)
@@ -237,7 +240,7 @@ function scope.suffix(path_resolver, suffix_resolver, opts)
             return scope_path
         end
 
-        return scope_path .. scope.separator .. scope_suffix
+        return scope_path .. scope.SUFFIX_SEPARATOR .. scope_suffix
     end, vim.tbl_extend("force", { cache = false }, opts or {}))
 end
 
@@ -283,10 +286,15 @@ end
 ---@return Grapple.Scope | nil
 function scope.get_safe(scope_resolver)
     scope_resolver = scope.find_resolver(scope_resolver)
-    if cached_scopes[scope_resolver.key] ~= nil then
-        return cached_scopes[scope_resolver.key]
+
+    cached_scope = cached_scopes[scope_resolver.key]
+    if cached_scope == nil then
+        return scope.update(scope_resolver)
     end
-    return scope.update(scope_resolver)
+    if cached_scope == scope.NONE then
+        return nil
+    end
+    return cached_scopes[scope_resolver.key]
 end
 
 ---@param scope_resolver Grapple.ScopeResolverLike
@@ -305,30 +313,20 @@ end
 
 ---@private
 ---@param scope_resolver Grapple.ScopeResolver
----@return Grapple.Scope | nil
+---@return Grapple.Scope | Grapple.ScopeNone
 function scope.update(scope_resolver)
     scope_resolver = update_watch(scope_resolver)
 
-    if type(scope_resolver.callback) == "function" then
+    if is_sync(scope_resolver) then
         local resolved_scope = scope.resolve(scope_resolver)
         if should_cache(scope_resolver) then
             log.debug("Updating scope cache for key: " .. tostring(scope_resolver.key))
             cached_scopes[scope_resolver.key] = resolved_scope
         end
         return resolved_scope
-    elseif type(scope_resolver.callback) == "table" then
-        require("plenary.job")
-            :new(vim.tbl_extend("keep", {
-                on_exit = function(job, return_value)
-                    local ok, scope_ = pcall(scope_resolver.callback.on_exit, job, return_value)
-                    if not ok or type(scope_) ~= "string" then
-                        return nil
-                    end
-                    cached_scopes[scope_resolver.key] = scope_
-                end,
-            }, scope_resolver.callback))
-            :sync()
-        return nil
+    elseif is_async(scope_resolver) then
+        scope.resolve_async(scope_resolver)
+        return scope.NONE
     else
         log.error(string.format("Invalid scope resolver. resolver: %s", vim.inspect(scope_resolver)))
         error(string.format("Invalid scope resolver. resolver: %s", vim.inspect(scope_resolver)))
@@ -337,7 +335,7 @@ end
 
 ---@private
 ---@param scope_resolver Grapple.ScopeResolver
----@return Grapple.Scope | nil
+---@return Grapple.Scope | Grapple.ScopeNone
 function scope.resolve(scope_resolver)
     local ok, scope_ = pcall(scope_resolver.callback)
     if not ok or type(scope_) ~= "string" then
@@ -349,9 +347,25 @@ function scope.resolve(scope_resolver)
                 vim.inspect(scope_resolver)
             )
         )
-        return nil
+        return scope.NONE
     end
     return scope_
+end
+
+---@param scope_resolver Grapple.ScopeResolver
+function scope.resolve_async(scope_resolver)
+    require("plenary.job")
+        :new(vim.tbl_extend("keep", {
+            on_exit = function(job, return_value)
+                local ok, scope_ = pcall(scope_resolver.callback.on_exit, job, return_value)
+                if not ok or type(scope_) ~= "string" then
+                    cached_scopes[scope_resolver.key] = scope.NONE
+                    return
+                end
+                cached_scopes[scope_resolver.key] = scope_
+            end,
+        }, scope_resolver.callback))
+        :sync()
 end
 
 ---@private
@@ -386,7 +400,7 @@ function scope.scope_parts(scope_)
     if scope_ == nil then
         return {}
     end
-    return vim.split(scope_, scope.separator)
+    return vim.split(scope_, scope.SUFFIX_SEPARATOR)
 end
 
 return scope
