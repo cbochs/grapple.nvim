@@ -546,7 +546,7 @@ require("grapple.scope").invalidate(my_resolver)
 
 A popup menu is available to enable easy management of tags and scopes. The opened buffer (filetype: `grapple`) can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
 
-<img width="1073" alt="grapple_popup_menu" src="https://user-images.githubusercontent.com/2467016/207667830-8a1341a1-6235-4826-8eb9-8fd13bd40d8e.png">
+<img width="1038" alt="Screenshot 2022-12-15 at 09 05 07" src="https://user-images.githubusercontent.com/2467016/207909857-98e7bc5d-8b48-4650-acb9-5993dde87a0f.png">
 
 ### Tag Popup Menu
 
