@@ -1,4 +1,4 @@
-local Path = require("plenary.path")
+local path = require("grapple.path")
 
 local log = {}
 
@@ -12,7 +12,7 @@ local _logger = {}
 local DEFAULT_SETTINGS = {
     plugin_name = "grapple",
     log_level = "warn",
-    log_dir = tostring(Path:new(vim.fn.stdpath("cache"))),
+    log_dir = path.normalize(vim.fn.stdpath("cache")),
 
     use_console = false,
     use_file = true,
@@ -72,13 +72,13 @@ function log.new(settings, modes)
     modes = modes or DEFAULT_MODES
 
     local logger = {}
-    local log_dir = Path:new(settings.log_dir)
+    local log_dir = settings.log_dir
     local log_name = string.format("%s.log", settings.plugin_name)
-    local log_path = log_dir / log_name
+    local log_path = path.append(log_dir, log_name)
     local log_level = get_log_level(settings.log_level, modes)
 
-    if settings.use_file and not log_dir:exists() then
-        log_dir:mkdir()
+    if settings.use_file and not path.exists(log_dir) then
+        path.mkdir(log_dir)
     end
 
     for mode_level, mode in ipairs(modes) do
@@ -103,7 +103,7 @@ function log.new(settings, modes)
             if settings.use_file then
                 local date = os.date()
                 local formatted_message = format_log(mode.name, info_short, date, message)
-                log_path:write(formatted_message .. "\n", "a")
+                path.write(log_path, formatted_message .. "\n", "a")
             end
         end
     end

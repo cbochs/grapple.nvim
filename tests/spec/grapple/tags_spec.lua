@@ -1,5 +1,3 @@
-local Path = require("plenary.path")
-
 local buffer_unnamed = vim.fn.bufnr()
 
 local buffer_one = vim.api.nvim_create_buf(true, false)
@@ -9,6 +7,7 @@ vim.api.nvim_buf_set_option(buffer_one, "filetype", "lua")
 local buffer_two = vim.api.nvim_create_buf(true, false)
 vim.api.nvim_buf_set_option(buffer_two, "filetype", "grapple")
 
+local Path = require("plenary.path")
 local dir_path = Path:new("/private/tmp") / string.gsub(vim.fn.tempname(), "%p", "")
 local file_two = dir_path / "two"
 local cursor_two = { 1, 5 }
