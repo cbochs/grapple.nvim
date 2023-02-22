@@ -166,7 +166,7 @@ require("grapple").setup({
 
 ### Usage
 
-<details open>
+<details>
 <summary>Grapple API</summary>
 
 #### `grapple#tag`
@@ -412,7 +412,7 @@ require("grapple").quickfix("global")
 
 </details>
 
-<details open>
+<details>
 <summary>Scope API</summary>
 
 #### `grapple.scope#resolver`
