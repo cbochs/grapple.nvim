@@ -25,7 +25,20 @@ To get started, [install](#installation) the plugin using your preferred package
 
 ## Installation
 
-### [packer](https://github.com/wbthomason/packer.nvim)
+<details open>
+<summary><b>lazy.nvim</summary>
+
+```lua
+{
+    "cbochs/grapple.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+}
+```
+
+</details>
+
+<details>
+<summary><b>packer</summary>
 
 ```lua
 use {
@@ -34,12 +47,17 @@ use {
 }
 ```
 
-### [vim-plug](https://github.com/junegunn/vim-plug)
+</details>
+
+<details>
+<summary><b>vim-plug</summary>
 
 ```vim
 Plug "nvim-lua/plenary.nvim"
 Plug "cbochs/grapple.nvim"
 ```
+
+</details>
 
 ## Default Settings
 
@@ -132,7 +150,7 @@ require("grapple").setup({
 
 ### Usage
 
-<details>
+<details open>
 <summary>Grapple API</summary>
 
 #### `grapple#tag`
@@ -378,7 +396,7 @@ require("grapple").quickfix("global")
 
 </details>
 
-<details>
+<details open>
 <summary>Scope API</summary>
 
 #### `grapple.scope#resolver`
