@@ -10,6 +10,7 @@ Table of Contents                             *grapple.nvim-table-of-contents*
   - Quickstart                          |grapple.nvim-grapple.nvim-quickstart|
   - Installation                      |grapple.nvim-grapple.nvim-installation|
   - Default Settings              |grapple.nvim-grapple.nvim-default-settings|
+  - Usage                                    |grapple.nvim-grapple.nvim-usage|
   - File Tags                            |grapple.nvim-grapple.nvim-file-tags|
   - Project Scopes                  |grapple.nvim-grapple.nvim-project-scopes|
   - Popup Menu                          |grapple.nvim-grapple.nvim-popup-menu|
@@ -57,16 +58,16 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 
 
 - |grapple.nvim-install| Grapple.nvim using your preferred package manager
-- Add a keybind to |grapple.nvim-create|, |grapple.nvim-delete|, or |grapple.nvim-toggle| a tag. For example,
+- Add a keybind to `tag`, `untag`, or `toggle` a tag. For example,
     `lua     vim.keymap.set("n", "<leader>m", require("grapple").toggle)`
 
 **Next steps**
 
 
 - The default settings can be found in the |grapple.nvim-settings| section
-- The Grapple API can be found in the |grapple.nvim-usage| section
+- The full Grapple API can be found in the |grapple.nvim-usage| section
 - View your tags |grapple.nvim-in-a-popup| using `:GrapplePopup tags`
-- Add a |grapple.nvim-grapple-component| to your statusline
+- Know when a file is tagged by adding |grapple.nvim-statusline-component|
 - Choose a |grapple.nvim-builtin| scope or try your hand at creating a |grapple.nvim-custom| scope to store your tags
 
 
@@ -104,6 +105,8 @@ The following are the default settings for Grapple. **Setup is not required**,
 but settings may be overridden by passing them as table arguments to the
 `grapplesetup` function.
 
+Settings ~
+
 >lua
     require("grapple").setup({
         ---@type "debug" | "info" | "warn" | "error"
@@ -132,103 +135,12 @@ but settings may be overridden by passing them as table arguments to the
 <
 
 
-FILE TAGS                                *grapple.nvim-grapple.nvim-file-tags*
-
-A **tag** is a persistent tag on a file or buffer. It is a means of indicating
-a file you want to return to. When a file is tagged, Grapple will save your
-cursor location so that when you jump back, your cursor is placed right where
-you left off. In a sense, tags are like file-level marks (`:h mark`).
-
-There are a couple types of tag types available, each with a different use-case
-in mind. The options available are |grapple.nvim-anonymous| and
-|grapple.nvim-named| tags. In addition, tags are |grapple.nvim-scoped| to
-prevent tags in one project polluting the namespace of another. For command and
-API information, please see the |grapple.nvim-usage| below. For additional
-examples, see the Wiki <https://github.com/cbochs/grapple.nvim/wiki/File-Tags>.
+USAGE                                        *grapple.nvim-grapple.nvim-usage*
 
 
-ANONYMOUS TAGS ~
+GRAPPLE API ~
 
-This is the _default_ tag type. Anonymous tags are added to a list, where they
-may be selected by index, cycled through, or jumped to using the
-|grapple.nvim-tag-popup-menu| or plugins such as portal.nvim
-<https://github.com/cbochs/portal.nvim>.
-
-Anonymous tags are similar to those found in plugins like harpoon
-<https://github.com/ThePrimeagen/harpoon>.
-
-
-NAMED TAGS ~
-
-Tags that are given a name are considered to be **named tags**. These tags will
-not be cycled through with `cycle_{backward, forward}`, but instead must be
-explicitly selected.
-
-Named tags are useful if you want one or two keymaps to be used for tagging and
-selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to
-`select/toggle` a file tag (see: |grapple.nvim-suggested-keymaps|).
-
-
-PROJECT SCOPES                      *grapple.nvim-grapple.nvim-project-scopes*
-
-A **scope** is a means of namespacing tags to a specific project. During
-runtime, scopes are typically resolved into an absolute directory path
-(i.e. current working directory), which - in turn - is used as the "root"
-location for a set of tags.
-
-Project scopes are _cached by default_, and will only update when the cache is
-|grapple.nvim-explicitly-invalidated|, an associated (|`:h autocmd`|) is
-triggered, or at a specified interval. For example, the `static` scope never
-updates once cached; the `directory` scope only updates on `DirChanged`; and
-the `lsp` scope updates on either `LspAttach` or `LspDetach`.
-
-A **project scope** is determined by means of a **scope resolver**. The builtin
-options are as follows:
-
-
-- `none`tags are ephemeral and deleted on exit
-- `global`tags are scoped to a global namespace
-- `static`tags are scoped to neovim’s initial working directory
-- `directory`tags are scoped to the current working directory
-- `lsp`tags are scoped using the `root_dir` of the current buffer’s attached LSP server, **fallback**`static`
-- `git`tags are scoped to the current git repository, **fallback**`static`
-- `git_branch`tags are scoped to the current git repository and branch (async), **fallback**`static`
-
-There are three additional scope resolvers which should be preferred when
-creating a **fallback scope resolver** or **suffix scope resolver**. These
-resolvers act identically to their similarly named counterparts, but do not
-have default fallbacks.
-
-
-- `lsp_fallback`the same as `lsp`, but without a fallback
-- `git_fallback`the same as `git`, but without a fallback
-- `git_branch_suffix`resolves suffix (branch) for `git_branch` (async)
-
-It is also possible to create your own **custom scope resolver**. For the
-available scope resolver types, please see the Scope API in
-|grapple.nvim-usage|. For additional examples, see the Wiki
-<https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes>.
-
-**Examples**
-
->lua
-    -- Setup using a builtin scope resolver
-    require("grapple").setup({
-        scope = require("grapple").resolvers.git
-    })
-    
-    -- Setup using a custom scope resolver
-    require("grapple").setup({
-        scope = require("grapple.scope").resolver(function()
-            return vim.fn.getcwd()
-        end, { cache = "DirChanged" })
-    })
-<
-
-
-USAGE ~
-
-Grapple API ~
+Grapple API and Examples ~
 
 
 GRAPPLETAG
@@ -497,7 +409,10 @@ tags.
     require("grapple").quickfix("global")
 <
 
-Scope API ~
+
+SCOPE API ~
+
+Scope API and Examples ~
 
 
 GRAPPLE.SCOPERESOLVER
@@ -715,6 +630,100 @@ scope, this immediately updates the cached project scope.
 <
 
 
+FILE TAGS                                *grapple.nvim-grapple.nvim-file-tags*
+
+A **tag** is a persistent tag on a file or buffer. It is a means of indicating
+a file you want to return to. When a file is tagged, Grapple will save your
+cursor location so that when you jump back, your cursor is placed right where
+you left off. In a sense, tags are like file-level marks (`:h mark`).
+
+There are a couple types of tag types available, each with a different use-case
+in mind. The options available are |grapple.nvim-anonymous| and
+|grapple.nvim-named| tags. In addition, tags are |grapple.nvim-scoped| to
+prevent tags in one project polluting the namespace of another. For command and
+API information, please see the |grapple.nvim-usage| below. For additional
+examples, see the Wiki <https://github.com/cbochs/grapple.nvim/wiki/File-Tags>.
+
+
+ANONYMOUS TAGS ~
+
+This is the _default_ tag type. Anonymous tags are added to a list, where they
+may be selected by index, cycled through, or jumped to using the
+|grapple.nvim-tag-popup-menu| or plugins such as portal.nvim
+<https://github.com/cbochs/portal.nvim>.
+
+Anonymous tags are similar to those found in plugins like harpoon
+<https://github.com/ThePrimeagen/harpoon>.
+
+
+NAMED TAGS ~
+
+Tags that are given a name are considered to be **named tags**. These tags will
+not be cycled through with `cycle_{backward, forward}`, but instead must be
+explicitly selected.
+
+Named tags are useful if you want one or two keymaps to be used for tagging and
+selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to
+`select/toggle` a file tag (see: |grapple.nvim-suggested-keymaps|).
+
+
+PROJECT SCOPES                      *grapple.nvim-grapple.nvim-project-scopes*
+
+A **scope** is a means of namespacing tags to a specific project. During
+runtime, scopes are typically resolved into an absolute directory path
+(i.e. current working directory), which - in turn - is used as the "root"
+location for a set of tags.
+
+Project scopes are _cached by default_, and will only update when the cache is
+|grapple.nvim-explicitly-invalidated|, an associated (|`:h autocmd`|) is
+triggered, or at a specified interval. For example, the `static` scope never
+updates once cached; the `directory` scope only updates on `DirChanged`; and
+the `lsp` scope updates on either `LspAttach` or `LspDetach`.
+
+A **project scope** is determined by means of a **scope resolver**. The builtin
+options are as follows:
+
+
+- `none`tags are ephemeral and deleted on exit
+- `global`tags are scoped to a global namespace
+- `static`tags are scoped to neovim’s initial working directory
+- `directory`tags are scoped to the current working directory
+- `lsp`tags are scoped using the `root_dir` of the current buffer’s attached LSP server, **fallback**`static`
+- `git`tags are scoped to the current git repository, **fallback**`static`
+- `git_branch`tags are scoped to the current git repository and branch (async), **fallback**`static`
+
+There are three additional scope resolvers which should be preferred when
+creating a **fallback scope resolver** or **suffix scope resolver**. These
+resolvers act identically to their similarly named counterparts, but do not
+have default fallbacks.
+
+
+- `lsp_fallback`the same as `lsp`, but without a fallback
+- `git_fallback`the same as `git`, but without a fallback
+- `git_branch_suffix`resolves suffix (branch) for `git_branch` (async)
+
+It is also possible to create your own **custom scope resolver**. For the
+available scope resolver types, please see the Scope API in
+|grapple.nvim-usage|. For additional examples, see the Wiki
+<https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes>.
+
+**Examples**
+
+>lua
+    -- Setup using a builtin scope resolver
+    require("grapple").setup({
+        scope = require("grapple").resolvers.git
+    })
+    
+    -- Setup using a custom scope resolver
+    require("grapple").setup({
+        scope = require("grapple.scope").resolver(function()
+            return vim.fn.getcwd()
+        end, { cache = "DirChanged" })
+    })
+<
+
+
 POPUP MENU                              *grapple.nvim-grapple.nvim-popup-menu*
 
 A popup menu is available to enable easy management of tags and scopes. The
@@ -907,7 +916,7 @@ toggle, etc).
 - **buffer**`integer`
 - **file_path**`string`
 - **key**|grapple.nvim-`grapple.tagkey`|
-- **scope**|grapple.nvim-`grapple.scope`|
+- **scope**|grapple.nvim-`grapple.scoperesolverlike`|
 
 ------------------------------------------------------------------------------
 
