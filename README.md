@@ -26,7 +26,7 @@ See the [quickstart](#quickstart) section to get started.
 ## Quickstart
 
 - [Install](#installation) Grapple.nvim using your preferred package manager
-- Add a keybind to [create](#grappletag), [delete](#grappleuntag), or [toggle](#grappletoggle) a tag. For example,
+- Add a keybind to `tag`, `untag`, or `toggle` a tag. For example,
     ```lua
     vim.keymap.set("n", "<leader>m", require("grapple").toggle)
     ```
@@ -34,15 +34,15 @@ See the [quickstart](#quickstart) section to get started.
 **Next steps**
 
 - The default settings can be found in the [settings](#default-settings) section
-- The Grapple API can be found in the [usage](#usage) section
+- The full Grapple API can be found in the [usage](#usage) section
 - View your tags [in a popup](#popup-menu) using `:GrapplePopup tags`
-- Add a [grapple component](#statusline) to your statusline
-- Choose a [builtin](#project-scopes) scope or try your hand at creating a [custom](#grapplescoperesolver) scope to store your tags
+- Know when a file is tagged by adding [statusline component](#statusline)
+- Choose a [builtin](#project-scopes) scope or try your hand at creating a [custom](#scope-api) scope to store your tags
 
 ## Installation
 
 <details>
-<summary><b>lazy.nvim</b></summary>
+<summary>lazy.nvim</summary>
 
 ```lua
 {
@@ -54,7 +54,7 @@ See the [quickstart](#quickstart) section to get started.
 </details>
 
 <details>
-<summary><b>packer</b></summary>
+<summary>packer</summary>
 
 ```lua
 use {
@@ -66,7 +66,7 @@ use {
 </details>
 
 <details>
-<summary><b>vim-plug</b></summary>
+<summary>vim-plug</summary>
 
 ```vim
 Plug "nvim-lua/plenary.nvim"
@@ -78,6 +78,9 @@ Plug "cbochs/grapple.nvim"
 ## Default Settings
 
 The following are the default settings for Grapple. **Setup is not required**, but settings may be overridden by passing them as table arguments to the `grapple#setup` function.
+
+<details>
+<summary>Settings</summary>
 
 ```lua
 require("grapple").setup({
@@ -106,12 +109,14 @@ require("grapple").setup({
 })
 ```
 
+</details>
+
 ## Usage
 
-<details>
-<summary>Grapple API</summary>
-
 ### Grapple API
+
+<details>
+<summary>Grapple API and Examples</summary>
 
 #### `grapple#tag`
 
@@ -356,10 +361,10 @@ require("grapple").quickfix("global")
 
 </details>
 
-<details>
-<summary>Scope API</summary>
-
 ### Scope API
+
+<details>
+<summary>Scope API and Examples</summary>
 
 #### `grapple.scope#resolver`
 
