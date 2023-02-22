@@ -9,7 +9,7 @@ Table of Contents                             *grapple.nvim-table-of-contents*
   - Requirements                      |grapple.nvim-grapple.nvim-requirements|
   - Quickstart                          |grapple.nvim-grapple.nvim-quickstart|
   - Installation                      |grapple.nvim-grapple.nvim-installation|
-  - Default Settings              |grapple.nvim-grapple.nvim-default-settings|
+  - Settings                              |grapple.nvim-grapple.nvim-settings|
   - Usage                                    |grapple.nvim-grapple.nvim-usage|
   - File Tags                            |grapple.nvim-grapple.nvim-file-tags|
   - Project Scopes                  |grapple.nvim-grapple.nvim-project-scopes|
@@ -29,7 +29,7 @@ _Theme: kanagawa_
 INTRODUCTION                          *grapple.nvim-grapple.nvim-introduction*
 
 Grapple is a plugin that aims to provide immediate navigation to important
-files (and its last known cursor location) by means of persistent
+files (and their last known cursor location) by means of persistent
 |grapple.nvim-file-tags| within a |grapple.nvim-project-scope|. Tagged files
 can be bound to a |grapple.nvim-keymap| or selected from within an editable
 |grapple.nvim-popup-menu|.
@@ -59,7 +59,10 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 
 - |grapple.nvim-install| Grapple.nvim using your preferred package manager
 - Add a keybind to `tag`, `untag`, or `toggle` a tag. For example,
-    `lua     vim.keymap.set("n", "<leader>m", require("grapple").toggle)`
+
+>lua
+    vim.keymap.set("n", "<leader>m", require("grapple").toggle)
+<
 
 **Next steps**
 
@@ -99,13 +102,13 @@ vim-plug ~
 <
 
 
-DEFAULT SETTINGS                  *grapple.nvim-grapple.nvim-default-settings*
+SETTINGS                                  *grapple.nvim-grapple.nvim-settings*
 
 The following are the default settings for Grapple. **Setup is not required**,
 but settings may be overridden by passing them as table arguments to the
 `grapplesetup` function.
 
-Settings ~
+Default Settings ~
 
 >lua
     require("grapple").setup({
