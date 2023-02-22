@@ -106,68 +106,12 @@ require("grapple").setup({
 })
 ```
 
-## File Tags
-
-A **tag** is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
-
-There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below. For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/File-Tags).
-
-### Anonymous Tags
-
-This is the _default_ tag type. Anonymous tags are added to a list, where they may be selected by index, cycled through, or jumped to using the [tag popup menu](#tag-popup-menu) or plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
-
-Anonymous tags are similar to those found in plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
-
-### Named Tags
-
-Tags that are given a name are considered to be **named tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
-
-Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag (see: [suggested keymaps](#named-tag-keymaps)).
-
-## Project Scopes
-
-A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are typically resolved into an absolute directory path (i.e. current working directory), which - in turn - is used as the "root" location for a set of tags.
-
-Project scopes are _cached by default_, and will only update when the cache is [explicitly invalidated](#grapplescopeinvalidate), an associated ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html)) is triggered, or at a specified interval. For example, the `static` scope never updates once cached; the `directory` scope only updates on `DirChanged`; and the `lsp` scope updates on either `LspAttach` or `LspDetach`.
-
-A **project scope** is determined by means of a **[scope resolver](#grapplescoperesolver)**. The builtin options are as follows:
-
-* `none`: tags are ephemeral and deleted on exit
-* `global`: tags are scoped to a global namespace
-* `static`: tags are scoped to neovim's initial working directory
-* `directory`: tags are scoped to the current working directory
-* `lsp`: tags are scoped using the `root_dir` of the current buffer's attached LSP server, **fallback**: `static`
-* `git`: tags are scoped to the current git repository, **fallback**: `static`
-* `git_branch`: tags are scoped to the current git repository and branch (async), **fallback**: `static`
-
-There are three additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)** or **[suffix scope resolver](#grapplescopesuffix)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
-
-* `lsp_fallback`: the same as `lsp`, but without a fallback
-* `git_fallback`: the same as `git`, but without a fallback
-* `git_branch_suffix`: resolves suffix (branch) for `git_branch` (async)
-
-It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
-
-**Examples**
-
-```lua
--- Setup using a builtin scope resolver
-require("grapple").setup({
-    scope = require("grapple").resolvers.git
-})
-
--- Setup using a custom scope resolver
-require("grapple").setup({
-    scope = require("grapple.scope").resolver(function()
-        return vim.fn.getcwd()
-    end, { cache = "DirChanged" })
-})
-```
-
-### Usage
+## Usage
 
 <details>
 <summary>Grapple API</summary>
+
+### Grapple API
 
 #### `grapple#tag`
 
@@ -415,6 +359,8 @@ require("grapple").quickfix("global")
 <details>
 <summary>Scope API</summary>
 
+### Scope API
+
 #### `grapple.scope#resolver`
 
 Create a scope resolver that generates a project scope.
@@ -608,6 +554,63 @@ require("grapple.scope").update(my_resolver)
 
 </details>
 
+## File Tags
+
+A **tag** is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
+
+There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below. For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/File-Tags).
+
+### Anonymous Tags
+
+This is the _default_ tag type. Anonymous tags are added to a list, where they may be selected by index, cycled through, or jumped to using the [tag popup menu](#tag-popup-menu) or plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
+
+Anonymous tags are similar to those found in plugins like [harpoon](https://github.com/ThePrimeagen/harpoon).
+
+### Named Tags
+
+Tags that are given a name are considered to be **named tags**. These tags will not be cycled through with `cycle_{backward, forward}`, but instead must be explicitly selected.
+
+Named tags are useful if you want one or two keymaps to be used for tagging and selecting. For example, the pairs `<leader>j/J` and `<leader>k/K` to `select/toggle` a file tag (see: [suggested keymaps](#named-tag-keymaps)).
+
+## Project Scopes
+
+A **scope** is a means of namespacing tags to a specific project. During runtime, scopes are typically resolved into an absolute directory path (i.e. current working directory), which - in turn - is used as the "root" location for a set of tags.
+
+Project scopes are _cached by default_, and will only update when the cache is [explicitly invalidated](#grapplescopeinvalidate), an associated ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html)) is triggered, or at a specified interval. For example, the `static` scope never updates once cached; the `directory` scope only updates on `DirChanged`; and the `lsp` scope updates on either `LspAttach` or `LspDetach`.
+
+A **project scope** is determined by means of a **[scope resolver](#grapplescoperesolver)**. The builtin options are as follows:
+
+* `none`: tags are ephemeral and deleted on exit
+* `global`: tags are scoped to a global namespace
+* `static`: tags are scoped to neovim's initial working directory
+* `directory`: tags are scoped to the current working directory
+* `lsp`: tags are scoped using the `root_dir` of the current buffer's attached LSP server, **fallback**: `static`
+* `git`: tags are scoped to the current git repository, **fallback**: `static`
+* `git_branch`: tags are scoped to the current git repository and branch (async), **fallback**: `static`
+
+There are three additional scope resolvers which should be preferred when creating a **[fallback scope resolver](#grapplescopefallback)** or **[suffix scope resolver](#grapplescopesuffix)**. These resolvers act identically to their similarly named counterparts, but do not have default fallbacks.
+
+* `lsp_fallback`: the same as `lsp`, but without a fallback
+* `git_fallback`: the same as `git`, but without a fallback
+* `git_branch_suffix`: resolves suffix (branch) for `git_branch` (async)
+
+It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
+
+**Examples**
+
+```lua
+-- Setup using a builtin scope resolver
+require("grapple").setup({
+    scope = require("grapple").resolvers.git
+})
+
+-- Setup using a custom scope resolver
+require("grapple").setup({
+    scope = require("grapple.scope").resolver(function()
+        return vim.fn.getcwd()
+    end, { cache = "DirChanged" })
+})
+```
 ## Popup Menu
 
 A popup menu is available to enable easy management of tags and scopes. The opened buffer (filetype: `grapple`) can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
