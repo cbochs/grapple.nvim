@@ -42,7 +42,7 @@ See the [quickstart](#quickstart) section to get started.
 ## Installation
 
 <details>
-<summary><b>lazy.nvim</summary>
+<summary><b>lazy.nvim</b></summary>
 
 ```lua
 {
@@ -54,7 +54,7 @@ See the [quickstart](#quickstart) section to get started.
 </details>
 
 <details>
-<summary><b>packer</summary>
+<summary><b>packer</b></summary>
 
 ```lua
 use {
@@ -66,7 +66,7 @@ use {
 </details>
 
 <details>
-<summary><b>vim-plug</summary>
+<summary><b>vim-plug</b></summary>
 
 ```vim
 Plug "nvim-lua/plenary.nvim"
@@ -761,7 +761,7 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 * **`buffer`**: `integer`
 * **`file_path`**: `string`
 * **`key`**: [`Grapple.TagKey`](#grappletagkey)
-* **`scope`**: [`Grapple.Scope`](#grapplescope)
+* **`scope`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
 
 ---
 
