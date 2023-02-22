@@ -6,7 +6,7 @@ _Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#project-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
+Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#project-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
 See the [quickstart](#quickstart) section to get started.
 
@@ -27,13 +27,14 @@ See the [quickstart](#quickstart) section to get started.
 
 - [Install](#installation) Grapple.nvim using your preferred package manager
 - Add a keybind to `tag`, `untag`, or `toggle` a tag. For example,
-    ```lua
-    vim.keymap.set("n", "<leader>m", require("grapple").toggle)
-    ```
+
+```lua
+vim.keymap.set("n", "<leader>m", require("grapple").toggle)
+```
 
 **Next steps**
 
-- The default settings can be found in the [settings](#default-settings) section
+- The default settings can be found in the [settings](#settings) section
 - The full Grapple API can be found in the [usage](#usage) section
 - View your tags [in a popup](#popup-menu) using `:GrapplePopup tags`
 - Know when a file is tagged by adding [statusline component](#statusline)
@@ -75,12 +76,12 @@ Plug "cbochs/grapple.nvim"
 
 </details>
 
-## Default Settings
+## Settings
 
 The following are the default settings for Grapple. **Setup is not required**, but settings may be overridden by passing them as table arguments to the `grapple#setup` function.
 
 <details>
-<summary>Settings</summary>
+<summary>Default Settings</summary>
 
 ```lua
 require("grapple").setup({
