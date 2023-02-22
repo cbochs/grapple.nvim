@@ -8,7 +8,7 @@ _Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
 Grapple is a plugin that aims to provide immediate navigation to important files (and its last known cursor location) by means of persistent [file tags](#file-tags) within a [project scope](#project-scopes). Tagged files can be bound to a [keymap](#suggested-keymaps) or selected from within an editable [popup menu](#popup-menu).
 
-To get started, [install](#installation) the plugin using your preferred package manager and give it a go! Default settings for the plugin can be found in the [settings](#default-settings) section below. The API provided by Grapple can be found in the [usage](#usage) section below.
+See the [quickstart](#quickstart) section to get started.
 
 ## Features
 
@@ -23,9 +23,25 @@ To get started, [install](#installation) the plugin using your preferred package
 * Neovim >= 0.9 - optional, for [floating window title](https://github.com/neovim/neovim/issues/17458)
 * [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 
+## Quickstart
+
+- [Install](#installation) Grapple.nvim using your preferred package manager
+- Add a keybind to [create](#grappletag), [delete](#grappleuntag), or [toggle](#grappletoggle) a tag. For example,
+    ```lua
+    vim.keymap.set("n", "<leader>m", require("grapple").toggle)
+    ```
+
+**Next steps**
+
+- The default settings can be found in the [settings](#default-settings) section
+- The Grapple API can be found in the [usage](#usage) section
+- View your tags [in a popup](#popup-menu) using `:GrapplePopup tags`
+- Add a [grapple component](#statusline) to your statusline
+- Choose a [builtin](#project-scopes) scope or try your hand at creating a [custom](#grapplescoperesolver) scope to store your tags
+
 ## Installation
 
-<details open>
+<details>
 <summary><b>lazy.nvim</summary>
 
 ```lua
@@ -655,7 +671,7 @@ When a user starts Neovim, no scopes are initially loaded. Instead, Grapple will
 #### Anonymous tag keymaps
 
 ```lua
-vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
+vim.keymap.set("n", "<leader>m", require("grapple").toggle)
 ```
 
 #### Named tag keymaps
@@ -663,11 +679,11 @@ vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
 ```lua
 vim.keymap.set("n", "<leader>j", function()
     require("grapple").select({ key = "{name}" })
-end, {})
+end)
 
 vim.keymap.set("n", "<leader>J", function()
     require("grapple").toggle({ key = "{name}" })
-end, {})
+end)
 ```
 
 ## Integrations
