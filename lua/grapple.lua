@@ -8,10 +8,10 @@ local initialized = false
 --- @field buffer integer
 --- @field file_path string
 --- @field key Grapple.TagKey
+--- @field scope Grapple.Scope
 
 grapple.resolvers = require("grapple.scope_resolvers")
 
----@param overrides? Grapple.Settings
 function grapple.initialize()
     if initialized then
         return
@@ -35,7 +35,7 @@ end
 function grapple.tag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
 
-    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
     require("grapple.tags").tag(scope, opts)
 end
 
@@ -43,7 +43,7 @@ end
 function grapple.untag(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
 
-    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
     require("grapple.tags").untag(scope, opts)
 end
 
@@ -68,7 +68,7 @@ end
 function grapple.find(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
 
-    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
     return require("grapple.tags").find(scope, opts)
 end
 
@@ -76,7 +76,7 @@ end
 function grapple.key(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
 
-    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
     return require("grapple.tags").key(scope, opts)
 end
 
@@ -85,12 +85,15 @@ function grapple.exists(opts)
     return grapple.key(opts) ~= nil
 end
 
----@param opts? Grapple.Options
 ---@param direction Grapple.Direction
+---@param opts? Grapple.Options
 function grapple.cycle(opts, direction)
+    opts = opts or {}
+
     local tag_key = grapple.key(opts)
     local start_index = (type(tag_key) == "number") and tag_key or 0
-    local scope = require("grapple.state").ensure_loaded(settings.scope)
+    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
+
     local tag = require("grapple.tags").next(scope, start_index, direction)
     if tag ~= nil then
         require("grapple.tags").select(tag)
