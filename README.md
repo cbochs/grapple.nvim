@@ -139,7 +139,7 @@ require("grapple").setup({
 
 Create a scoped tag on a file or buffer with an (optional) tag key.
 
-**Command**: `:GrappleTag [key={index} or key={name}] [buffer={buffer}] [file_path={file_path}]`
+**Command**: `:GrappleTag [key={index} or key={name}] [buffer={buffer}] [file_path={file_path}] [scope={scope}]`
 
 **API**: `require("grapple").tag(opts)`
 
@@ -148,6 +148,7 @@ Create a scoped tag on a file or buffer with an (optional) tag key.
 * **`buffer?`**: `integer` (default: `0`)
 * **`file_path?`**: `string` (overrides `buffer`)
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey)
+* **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
 **Note**: only one tag can be created _per scope per file_. If a tag already exists for the given file or buffer, it will be overridden with the new tag.
 
@@ -160,16 +161,19 @@ require("grapple").tag()
 -- Tag a file using its file path
 require("grapple").tag({ file_path = "{file_path}" })
 
--- Tag the curent buffer using a specified key
+-- Tag the current buffer using a specified key
 require("grapple").tag({ key = 1 })
 require("grapple").tag({ key = "{name}" })
+
+-- Tag the current buffer in a specified scope
+require("grapple").tag({ scope = "global" })
 ```
 
 #### `grapple#untag`
 
 Remove a scoped tag on a file or buffer.
 
-**Command**: `:GrappleUntag [key={name} or key={index}] [buffer={buffer}] [file_path={file_path}]`
+**Command**: `:GrappleUntag [key={name} or key={index}] [buffer={buffer}] [file_path={file_path}] [scope={scope}]`
 
 **API**: `require("grapple").untag(opts)`
 
@@ -178,6 +182,7 @@ Remove a scoped tag on a file or buffer.
 * **`buffer?`**: `integer` (default: `0`)
 * **`file_path?`**: `string` (overrides `buffer`)
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
+* **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
 **Examples**
 
@@ -191,13 +196,16 @@ require("grapple").untag({ file_path = "{file_path}" })
 -- Untag a file using its tag key
 require("grapple").untag({ key = 1 })
 require("grapple").untag({ key = "{name}" })
+
+-- Untag a the current buffer from a scope
+require("grapple").untag({ scope = "global" })
 ```
 
 #### `grapple#toggle`
 
 Toggle a tag or untag on a file or buffer.
 
-**Command**: `:GrappleToggle [key={index} or key={name}] [buffer={buffer}] [file_path={file_path}]`
+**Command**: `:GrappleToggle [key={index} or key={name}] [buffer={buffer}] [file_path={file_path}] [scope={scope}]`
 
 **API**: `require("grapple").toggle(opts)`
 
@@ -206,6 +214,7 @@ Toggle a tag or untag on a file or buffer.
 * **`buffer?`**: `integer` (default: `0`)
 * **`file_path?`**: `string` (overrides `buffer`)
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (behaviour inherited from [grapple#tag](#grappletag) and [grapple#untag](#grappleuntag))
+* **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
 
 **Examples**
 
@@ -291,12 +300,16 @@ require("grapple").key()
 * **`buffer?`**: `integer` (default: `0`)
 * **`file_path?`**: `string` (overrides `buffer`)
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
+* **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
 **Examples**
 
 ```lua
 -- Check whether the current buffer is tagged or not
 require("grapple").exists()
+
+-- Check for a tag in a different scope
+require("grapple").exists({ scope = "global" })
 ```
 
 #### `grapple#cycle`
@@ -714,6 +727,7 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 * **`buffer`**: `integer`
 * **`file_path`**: `string`
 * **`key`**: [`Grapple.TagKey`](#grappletagkey)
+* **`scope`**: [`Grapple.Scope`](#grapplescope)
 
 ---
 
