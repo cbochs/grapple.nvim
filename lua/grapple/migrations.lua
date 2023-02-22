@@ -19,10 +19,10 @@ function migrations.migrate(save_dir)
 
     local migration_list = {
         -- Give two weeks migration time. Delete 12-12-2022
-        "20221126_save_as_individual_files",
+        -- "20221126_save_as_individual_files",
 
         -- Give two weeks migration time. Delete 14-12-2022
-        "20221130_separate_named_and_indexed_tags",
+        -- "20221130_separate_named_and_indexed_tags",
     }
 
     for _, migration_name in ipairs(migration_list) do
