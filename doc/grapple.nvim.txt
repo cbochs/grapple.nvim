@@ -7,6 +7,7 @@ Table of Contents                             *grapple.nvim-table-of-contents*
   - Introduction                      |grapple.nvim-grapple.nvim-introduction|
   - Features                              |grapple.nvim-grapple.nvim-features|
   - Requirements                      |grapple.nvim-grapple.nvim-requirements|
+  - Quickstart                          |grapple.nvim-grapple.nvim-quickstart|
   - Installation                      |grapple.nvim-grapple.nvim-installation|
   - Default Settings              |grapple.nvim-grapple.nvim-default-settings|
   - File Tags                            |grapple.nvim-grapple.nvim-file-tags|
@@ -32,10 +33,7 @@ files (and its last known cursor location) by means of persistent
 can be bound to a |grapple.nvim-keymap| or selected from within an editable
 |grapple.nvim-popup-menu|.
 
-To get started, |grapple.nvim-install| the plugin using your preferred package
-manager and give it a go! Default settings for the plugin can be found in the
-|grapple.nvim-settings| section below. The API provided by Grapple can be found
-in the |grapple.nvim-usage| section below.
+See the |grapple.nvim-quickstart| section to get started.
 
 
 FEATURES                                  *grapple.nvim-grapple.nvim-features*
@@ -55,10 +53,35 @@ REQUIREMENTS                          *grapple.nvim-grapple.nvim-requirements*
 - plenary.nvim <https://github.com/nvim-lua/plenary.nvim>
 
 
+QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
+
+
+- |grapple.nvim-install| Grapple.nvim using your preferred package manager
+- Add a keybind to |grapple.nvim-create|, |grapple.nvim-delete|, or |grapple.nvim-toggle| a tag. For example,
+    `lua     vim.keymap.set("n", "<leader>m", require("grapple").toggle)`
+
+**Next steps**
+
+
+- The default settings can be found in the |grapple.nvim-settings| section
+- The Grapple API can be found in the |grapple.nvim-usage| section
+- View your tags |grapple.nvim-in-a-popup| using `:GrapplePopup tags`
+- Add a |grapple.nvim-grapple-component| to your statusline
+- Choose a |grapple.nvim-builtin| scope or try your hand at creating a |grapple.nvim-custom| scope to store your tags
+
+
 INSTALLATION                          *grapple.nvim-grapple.nvim-installation*
 
+lazy.nvim ~
 
-PACKER ~
+>lua
+    {
+        "cbochs/grapple.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+    }
+<
+
+packer ~
 
 >lua
     use {
@@ -67,8 +90,7 @@ PACKER ~
     }
 <
 
-
-VIM-PLUG ~
+vim-plug ~
 
 >vim
     Plug "nvim-lua/plenary.nvim"
@@ -785,7 +807,7 @@ SUGGESTED KEYMAPS                *grapple.nvim-grapple.nvim-suggested-keymaps*
 ANONYMOUS TAG KEYMAPS
 
 >lua
-    vim.keymap.set("n", "<leader>m", require("grapple").toggle, {})
+    vim.keymap.set("n", "<leader>m", require("grapple").toggle)
 <
 
 
@@ -794,11 +816,11 @@ NAMED TAG KEYMAPS
 >lua
     vim.keymap.set("n", "<leader>j", function()
         require("grapple").select({ key = "{name}" })
-    end, {})
+    end)
     
     vim.keymap.set("n", "<leader>J", function()
         require("grapple").toggle({ key = "{name}" })
-    end, {})
+    end)
 <
 
 
