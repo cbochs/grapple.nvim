@@ -1,4 +1,4 @@
-*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2023 February 22
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2023 February 23
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -67,11 +67,11 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 **Next steps**
 
 
-- The default settings can be found in the |grapple.nvim-settings| section
-- The full Grapple API can be found in the |grapple.nvim-usage| section
+- Check out the default settings in the |grapple.nvim-settings| section
 - View your tags |grapple.nvim-in-a-popup| using `:GrapplePopup tags`
 - Know when a file is tagged by adding |grapple.nvim-statusline-component|
 - Choose a |grapple.nvim-builtin| scope or try your hand at creating a |grapple.nvim-custom| scope to store your tags
+- Explore the |grapple.nvim-grapple| and |grapple.nvim-scope| APIs
 
 
 INSTALLATION                          *grapple.nvim-grapple.nvim-installation*
@@ -644,7 +644,7 @@ There are a couple types of tag types available, each with a different use-case
 in mind. The options available are |grapple.nvim-anonymous| and
 |grapple.nvim-named| tags. In addition, tags are |grapple.nvim-scoped| to
 prevent tags in one project polluting the namespace of another. For command and
-API information, please see the |grapple.nvim-usage| below. For additional
+API information, please see the |grapple.nvim-grapple-api|. For additional
 examples, see the Wiki <https://github.com/cbochs/grapple.nvim/wiki/File-Tags>.
 
 
@@ -706,8 +706,8 @@ have default fallbacks.
 - `git_branch_suffix`resolves suffix (branch) for `git_branch` (async)
 
 It is also possible to create your own **custom scope resolver**. For the
-available scope resolver types, please see the Scope API in
-|grapple.nvim-usage|. For additional examples, see the Wiki
+available scope resolver types, please see the |grapple.nvim-scope-api|. For
+additional examples, see the Wiki
 <https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes>.
 
 **Examples**
