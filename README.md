@@ -445,7 +445,7 @@ Create a scope resolver that generates a project scope by attempting to get the 
 
 **`scope_resolvers`**: [`Grapple.ScopeResolver[]`](#grapplescoperesolver-1)
 
-**`opts?`**: [`Grapple.ScopeOptions[]`](#grapplescopeoptions)
+**`opts?`**: [`Grapple.ScopeOptions`](#grapplescopeoptions)
 
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 * **`persist?`**: `boolean` (default: `true`)
@@ -475,7 +475,7 @@ Create a scope resolver that takes in two scope resolvers: a **path resolver** a
 
 **`suffix_resolver`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
 
-**`opts?`**: [`Grapple.ScopeOptions[]`](#grapplescopeoptions)
+**`opts?`**: [`Grapple.ScopeOptions`](#grapplescopeoptions)
 
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 * **`persist?`**: `boolean` (default: `true`)
@@ -501,7 +501,7 @@ Create a scope resolver that simply returns a static string. Useful when creatin
 
 **`plain_string`**: `string`
 
-**`opts?`**: [`Grapple.ScopeOptions[]`](#grapplescopeoptions)
+**`opts?`**: [`Grapple.ScopeOptions`](#grapplescopeoptions)
 
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 * **`persist?`**: `boolean` (default: `true`)
