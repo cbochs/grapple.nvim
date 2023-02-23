@@ -34,11 +34,11 @@ vim.keymap.set("n", "<leader>m", require("grapple").toggle)
 
 **Next steps**
 
-- The default settings can be found in the [settings](#settings) section
-- The full Grapple API can be found in the [usage](#usage) section
+- Check out the default settings in the [settings](#settings) section
 - View your tags [in a popup](#popup-menu) using `:GrapplePopup tags`
 - Know when a file is tagged by adding [statusline component](#statusline)
 - Choose a [builtin](#project-scopes) scope or try your hand at creating a [custom](#scope-api) scope to store your tags
+- Explore the [Grapple](#grapple-api) and [Scope](#scope-api) APIs
 
 ## Installation
 
@@ -564,7 +564,7 @@ require("grapple.scope").update(my_resolver)
 
 A **tag** is a persistent tag on a file or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks (`:h mark`).
 
-There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [usage](#usage) below. For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/File-Tags).
+There are a couple types of tag types available, each with a different use-case in mind. The options available are [anonymous](#anonymous-tags) and [named](#named-tags) tags. In addition, tags are [scoped](#project-scopes) to prevent tags in one project polluting the namespace of another. For command and API information, please see the [Grapple API](#grapple-api). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/File-Tags).
 
 ### Anonymous Tags
 
@@ -600,7 +600,7 @@ There are three additional scope resolvers which should be preferred when creati
 * `git_fallback`: the same as `git`, but without a fallback
 * `git_branch_suffix`: resolves suffix (branch) for `git_branch` (async)
 
-It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the Scope API in [usage](#usage). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
+It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the [Scope API](#scope-api). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
 
 **Examples**
 
