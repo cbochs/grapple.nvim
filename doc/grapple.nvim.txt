@@ -504,7 +504,7 @@ project scope of other scope resolvers, in order.
 
 **scope_resolvers**|grapple.nvim-`grapple.scoperesolver[]`|
 
-**opts?**|grapple.nvim-`grapple.scopeoptions[]`|
+**opts?**|grapple.nvim-`grapple.scopeoptions`|
 
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
@@ -540,7 +540,7 @@ in situations where you may want to append additional project information
 
 **suffix_resolver**|grapple.nvim-`grapple.scoperesolver`|
 
-**opts?**|grapple.nvim-`grapple.scopeoptions[]`|
+**opts?**|grapple.nvim-`grapple.scopeoptions`|
 
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
@@ -569,7 +569,7 @@ creating sub-groups with |grapple.nvim-`grapple.scopesuffix`|.
 
 **plain_string**`string`
 
-**opts?**|grapple.nvim-`grapple.scopeoptions[]`|
+**opts?**|grapple.nvim-`grapple.scopeoptions`|
 
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
