@@ -1,4 +1,4 @@
-*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2023 February 23
+*grapple.nvim.txt*          For NVIM v0.8.0         Last change: 2023 March 01
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -119,6 +119,10 @@ Default Settings ~
         ---or a custom scope resolver
         ---@type string | Grapple.ScopeResolver
         scope = "git",
+    
+        ---The save location for tags
+        ---@type string
+        save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
     
         ---Window options used for the popup menu
         popup_options = {
