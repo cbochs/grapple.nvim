@@ -93,6 +93,10 @@ require("grapple").setup({
     ---@type string | Grapple.ScopeResolver
     scope = "git",
 
+    ---The save location for tags
+    ---@type string
+    save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
+
     ---Window options used for the popup menu
     popup_options = {
         relative = "editor",
