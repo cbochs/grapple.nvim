@@ -268,6 +268,55 @@ describe("scope", function()
         end)
     end)
 
+    describe("#root_from_buffer", function()
+        before_each(function()
+            require("grapple.scope").reset()
+        end)
+
+        it("creates a buffer-based root scope resolver", function()
+            local resolver = require("grapple.scope").root_from_buffer(".git")
+            assert.is_table(resolver)
+            assert.equals("autocmd", resolver.watch.type)
+            assert.equals("BufEnter", resolver.watch.events)
+        end)
+
+        it("resolves a scope when the buffer is in a root file", function()
+            local cur_dir = Path:new("/private/tmp") / string.gsub(vim.fn.tempname(), "%p", "")
+            local root_a = Path:new(cur_dir) / "dir_a"
+            local root_b = Path:new(cur_dir) / "dir_b"
+            local root_file = Path:new(root_a) / "root_file"
+            local open_file = Path:new(root_a) / "some_file"
+
+            cur_dir:mkdir()
+            root_a:mkdir()
+            root_b:mkdir()
+            root_file:touch()
+            open_file:touch()
+            vim.cmd("e " .. tostring(open_file))
+
+            local resolver = require("grapple.scope").root_from_buffer("root_file")
+            assert.equals(tostring(root_a), require("grapple.scope").get(resolver))
+        end)
+
+        it("does not resolve a scope when the buffer is not in a root file", function()
+            local cur_dir = Path:new("/private/tmp") / string.gsub(vim.fn.tempname(), "%p", "")
+            local root_a = Path:new(cur_dir) / "dir_a"
+            local root_b = Path:new(cur_dir) / "dir_b"
+            local root_file = Path:new(root_a) / "root_file"
+            local open_file = Path:new(root_b) / "some_file"
+
+            cur_dir:mkdir()
+            root_a:mkdir()
+            root_b:mkdir()
+            root_file:touch()
+            open_file:touch()
+            vim.cmd("e " .. tostring(open_file))
+
+            local resolver = require("grapple.scope").root_from_buffer("root_file")
+            assert.is_nil(require("grapple.scope").get_safe(resolver))
+        end)
+    end)
+
     describe("#fallback", function()
         it("creates a fallback scope resolver", function()
             local resolver = require("grapple.scope").fallback({ resolvers.basic })

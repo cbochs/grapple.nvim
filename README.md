@@ -422,7 +422,7 @@ Create a scope resolver that generates a project scope by looking upwards for di
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `"DirChanged"`)
 * **`persist?`**: `boolean` (default: `true`)
 
-**Note**: it is recommended to use this with a **[fallback scope resolver](#grapplscopefallback)** to guarantee that a scope is found.
+**Note**: it is recommended to use this with a **[fallback scope resolver](#grapplescopefallback)** to guarantee that a scope is found.
 
 **Example**
 
@@ -438,6 +438,39 @@ require("grapple.scope").fallback({
     require("grapple").resolvers.static,
 })
 ```
+
+#### `grapple.scope#root_from_buffer`
+
+Create a scope resolver that generates a project scope by looking upwards for directories containing a specific file or directory _from the current buffer_.
+
+**API**: `require("grapple.scope").root(root_names, opts)`
+
+**`returns`**: [`Grapple.ScopeResolver`](#grapplescoperesolver-1)
+
+**`root_names`**: `string` | `string[]`
+
+**`opts?`**: [`Grapple.ScopeOptions`](#grapplescopeoptions)
+
+* **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `"BufEnter"`)
+* **`persist?`**: `boolean` (default: `true`)
+
+**Note**: it is recommended to use this with a **[fallback scope resolver](#grapplescopefallback)** to guarantee that a scope is found.
+
+**Example**
+
+```lua
+-- Create a buffer-based root scope resolver that looks for a directory
+-- containing a "Cargo.toml" file
+require("grapple.scope").root_from_buffer("Cargo.toml")
+
+-- Create a buffer-based root scope resolver that falls back to using
+-- the initial working directory for your neovim session
+require("grapple.scope").fallback({
+    require("grapple.scope").root_from_buffer("Cargo.toml"),
+    require("grapple").resolvers.static,
+})
+```
+
 
 #### `grapple.scope#fallback`
 
@@ -621,6 +654,7 @@ require("grapple").setup({
     end, { cache = "DirChanged" })
 })
 ```
+
 ## Popup Menu
 
 A popup menu is available to enable easy management of tags and scopes. The opened buffer (filetype: `grapple`) can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. Currently, there are two available popup menus: one for [tags](#tag-popup-menu) and another for [scopes](#scope-popup-menu).
