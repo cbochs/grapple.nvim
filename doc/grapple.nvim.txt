@@ -170,7 +170,7 @@ Create a scoped tag on a file or buffer with an (optional) tag key.
 **Note**only one tag can be created _per scope per file_. If a tag already
 exists for the given file or buffer, it will be overridden with the new tag.
 
-**Examples**
+Examples ~
 
 >lua
     -- Tag the current buffer
@@ -205,7 +205,7 @@ Remove a scoped tag on a file or buffer.
 - **key?**|grapple.nvim-`grapple.tagkey`| (overrides `buffer` and `file_path`)
 - **scope?**|grapple.nvim-`grapple.scoperesolverlike`| (default: `settings.scope`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Untag the current buffer
@@ -240,7 +240,7 @@ Toggle a tag or untag on a file or buffer.
 - **key?**|grapple.nvim-`grapple.tagkey`| (behaviour inherited from |grapple.nvim-grappletag| and |grapple.nvim-grappleuntag|)
 - **scope?**|grapple.nvim-`grapple.scoperesolverlike`|
 
-**Examples**
+Examples ~
 
 >lua
     -- Toggle a tag on the current buffer
@@ -263,7 +263,7 @@ Select and open a tagged file or buffer in the current window.
 - **file_path?**`string`
 - **key?**|grapple.nvim-`grapple.tagkey`| (preferred)
 
-**Examples**
+Examples ~
 
 >lua
     -- Select an anonymous (numbered) tag
@@ -289,7 +289,7 @@ Attempt to find a scoped tag.
 - **file_path?**`string` (overrides `buffer`)
 - **key?**|grapple.nvim-`grapple.tagkey`| (overrides `buffer` and `file_path`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Find the tag associated with the current buffer
@@ -312,7 +312,7 @@ Attempt to find the key associated with a file tag.
 - **file_path?**`string` (overrides `buffer`)
 - **key?**|grapple.nvim-`grapple.tagkey`| (overrides `buffer` and `file_path`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Find the tag key associated with the current buffer
@@ -334,7 +334,7 @@ GRAPPLEEXISTS
 - **key?**|grapple.nvim-`grapple.tagkey`| (overrides `buffer` and `file_path`)
 - **scope?**|grapple.nvim-`grapple.scoperesolverlike`| (default: `settings.scope`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Check whether the current buffer is tagged or not
@@ -363,7 +363,7 @@ Cycle through and select from the available tagged files in a scoped tag list.
 **Note**only |grapple.nvim-anonymous-tags| are cycled through, not
 |grapple.nvim-named-tags|.
 
-**Examples**
+Examples ~
 
 >lua
     -- Cycle to the previous tagged file
@@ -385,7 +385,7 @@ Clear all tags for a given project scope.
 **scope?**|grapple.nvim-`grapple.scoperesolverlike`| (default:
 `settings.scope`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Reset tags for the current scope
@@ -406,7 +406,7 @@ tags.
 **scope?**|grapple.nvim-`grapple.scoperesolverlike`| (default:
 `settings.scope`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Open the quickfix menu for the current scope
@@ -439,7 +439,7 @@ Create a scope resolver that generates a project scope.
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `true`)
 - **persist?**`boolean` (default: `true`)
 
-**Example**
+Examples ~
 
 >lua
     -- Create a scope resolver that updates when the current working
@@ -481,7 +481,7 @@ directories containing a specific file or directory.
 **Note**it is recommended to use this with a **fallback scope resolver** to
 guarantee that a scope is found.
 
-**Example**
+Examples ~
 
 >lua
     -- Create a root scope resolver that looks for a directory containing
@@ -517,7 +517,7 @@ directories containing a specific file or directory _from the current buffer_.
 **Note**it is recommended to use this with a **fallback scope resolver** to
 guarantee that a scope is found.
 
-**Example**
+Examples ~
 
 >lua
     -- Create a buffer-based root scope resolver that looks for a directory
@@ -550,7 +550,7 @@ project scope of other scope resolvers, in order.
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **persist?**`boolean` (default: `true`)
 
-**Example**
+Examples ~
 
 >lua
     -- Create a fallback scope resolver that first tries to use the LSP for a scope
@@ -586,7 +586,7 @@ in situations where you may want to append additional project information
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **persist?**`boolean` (default: `true`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Create a suffix scope resolver that duplicates a static resolver
@@ -615,7 +615,7 @@ creating sub-groups with |grapple.nvim-`grapple.scopesuffix`|.
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **persist?**`boolean` (default: `true`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Create a static scope resolver that simply returns "I'm a teapot"
@@ -639,7 +639,7 @@ to re-resolve and re-instantiate the cache.
 
 **scope_resolver**|grapple.nvim-`grapple.scoperesolverlike`|
 
-**Example**
+Examples ~
 
 >lua
     local my_resolver = require("grapple.scope").resolver(function()
@@ -661,7 +661,7 @@ scope, this immediately updates the cached project scope.
 
 **scope_resolver**|grapple.nvim-`grapple.scoperesolverlike`|
 
-**Example**
+Examples ~
 
 >lua
     local my_resolver = require("grapple.scope").resolver(function()
@@ -750,7 +750,7 @@ available scope resolver types, please see the |grapple.nvim-scope-api|. For
 additional examples, see the Wiki
 <https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes>.
 
-**Examples**
+Examples ~
 
 >lua
     -- Setup using a builtin scope resolver
@@ -802,7 +802,7 @@ file opened in a vertical split
 **scope?**|grapple.nvim-`grapple.scoperesolverlike`| (default:
 `settings.scope`)
 
-**Examples**
+Examples ~
 
 >lua
     -- Open the tags popup menu in the current scope
@@ -825,7 +825,7 @@ within a scope will be displayed to the left of the project scope.
 
 **API**`require("grapple.popup_scopes()`
 
-**Examples**
+Examples ~
 
 >lua
     -- Open the scopes popup menu
@@ -914,30 +914,6 @@ or not by using either (or both) |grapple.nvim-`grapplekey`| and
                     cond = require("grapple").exists,
                 }
             }
-        }
-    })
-<
-
-
-RESESSION.NVIM ~
-
-Support is available to use resession.nvim
-<https://github.com/stevearc/resession.nvim> for persisting tag state.
-
-**Usage**
-
->lua
-    -- Enable resession integration during grapple setup
-    require("grapple").setup({
-        integrations = {
-            resession = true
-        }
-    })
-    
-    -- Enable grapple extension during resession setup
-    require("resession").setup({
-        extensions = {
-            grapple = {}
         }
     })
 <
