@@ -834,28 +834,6 @@ require("lualine").setup({
 })
 ```
 
-### [resession.nvim](https://github.com/stevearc/resession.nvim)
-
-Support is available to use [resession.nvim](https://github.com/stevearc/resession.nvim) for persisting tag state.
-
-**Usage**
-
-```lua
--- Enable resession integration during grapple setup
-require("grapple").setup({
-    integrations = {
-        resession = true
-    }
-})
-
--- Enable grapple extension during resession setup
-require("resession").setup({
-    extensions = {
-        grapple = {}
-    }
-})
-```
-
 ## Grapple Types
 
 <details open>
