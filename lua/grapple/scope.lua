@@ -28,7 +28,7 @@ local scope = {}
 ---@field key Grapple.ScopeCacheKey
 ---@field callback Grapple.ScopeFunction | Grapple.ScopeJob
 ---@field persist boolean
----@field watch = Grapple.ScopeWatch
+---@field watch Grapple.ScopeWatch
 
 ---@alias Grapple.ScopeCacheKey integer
 
@@ -121,7 +121,7 @@ function scope.reset()
     cached_scopes = {}
 end
 
----@param Grapple.ScopeResolver
+---@param scope_resolver Grapple.ScopeResolver
 function scope.reset_resolver(scope_resolver)
     cached_scopes[scope_resolver.key] = nil
 
@@ -196,15 +196,37 @@ end
 ---@param opts? Grapple.ScopeOptions
 ---@return Grapple.ScopeResolver
 function scope.root(root_names, opts)
-    root_names = type(root_names) == "string" and { root_names } or root_names
+    return scope.root_base(root_names, false, vim.tbl_extend("force", { cache = "DirChanged" }, opts or {}))
+end
 
+---@param root_names string | string[]
+---@param opts? Grapple.ScopeOptions
+---@return Grapple.ScopeResolver
+function scope.root_from_buffer(root_names, opts)
+    return scope.root_base(root_names, true, vim.tbl_extend("force", { cache = "BufEnter" }, opts or {}))
+end
+
+---@param root_names string | string[]
+---@param from_buffer boolean
+---@param opts? Grapple.ScopeOptions
+---@return Grapple.ScopeResolver
+function scope.root_base(root_names, from_buffer, opts)
+    root_names = type(root_names) == "string" and { root_names } or root_names
     return scope.resolver(function()
-        local root_files = vim.fs.find(root_names, { upward = true })
+        local path
+        if from_buffer then
+            local file_path = vim.api.nvim_buf_get_name(0)
+            if file_path ~= "" then
+                path = vim.fs.dirname(file_path)
+            end
+        end
+
+        local root_files = vim.fs.find(root_names, { upward = true, path = path })
         if #root_files > 0 then
             return vim.fs.dirname(root_files[1])
         end
         return nil
-    end, vim.tbl_extend("force", { cache = "DirChanged" }, opts or {}))
+    end, vim.tbl_extend("force", { cache = true }, opts or {}))
 end
 
 ---@param scope_resolvers Grapple.ScopeResolver[]
