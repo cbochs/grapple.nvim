@@ -140,7 +140,8 @@ Create a scoped tag on a file or buffer with an (optional) tag key.
 
 **Note**: only one tag can be created _per scope per file_. If a tag already exists for the given file or buffer, it will be overridden with the new tag.
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Tag the current buffer
@@ -157,6 +158,8 @@ require("grapple").tag({ key = "{name}" })
 require("grapple").tag({ scope = "global" })
 ```
 
+</details>
+
 #### `grapple#untag`
 
 Remove a scoped tag on a file or buffer.
@@ -172,7 +175,8 @@ Remove a scoped tag on a file or buffer.
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
 * **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Untag the current buffer
@@ -189,6 +193,8 @@ require("grapple").untag({ key = "{name}" })
 require("grapple").untag({ scope = "global" })
 ```
 
+</details>
+
 #### `grapple#toggle`
 
 Toggle a tag or untag on a file or buffer.
@@ -204,12 +210,15 @@ Toggle a tag or untag on a file or buffer.
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (behaviour inherited from [grapple#tag](#grappletag) and [grapple#untag](#grappleuntag))
 * **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Toggle a tag on the current buffer
 require("grapple").toggle()
 ```
+
+</details>
 
 #### `grapple#select`
 
@@ -225,7 +234,8 @@ Select and open a tagged file or buffer in the current window.
 * **`file_path?`**: `string`
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (preferred)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Select an anonymous (numbered) tag
@@ -234,6 +244,8 @@ require("grapple").select({ key = 1 })
 -- Select a named tag
 require("grapple").select({ key = "{name}" })
 ```
+
+</details>
 
 #### `grapple#find`
 
@@ -249,12 +261,15 @@ Attempt to find a scoped tag.
 * **`file_path?`**: `string` (overrides `buffer`)
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Find the tag associated with the current buffer
 require("grapple").find()
 ```
+
+</details>
 
 #### `grapple#key`
 
@@ -270,12 +285,15 @@ Attempt to find the key associated with a file tag.
 * **`file_path?`**: `string` (overrides `buffer`)
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Find the tag key associated with the current buffer
 require("grapple").key()
 ```
+
+</details>
 
 #### `grapple#exists`
 
@@ -290,7 +308,8 @@ require("grapple").key()
 * **`key?`**: [`Grapple.TagKey`](#grappletagkey) (overrides `buffer` and `file_path`)
 * **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Check whether the current buffer is tagged or not
@@ -299,6 +318,8 @@ require("grapple").exists()
 -- Check for a tag in a different scope
 require("grapple").exists({ scope = "global" })
 ```
+
+</details>
 
 #### `grapple#cycle`
 
@@ -316,7 +337,8 @@ Cycle through and select from the available tagged files in a scoped tag list.
 
 **Note**: only [anonymous tags](#anonymous-tags) are cycled through, not [named tags](#named-tags).
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Cycle to the previous tagged file
@@ -325,6 +347,8 @@ require("grapple").cycle_backward()
 -- Cycle to the next tagged file
 require("grapple").cycle_forward()
 ```
+
+</details>
 
 #### `grapple#reset`
 
@@ -336,7 +360,8 @@ Clear all tags for a given project scope.
 
 **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Reset tags for the current scope
@@ -346,6 +371,8 @@ require("grapple").reset()
 require("grapple").reset("global")
 ```
 
+</details>
+
 #### `grapple#quickfix`
 
 Open the quickfix menu and populate the quickfix list with a project scope's tags.
@@ -354,7 +381,8 @@ Open the quickfix menu and populate the quickfix list with a project scope's tag
 
 **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Open the quickfix menu for the current scope
@@ -363,6 +391,8 @@ require("grapple").quickfix()
 -- Open the quickfix menu for a specified scope
 require("grapple").quickfix("global")
 ```
+
+</details>
 
 </details>
 
@@ -386,7 +416,8 @@ Create a scope resolver that generates a project scope.
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `true`)
 * **`persist?`**: `boolean` (default: `true`)
 
-**Example**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Create a scope resolver that updates when the current working
@@ -407,6 +438,8 @@ require("grapple.scope").resolver({
 })
 ```
 
+</details>
+
 #### `grapple.scope#root`
 
 Create a scope resolver that generates a project scope by looking upwards for directories containing a specific file or directory.
@@ -424,7 +457,8 @@ Create a scope resolver that generates a project scope by looking upwards for di
 
 **Note**: it is recommended to use this with a **[fallback scope resolver](#grapplescopefallback)** to guarantee that a scope is found.
 
-**Example**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Create a root scope resolver that looks for a directory containing
@@ -438,6 +472,8 @@ require("grapple.scope").fallback({
     require("grapple").resolvers.static,
 })
 ```
+
+</details>
 
 #### `grapple.scope#root_from_buffer`
 
@@ -456,7 +492,8 @@ Create a scope resolver that generates a project scope by looking upwards for di
 
 **Note**: it is recommended to use this with a **[fallback scope resolver](#grapplescopefallback)** to guarantee that a scope is found.
 
-**Example**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Create a buffer-based root scope resolver that looks for a directory
@@ -471,6 +508,7 @@ require("grapple.scope").fallback({
 })
 ```
 
+</details>
 
 #### `grapple.scope#fallback`
 
@@ -487,7 +525,8 @@ Create a scope resolver that generates a project scope by attempting to get the 
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 * **`persist?`**: `boolean` (default: `true`)
 
-**Example**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Create a fallback scope resolver that first tries to use the LSP for a scope
@@ -499,6 +538,8 @@ require("grapple.scope").fallback({
     require("grapple").resolvers.static
 })
 ```
+
+</details>
 
 #### `grapple.scope#suffix`
 
@@ -517,7 +558,8 @@ Create a scope resolver that takes in two scope resolvers: a **path resolver** a
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 * **`persist?`**: `boolean` (default: `true`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Create a suffix scope resolver that duplicates a static resolver
@@ -527,6 +569,8 @@ require("grapple.scope").suffix(
     require("grapple.scope").static("asdf"),
 )
 ```
+
+</details>
 
 #### `grapple.scope#static`
 
@@ -543,7 +587,8 @@ Create a scope resolver that simply returns a static string. Useful when creatin
 * **`cache?`**: `boolean` | `string` | `string[]` | `integer` (default: `false`)
 * **`persist?`**: `boolean` (default: `true`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Create a static scope resolver that simply returns "I'm a teapot"
@@ -557,6 +602,8 @@ require("grapple.scope").suffix(
 )
 ```
 
+</details>
+
 #### `grapple.scope#invalidate`
 
 Clear the cached project scope, forcing the next call to get the project scope to re-resolve and re-instantiate the cache.
@@ -565,7 +612,8 @@ Clear the cached project scope, forcing the next call to get the project scope t
 
 **`scope_resolver`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
 
-**Example**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 local my_resolver = require("grapple.scope").resolver(function()
@@ -576,6 +624,8 @@ end)
 require("grapple.scope").invalidate(my_resolver)
 ```
 
+</details>
+
 #### `grapple.scope#update`
 
 Update the cached project scope. Unlike [`grapple.scope#invalidate`](#grapplescopeinvalidate) which lazily updates the project scope, this immediately updates the cached project scope.
@@ -584,7 +634,8 @@ Update the cached project scope. Unlike [`grapple.scope#invalidate`](#grapplesco
 
 **`scope_resolver`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike)
 
-**Example**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 local my_resolver = require("grapple.scope").resolver(function()
@@ -594,6 +645,8 @@ end)
 -- Update a cached scope associated with a scope resolver
 require("grapple.scope").update(my_resolver)
 ```
+
+</details>
 
 </details>
 
@@ -639,7 +692,8 @@ There are three additional scope resolvers which should be preferred when creati
 
 It is also possible to create your own **custom scope resolver**. For the available scope resolver types, please see the [Scope API](#scope-api). For additional examples, see the [Wiki](https://github.com/cbochs/grapple.nvim/wiki/Project-Scopes).
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Setup using a builtin scope resolver
@@ -654,6 +708,8 @@ require("grapple").setup({
     end, { cache = "DirChanged" })
 })
 ```
+
+</details>
 
 ## Popup Menu
 
@@ -677,7 +733,8 @@ The **tags popup menu** opens a floating window containing all the tags within a
 
 **`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Open the tags popup menu in the current scope
@@ -687,6 +744,8 @@ require("grapple").popup_tags()
 require("grapple").popup_tags("global")
 ```
 
+</details>
+
 ### Scope Popup Menu
 
 The **scopes popup menu** opens a floating window containing all the loaded project scopes. A scope (or scopes) can be deleted with typical vim edits (i.e. NORMAL `dd` and VISUAL `d`). The floating window can be exited with either `q` or any keybinding that is bound to `<esc>`. The total number of tags within a scope will be displayed to the left of the project scope.
@@ -695,12 +754,15 @@ The **scopes popup menu** opens a floating window containing all the loaded proj
 
 **API**: `require("grapple.popup_scopes()`
 
-**Examples**
+<details>
+<summary><b>Examples</b></summary>
 
 ```lua
 -- Open the scopes popup menu
 require("grapple").popup_scopes()
 ```
+
+</details>
 
 ## Persistent State
 
