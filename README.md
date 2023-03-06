@@ -350,6 +350,26 @@ require("grapple").cycle_forward()
 
 </details>
 
+#### `grapple#tags`
+
+Return all tags for a given project scope.
+
+**Command**: `:Grapple tags {scope}`
+
+**API**: `require("grapple").tags(scope)`
+
+**`scope?`**: [`Grapple.ScopeResolverLike`](#grapplescoperesolverlike) (default: `settings.scope`)
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Get all tags for the current scope
+require("grapple").tags()
+```
+
+</details>
+
 #### `grapple#reset`
 
 Clear all tags for a given project scope.
