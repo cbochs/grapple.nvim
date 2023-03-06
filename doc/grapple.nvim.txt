@@ -1,4 +1,4 @@
-*grapple.nvim.txt*          For NVIM v0.8.0         Last change: 2023 March 04
+*grapple.nvim.txt*          For NVIM v0.8.0         Last change: 2023 March 06
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -371,6 +371,25 @@ Examples ~
     
     -- Cycle to the next tagged file
     require("grapple").cycle_forward()
+<
+
+
+GRAPPLETAGS
+
+Return all tags for a given project scope.
+
+**Command**`:Grapple tags {scope}`
+
+**API**`require("grapple").tags(scope)`
+
+**scope?**|grapple.nvim-`grapple.scoperesolverlike`| (default:
+`settings.scope`)
+
+Examples ~
+
+>lua
+    -- Get all tags for the current scope
+    require("grapple").tags()
 <
 
 
