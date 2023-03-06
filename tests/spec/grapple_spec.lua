@@ -38,4 +38,12 @@ describe("grapple", function()
 
     describe("#exists", function() end)
     describe("#cycle", function() end)
+
+    describe("#tags", function()
+        it("returns the list of tags", function()
+            require("grapple").tag({ key = "bob", scope = "none" })
+            assert.equals("bob", require("grapple").tags("none")[1].key)
+            assert.equals(1, #require("grapple").tags("none"))
+        end)
+    end)
 end)

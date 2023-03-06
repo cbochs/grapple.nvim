@@ -110,6 +110,12 @@ function grapple.cycle_forward(opts)
     grapple.cycle(opts, "forward")
 end
 
+---@param scope? Grapple.Scope
+function grapple.tags(scope)
+    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
+    return require("grapple.tags").full_tags(scope)
+end
+
 ---@param scope? Grapple.ScopeResolverLike
 function grapple.reset(scope)
     scope = require("grapple.state").ensure_loaded(scope or settings.scope)
