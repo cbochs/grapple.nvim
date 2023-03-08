@@ -81,13 +81,14 @@ function popup.create_window(window_options)
     end
 
     local buffer = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(buffer, "filetype", "grapple")
-    vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
 
     window_options.row = math.floor(((vim.o.lines - window_options.height) / 2) - 1)
     window_options.col = math.floor((vim.o.columns - window_options.width) / 2)
 
     local window = vim.api.nvim_open_win(buffer, true, window_options)
+
+    vim.api.nvim_buf_set_option(buffer, "filetype", "grapple")
+    vim.api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
 
     local popup_ = {
         buffer = buffer,
