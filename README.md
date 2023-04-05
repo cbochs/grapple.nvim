@@ -854,6 +854,20 @@ require("lualine").setup({
 })
 ```
 
+### Telescope
+
+You can use telescope to search through your tagged files instead of the built in pop up menu.
+
+Load the extension via
+```lua
+require("telescope").load_extension("grapple")
+```
+Then use this command to see the grapple tags for the project in a telescope window
+```
+:Telescope grapple hooks
+```
+
+
 ## Grapple Types
 
 <details open>
