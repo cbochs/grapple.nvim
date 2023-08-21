@@ -772,7 +772,7 @@ The **scopes popup menu** opens a floating window containing all the loaded proj
 
 **Command**: `:GrapplePopup scopes`
 
-**API**: `require("grapple.popup_scopes()`
+**API**: `require("grapple").popup_scopes()`
 
 <details>
 <summary><b>Examples</b></summary>
