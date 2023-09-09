@@ -97,6 +97,10 @@ require("grapple").setup({
     ---@type string
     save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
 
+    --- A callback function that returns the popup tags window title
+    ---@type nil | fun(): string | nil
+    popup_tags_title = nil,
+
     ---Window options used for the popup menu
     popup_options = {
         relative = "editor",
@@ -746,6 +750,23 @@ The **tags popup menu** opens a floating window containing all the tags within a
 * **Renaming**: a [named tag](#named-tags) can be renamed by editing its key value between the `[` square brackets `]`
 * **Quickfix (`<c-q>`)**: all tags will be [sent to the quickfix list](#grapplequickfix), the popup menu closed, and the quickfix menu opened
 * **Split (`<c-v>`)**: similar to tag selection, but the tagged file opened in a vertical split
+
+By default, the popup menu title is set to match the corresponding scope. However, you also have the flexibility to customize the tags popup menu title using a callback function. This custom title can be tailored to suit your specific preferences and doesn't necessarily need to correlate directly with the scope. Below, are some examples illustrating the possibilities:
+
+```lua
+-- Set the title to "Grapple"
+require("grapple").setup({
+    popup_tags_title = function() return "Grapple" end
+})
+
+-- Set the title to the git root directory, with "~" substituted for $HOME
+require("grapple").setup({
+    popup_tags_title = function()
+      local resolved_path = require("grapple.state").ensure_loaded(require("grapple.scope_resolvers").git)
+      return resolved_path:gsub(vim.env.HOME, "~")
+    end,
+})
+```
 
 **Command**: `:GrapplePopup tags`
 
