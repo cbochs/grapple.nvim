@@ -17,6 +17,10 @@ local DEFAULT_SETTINGS = {
     ---@type string
     save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
 
+    --- A callback function that returns the popup tags window title
+    ---@type nil | fun(): string | nil
+    popup_tags_title = nil,
+
     ---Window options used for the popup menu
     popup_options = {
         relative = "editor",
