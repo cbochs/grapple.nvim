@@ -146,8 +146,11 @@ function grapple.popup_tags(scope)
 
     local window_options = vim.deepcopy(settings.popup_options)
     if vim.fn.has("nvim-0.9") == 1 then
-        window_options.title = settings.popup_tags_title and settings.popup_tags_title()
-            or string.format(" %s ", popup_state.scope)
+        if type(settings.popup_tags_title) == "function" then
+            window_options.title = settings.popup_tags_title(popup_state.scope)
+        else
+            window_options.title = string.format(" %s ", popup_state.scope)
+        end
     end
 
     local popup = require("grapple.popup")
