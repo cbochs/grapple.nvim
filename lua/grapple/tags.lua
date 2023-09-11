@@ -97,12 +97,16 @@ function tags.tag(scope, opts)
             return
         end
 
-        -- todo(cbochs): add guard to ensure file path exists
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
         cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
     else
         log.error("ArgumentError - a buffer or file path are required to tag a file.")
         error("ArgumentError - a buffer or file path are required to tag a file.")
+    end
+
+    if vim.fn.filereadable(file_path) == 0 then
+        log.error("Cannot tag a file that doesn't exist")
+        return
     end
 
     ---@type Grapple.Tag
