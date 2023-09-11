@@ -83,6 +83,11 @@ function tags.tag(scope, opts)
 
     if opts.file_path then
         file_path = resolve_file_path(opts.file_path)
+        if vim.fn.filereadable(file_path) == 0 then
+            log.error("ArgumentError - cannot tag a file that doesn't exist. File: " .. opts.file_path)
+            error("ArgumentError - cannot tag a file that doesn't exist. File: " .. opts.file_path)
+            return
+        end
     elseif opts.buffer then
         if not vim.api.nvim_buf_is_valid(opts.buffer) then
             log.error("ArgumentError - buffer is invalid. Buffer: " .. opts.buffer)
@@ -97,16 +102,24 @@ function tags.tag(scope, opts)
             return
         end
 
+        local excluded_buftypes = { "nofile" }
+        local buffer_buftype = vim.api.nvim_buf_get_option(opts.buffer, "buftype")
+        if vim.tbl_contains(excluded_buftypes, buffer_buftype) then
+            log.warn(string.format("Not tagging buffer, excluded buftype: %s", buffer_buftype))
+            return
+        end
+
+        local buf_name = vim.api.nvim_buf_get_name(opts.buffer)
+        if buf_name == "" then
+            log.warn(string.format('Not tagging "[No Name]" buffer'))
+            return
+        end
+
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
         cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
     else
         log.error("ArgumentError - a buffer or file path are required to tag a file.")
         error("ArgumentError - a buffer or file path are required to tag a file.")
-    end
-
-    if vim.fn.filereadable(file_path) == 0 then
-        log.error("Cannot tag a file that doesn't exist")
-        return
     end
 
     ---@type Grapple.Tag
