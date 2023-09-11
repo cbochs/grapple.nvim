@@ -184,6 +184,7 @@ function state.set(scope_, data, key)
     key = key or (#internal_state[scope_] + 1)
     internal_state[scope_][key] = state_item
 
+    vim.api.nvim_exec_autocmds("User", { pattern = "GrappleStateUpdate", modeline = false })
     return vim.deepcopy(state_item)
 end
 
@@ -305,6 +306,7 @@ function state.reset(scope_)
     else
         internal_state = {}
     end
+    vim.api.nvim_exec_autocmds("User", { pattern = "GrappleStateUpdate", modeline = false })
 end
 
 return state
