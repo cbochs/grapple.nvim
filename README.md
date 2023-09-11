@@ -854,6 +854,21 @@ require("lualine").setup({
 })
 ```
 
+Statuslines that update on autocommand events can hook into the `GrappleStateUpdate` User autocommand that Grapple emits whenever the state is updated.
+
+**An example [heirline.nvim](https://github.com/rebelot/heirline.nvim) statusline**
+
+```lua
+local GrappleComponent = {
+  provider = function()
+    local key = require("grapple").key()
+    return "  [" .. key .. "]"
+  end,
+  condition = require("grapple").exists,
+  update = { "User", pattern = "GrappleStateUpdate", callback = vim.schedule_wrap(function() vim.cmd.redrawstatus() end) },
+}
+```
+
 ## Grapple Types
 
 <details open>
