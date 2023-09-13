@@ -66,6 +66,17 @@ function popup.open(window_options, popup_handler, popup_state)
             popup.close(popup_menu)
         end,
     })
+    vim.api.nvim_create_autocmd({ "VimResized" }, {
+        group = "GrapplePopup",
+        callback = function()
+            popup_menu.popup.options.row = math.floor(((vim.o.lines - window_options.height) / 2) - 1)
+            popup_menu.popup.options.col = math.floor((vim.o.columns - window_options.width) / 2)
+            if not vim.api.nvim_win_is_valid(popup_menu.popup.window) then
+                return
+            end
+            vim.api.nvim_win_set_config(popup_menu.popup.window, popup_menu.popup.options)
+        end,
+    })
 
     current_popup = popup_menu
 
