@@ -297,6 +297,11 @@ function state.load_all(state_, opts)
     end
 end
 
+---@param scope_ Grapple.Scope
+function state.unload(scope_)
+    internal_state[scope_] = nil
+end
+
 ---@param scope_? Grapple.Scope
 function state.reset(scope_)
     if scope_ ~= nil then
