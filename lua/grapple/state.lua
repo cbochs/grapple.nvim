@@ -151,22 +151,7 @@ function state.ensure_loaded(scope_resolver)
     scope_resolver = scope.find_resolver(scope_resolver)
     local scope_ = scope.get(scope_resolver)
 
-    if internal_state[scope_] ~= nil then
-        -- NOTE: make it so that the scope_resolver passed into ensure_loaded overrides the existing one stored in the metatable
-        local scope_state = internal_state[scope_]
-        internal_state[scope_] = with_metatable(scope_state, scope_resolver)
-        -- __AUTO_GENERATED_PRINT_VAR_START__
-        -- print("state.ensure_loaded internal_state:", vim.inspect(internal_state)) -- __AUTO_GENERATED_PRINT_VAR_END__
-        return scope_
-    end
-
-    local scope_state
-    if scope_resolver.persist then
-        scope_state = state.load(scope_)
-    end
-    if scope_state == nil then
-        scope_state = {}
-    end
+    local scope_state = internal_state[scope_] or (scope_resolver.persist and state.load(scope_)) or {}
     internal_state[scope_] = with_metatable(scope_state, scope_resolver)
 
     return scope_
@@ -306,7 +291,6 @@ end
 ---@param scope_? Grapple.Scope
 function state.reset(scope_)
     if scope_ ~= nil then
-        -- BUG: scope_resolver is nil for some reason
         local scope_resolver = state.resolver(scope_)
         internal_state[scope_] = with_metatable({}, scope_resolver)
     else
