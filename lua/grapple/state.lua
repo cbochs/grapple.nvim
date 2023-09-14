@@ -297,16 +297,16 @@ function state.load_all(state_, opts)
     end
 end
 
----@param scope_ Grapple.Scope
-function state.unload(scope_)
-    internal_state[scope_] = nil
-end
-
 ---@param scope_? Grapple.Scope
-function state.reset(scope_)
+---@param unload? boolean
+function state.reset(scope_, unload)
     if scope_ ~= nil then
-        local scope_resolver = state.resolver(scope_)
-        internal_state[scope_] = with_metatable({}, scope_resolver)
+        if unload then
+            internal_state[scope_] = nil
+        else
+            local scope_resolver = state.resolver(scope_)
+            internal_state[scope_] = with_metatable({}, scope_resolver)
+        end
     else
         internal_state = {}
     end
