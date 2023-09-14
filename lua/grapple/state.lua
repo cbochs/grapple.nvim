@@ -288,23 +288,19 @@ function state.state()
 end
 
 ---@param state_
----@param opts? { persist?: boolean }
+---@param opts? { persist?: boolean, resolver?: boolean }
 function state.load_all(state_, opts)
-    -- BUG: ensure_loaded is called before load_all, which then resets internal state
-    opts = opts or { persist = false }
+    opts = vim.tbl_extend("force", { persist = false, resolver = settings.scope }, opts or {})
 
     internal_state = state_
-    -- __AUTO_GENERATED_PRINT_VAR_START__
-    -- print("state.load_all internal_state:", vim.inspect(internal_state)) -- __AUTO_GENERATED_PRINT_VAR_END__
     for _, scope_state in pairs(internal_state) do
         if getmetatable(scope_state) == nil then
             setmetatable(scope_state, {
                 __persist = opts.persist,
-                __resolver = settings.scope,
+                __resolver = opts.resolver,
             })
         end
     end
-    vim.print("state.load_all internal state after: ", internal_state)
 end
 
 ---@param scope_? Grapple.Scope
