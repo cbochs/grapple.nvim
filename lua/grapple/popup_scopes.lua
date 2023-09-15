@@ -44,7 +44,7 @@ function popup_scopes.resolve_differences(original_scopes, modified_scopes)
     -- Reset scopes that were removed from the popup menu
     for _, scope in ipairs(original_scopes) do
         if not scope_lookup[scope] then
-            state.reset(scope)
+            state.reset(scope, true)
         end
     end
 end
