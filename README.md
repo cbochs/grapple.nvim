@@ -446,6 +446,11 @@ require("grapple.scope").resolver(function()
     return vim.fn.getcwd()
 end, { cache = "DirChanged" })
 
+-- You can even filter for patterns!
+require("grapple.scope").resolver(function()
+    return vim.fn.getcwd()
+end, { cache = "User PluginEvent"})
+
 -- Create an scope resolver that asynchronously runs the "echo"
 -- shell command and uses its output as the resolved scope
 require("grapple.scope").resolver({
