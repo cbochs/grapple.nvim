@@ -69,7 +69,39 @@ local function is_async(scope_resolver)
 end
 
 ---@private
----@param scope_resolver Grapple.ScopeResolver
+---@param cache string | string[]
+---@return string[], string[]
+local function parse_events(cache)
+    local events = {}
+    local patterns = {}
+
+    local parse_event = function(event_string)
+        local words = {}
+        for word in event_string:gmatch("%S+") do
+            table.insert(words, word)
+        end
+
+        local event = table.remove(words, 1)
+        table.insert(events, event)
+        for _, pattern in ipairs(words) do
+            table.insert(patterns, pattern)
+        end
+    end
+
+    if type(cache) == "string" then
+        parse_event(cache)
+    elseif type(cache) == "table" then
+        for _, event_string in ipairs(cache) do
+            parse_event(event_string)
+        end
+    end
+    print(string.format("events: %s, patterns: %s", vim.inspect(events), vim.inspect(patterns)))
+
+    return events, patterns
+end
+
+---@private
+---@param scope_resolver
 ---@return Grapple.ScopeResolver
 local function update_watch(scope_resolver)
     if scope_resolver.watch.type == watch_type.basic then
@@ -79,9 +111,11 @@ local function update_watch(scope_resolver)
             goto fallthrough
         end
 
+        local events, patterns = parse_events(scope_resolver.watch.events)
         local group = vim.api.nvim_create_augroup("GrappleScope", { clear = false })
-        scope_resolver.watch.autocmd = vim.api.nvim_create_autocmd(scope_resolver.watch.events, {
+        scope_resolver.watch.autocmd = vim.api.nvim_create_autocmd(events, {
             group = group,
+            pattern = patterns,
             callback = function()
                 if is_async(scope_resolver) then
                     scope.update(scope_resolver)
