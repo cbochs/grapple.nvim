@@ -68,7 +68,7 @@ end
 function grapple.find(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
 
-    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
+    local scope = require("grapple.scope").get(opts.scope or settings.scope)
     return require("grapple.tags").find(scope, opts)
 end
 
@@ -76,7 +76,7 @@ end
 function grapple.key(opts)
     opts = vim.tbl_extend("force", { buffer = 0 }, opts or {})
 
-    local scope = require("grapple.state").ensure_loaded(opts.scope or settings.scope)
+    local scope = require("grapple.scope").get(opts.scope or settings.scope)
     return require("grapple.tags").key(scope, opts)
 end
 
