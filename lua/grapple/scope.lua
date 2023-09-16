@@ -230,7 +230,7 @@ function scope.root_base(root_names, from_buffer, opts)
 end
 
 ---@param scope_resolvers Grapple.ScopeResolver[]
----@param opts? Grapple.Options
+---@param opts? Grapple.ScopeOptions
 ---@return Grapple.ScopeResolver
 function scope.fallback(scope_resolvers, opts)
     return scope.resolver(function()
