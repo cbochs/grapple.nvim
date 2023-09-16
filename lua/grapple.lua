@@ -110,27 +110,39 @@ function grapple.cycle_forward(opts)
     grapple.cycle(opts, "forward")
 end
 
+---@param scope_resolver? Grapple.ScopeResolverLike
 ---@param scope? Grapple.Scope
-function grapple.tags(scope)
-    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
+function grapple.tags(scope_resolver, scope)
+    if not scope then
+        scope = require("grapple.state").ensure_loaded(scope_resolver or settings.scope)
+    end
     return require("grapple.tags").full_tags(scope)
 end
 
----@param scope? Grapple.ScopeResolverLike
-function grapple.reset(scope)
-    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
-    require("grapple.state").reset(scope)
+---@param scope_resolver? Grapple.ScopeResolverLike
+---@param scope? Grapple.Scope
+function grapple.reset(scope_resolver, scope)
+    if not scope then
+        scope = require("grapple.state").ensure_loaded(scope_resolver or settings.scope)
+    end
+    require("grapple.state").reset(scope_resolver)
 end
 
----@param scope? Grapple.ScopeResolverLike
-function grapple.quickfix(scope)
-    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
+---@param scope_resolver? Grapple.ScopeResolverLike
+---@param scope? Grapple.Scope
+function grapple.quickfix(scope_resolver, scope)
+    if not scope then
+        scope = require("grapple.state").ensure_loaded(scope_resolver or settings.scope)
+    end
     require("grapple.tags").quickfix(scope)
 end
 
----@param scope? Grapple.ScopeResolverLike
-function grapple.popup_tags(scope)
-    scope = require("grapple.state").ensure_loaded(scope or settings.scope)
+---@param scope_resolver? Grapple.ScopeResolverLike
+---@param scope? Grapple.Scope
+function grapple.popup_tags(scope_resolver, scope)
+    if not scope then
+        scope = require("grapple.state").ensure_loaded(scope_resolver or settings.scope)
+    end
 
     local popup_tags = require("grapple.popup_tags")
     local popup_handler = popup_tags.handler
