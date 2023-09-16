@@ -172,9 +172,16 @@ function grapple.popup_scopes()
     local popup_handler = popup_scopes.handler
     local popup_state = {}
     local popup_items = require("grapple.state").scopes()
+    local selected_scope_popup_tags = function()
+        local scope = popup_scopes.handler.deserialize(_, vim.api.nvim_get_current_line())
+        if scope then
+            require("grapple").popup_tags(_, scope)
+        end
+    end
     local popup_keymaps = {
         { mode = "n", key = "q", action = popup_scopes.actions.close },
         { mode = "n", key = "<esc>", action = popup_scopes.actions.close },
+        { mode = "n", key = "<cr>", action = selected_scope_popup_tags },
     }
 
     local window_options = vim.deepcopy(settings.popup_options)
