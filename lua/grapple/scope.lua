@@ -95,7 +95,6 @@ local function parse_events(cache)
             parse_event(event_string)
         end
     end
-    print(string.format("events: %s, patterns: %s", vim.inspect(events), vim.inspect(patterns)))
 
     return events, patterns
 end
