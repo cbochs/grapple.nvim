@@ -1,4 +1,4 @@
-*grapple.nvim.txt*          For NVIM v0.8.0         Last change: 2023 March 08
+*grapple.nvim.txt*        For NVIM v0.8.0        Last change: 2024 February 11
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -39,7 +39,6 @@ See the |grapple.nvim-quickstart| section to get started.
 
 FEATURES                                  *grapple.nvim-grapple.nvim-features*
 
-
 - **Project scoped** file tagging for immediate navigation
 - **Persistent** cursor tracking for tagged files
 - **Popup** menu to manage tags and scopes as regular text
@@ -48,14 +47,12 @@ FEATURES                                  *grapple.nvim-grapple.nvim-features*
 
 REQUIREMENTS                          *grapple.nvim-grapple.nvim-requirements*
 
-
 - Neovim >= 0.8 <https://github.com/neovim/neovim/releases/tag/v0.8.0>
 - Neovim >= 0.9 - optional, for floating window title <https://github.com/neovim/neovim/issues/17458>
 - plenary.nvim <https://github.com/nvim-lua/plenary.nvim>
 
 
 QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
-
 
 - |grapple.nvim-install| Grapple.nvim using your preferred package manager
 - Add a keybind to `tag`, `untag`, or `toggle` a tag. For example,
@@ -65,7 +62,6 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 <
 
 **Next steps**
-
 
 - Check out the default settings in the |grapple.nvim-settings| section
 - View your tags |grapple.nvim-in-a-popup| using `:GrapplePopup tags`
@@ -106,7 +102,7 @@ SETTINGS                                  *grapple.nvim-grapple.nvim-settings*
 
 The following are the default settings for Grapple. **Setup is not required**,
 but settings may be overridden by passing them as table arguments to the
-`grapplesetup` function.
+`grapple#setup` function.
 
 Default Settings ~
 
@@ -150,7 +146,7 @@ GRAPPLE API ~
 Grapple API and Examples ~
 
 
-GRAPPLETAG
+GRAPPLE#TAG
 
 Create a scoped tag on a file or buffer with an (optional) tag key.
 
@@ -160,7 +156,6 @@ Create a scoped tag on a file or buffer with an (optional) tag key.
 **API**`require("grapple").tag(opts)`
 
 **opts?**|grapple.nvim-`grapple.options`|
-
 
 - **buffer?**`integer` (default: `0`)
 - **file_path?**`string` (overrides `buffer`)
@@ -188,7 +183,7 @@ Examples ~
 <
 
 
-GRAPPLEUNTAG
+GRAPPLE#UNTAG
 
 Remove a scoped tag on a file or buffer.
 
@@ -198,7 +193,6 @@ Remove a scoped tag on a file or buffer.
 **API**`require("grapple").untag(opts)`
 
 **opts**|grapple.nvim-`grapple.options`| (one of)
-
 
 - **buffer?**`integer` (default: `0`)
 - **file_path?**`string` (overrides `buffer`)
@@ -223,7 +217,7 @@ Examples ~
 <
 
 
-GRAPPLETOGGLE
+GRAPPLE#TOGGLE
 
 Toggle a tag or untag on a file or buffer.
 
@@ -234,10 +228,9 @@ Toggle a tag or untag on a file or buffer.
 
 **opts**|grapple.nvim-`grapple.options`|
 
-
 - **buffer?**`integer` (default: `0`)
 - **file_path?**`string` (overrides `buffer`)
-- **key?**|grapple.nvim-`grapple.tagkey`| (behaviour inherited from |grapple.nvim-grappletag| and |grapple.nvim-grappleuntag|)
+- **key?**|grapple.nvim-`grapple.tagkey`| (behaviour inherited from |grapple.nvim-grapple#tag| and |grapple.nvim-grapple#untag|)
 - **scope?**|grapple.nvim-`grapple.scoperesolverlike`|
 
 Examples ~
@@ -248,7 +241,7 @@ Examples ~
 <
 
 
-GRAPPLESELECT
+GRAPPLE#SELECT
 
 Select and open a tagged file or buffer in the current window.
 
@@ -257,7 +250,6 @@ Select and open a tagged file or buffer in the current window.
 **API**`require("grapple").select(opts)`
 
 **opts**|grapple.nvim-`grapple.options`| (one of)
-
 
 - **buffer?**`integer`
 - **file_path?**`string`
@@ -274,7 +266,7 @@ Examples ~
 <
 
 
-GRAPPLEFIND
+GRAPPLE#FIND
 
 Attempt to find a scoped tag.
 
@@ -283,7 +275,6 @@ Attempt to find a scoped tag.
 **returns**|grapple.nvim-`grapple.tag`| | `nil`
 
 **opts?**|grapple.nvim-`grapple.options`| (one of)
-
 
 - **buffer?**`integer` (default: `0`)
 - **file_path?**`string` (overrides `buffer`)
@@ -297,7 +288,7 @@ Examples ~
 <
 
 
-GRAPPLEKEY
+GRAPPLE#KEY
 
 Attempt to find the key associated with a file tag.
 
@@ -306,7 +297,6 @@ Attempt to find the key associated with a file tag.
 **returns**|grapple.nvim-`grapple.tagkey`| | `nil`
 
 **opts?**|grapple.nvim-`grapple.options`| (one of)
-
 
 - **buffer?**`integer` (default: `0`)
 - **file_path?**`string` (overrides `buffer`)
@@ -320,14 +310,13 @@ Examples ~
 <
 
 
-GRAPPLEEXISTS
+GRAPPLE#EXISTS
 
 **API**`require("grapple").exists(opts)`
 
 **returns**`boolean`
 
 **opts?**|grapple.nvim-`grapple.options`| (one of)
-
 
 - **buffer?**`integer` (default: `0`)
 - **file_path?**`string` (overrides `buffer`)
@@ -345,14 +334,13 @@ Examples ~
 <
 
 
-GRAPPLECYCLE
+GRAPPLE#CYCLE
 
 Cycle through and select from the available tagged files in a scoped tag list.
 
 **Command**`:GrappleCycle {direction}`
 
 **API**
-
 
 - `require("grapple").cycle(direction)`
 - `require("grapple").cycle_backward()`
@@ -374,7 +362,7 @@ Examples ~
 <
 
 
-GRAPPLETAGS
+GRAPPLE#TAGS
 
 Return all tags for a given project scope.
 
@@ -393,7 +381,7 @@ Examples ~
 <
 
 
-GRAPPLERESET
+GRAPPLE#RESET
 
 Clear all tags for a given project scope.
 
@@ -415,7 +403,7 @@ Examples ~
 <
 
 
-GRAPPLEQUICKFIX
+GRAPPLE#QUICKFIX
 
 Open the quickfix menu and populate the quickfix list with a project scope’s
 tags.
@@ -441,7 +429,7 @@ SCOPE API ~
 Scope API and Examples ~
 
 
-GRAPPLE.SCOPERESOLVER
+GRAPPLE.SCOPE#RESOLVER
 
 Create a scope resolver that generates a project scope.
 
@@ -453,7 +441,6 @@ Create a scope resolver that generates a project scope.
 |grapple.nvim-`grapple.scopejob`|
 
 **opts?**|grapple.nvim-`grapple.scopeoptions`|
-
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `true`)
 - **persist?**`boolean` (default: `true`)
@@ -480,7 +467,7 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPEROOT
+GRAPPLE.SCOPE#ROOT
 
 Create a scope resolver that generates a project scope by looking upwards for
 directories containing a specific file or directory.
@@ -492,7 +479,6 @@ directories containing a specific file or directory.
 **root_names**`string` | `string[]`
 
 **opts?**|grapple.nvim-`grapple.scopeoptions`|
-
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `"DirChanged"`)
 - **persist?**`boolean` (default: `true`)
@@ -516,7 +502,7 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPEROOT_FROM_BUFFER
+GRAPPLE.SCOPE#ROOT_FROM_BUFFER
 
 Create a scope resolver that generates a project scope by looking upwards for
 directories containing a specific file or directory _from the current buffer_.
@@ -528,7 +514,6 @@ directories containing a specific file or directory _from the current buffer_.
 **root_names**`string` | `string[]`
 
 **opts?**|grapple.nvim-`grapple.scopeoptions`|
-
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `"BufEnter"`)
 - **persist?**`boolean` (default: `true`)
@@ -552,7 +537,7 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPEFALLBACK
+GRAPPLE.SCOPE#FALLBACK
 
 Create a scope resolver that generates a project scope by attempting to get the
 project scope of other scope resolvers, in order.
@@ -564,7 +549,6 @@ project scope of other scope resolvers, in order.
 **scope_resolvers**|grapple.nvim-`grapple.scoperesolver[]`|
 
 **opts?**|grapple.nvim-`grapple.scopeoptions`|
-
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **persist?**`boolean` (default: `true`)
@@ -583,7 +567,7 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPESUFFIX
+GRAPPLE.SCOPE#SUFFIX
 
 Create a scope resolver that takes in two scope resolvers: a **path resolver**
 and a **suffix** resolver. If the scope determined from the path resolver is
@@ -601,7 +585,6 @@ in situations where you may want to append additional project information
 
 **opts?**|grapple.nvim-`grapple.scopeoptions`|
 
-
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **persist?**`boolean` (default: `true`)
 
@@ -609,7 +592,7 @@ Examples ~
 
 >lua
     -- Create a suffix scope resolver that duplicates a static resolver
-    -- and appends it to itself (e.g. "asdfasdf")
+    -- and appends it to itself (e.g. "asdf#asdf")
     require("grapple.scope").suffix(
         require("grapple.scope").static("asdf"),
         require("grapple.scope").static("asdf"),
@@ -617,10 +600,10 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPESTATIC
+GRAPPLE.SCOPE#STATIC
 
 Create a scope resolver that simply returns a static string. Useful when
-creating sub-groups with |grapple.nvim-`grapple.scopesuffix`|.
+creating sub-groups with |grapple.nvim-`grapple.scope#suffix`|.
 
 **API**`require("grapple.scope").static(plain_string, opts)`
 
@@ -629,7 +612,6 @@ creating sub-groups with |grapple.nvim-`grapple.scopesuffix`|.
 **plain_string**`string`
 
 **opts?**|grapple.nvim-`grapple.scopeoptions`|
-
 
 - **cache?**`boolean` | `string` | `string[]` | `integer` (default: `false`)
 - **persist?**`boolean` (default: `true`)
@@ -649,7 +631,7 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPEINVALIDATE
+GRAPPLE.SCOPE#INVALIDATE
 
 Clear the cached project scope, forcing the next call to get the project scope
 to re-resolve and re-instantiate the cache.
@@ -670,10 +652,10 @@ Examples ~
 <
 
 
-GRAPPLE.SCOPEUPDATE
+GRAPPLE.SCOPE#UPDATE
 
 Update the cached project scope. Unlike
-|grapple.nvim-`grapple.scopeinvalidate`| which lazily updates the project
+|grapple.nvim-`grapple.scope#invalidate`| which lazily updates the project
 scope, this immediately updates the cached project scope.
 
 **API**`require("grapple.scope").update(scope_resolver)`
@@ -697,7 +679,7 @@ FILE TAGS                                *grapple.nvim-grapple.nvim-file-tags*
 A **tag** is a persistent tag on a file or buffer. It is a means of indicating
 a file you want to return to. When a file is tagged, Grapple will save your
 cursor location so that when you jump back, your cursor is placed right where
-you left off. In a sense, tags are like file-level marks (`:h mark`).
+you left off. In a sense, tags are like file-level marks (|mark|).
 
 There are a couple types of tag types available, each with a different use-case
 in mind. The options available are |grapple.nvim-anonymous| and
@@ -737,14 +719,13 @@ runtime, scopes are typically resolved into an absolute directory path
 location for a set of tags.
 
 Project scopes are _cached by default_, and will only update when the cache is
-|grapple.nvim-explicitly-invalidated|, an associated (|`:h autocmd`|) is
+|grapple.nvim-explicitly-invalidated|, an associated (||autocmd||) is
 triggered, or at a specified interval. For example, the `static` scope never
 updates once cached; the `directory` scope only updates on `DirChanged`; and
 the `lsp` scope updates on either `LspAttach` or `LspDetach`.
 
 A **project scope** is determined by means of a **scope resolver**. The builtin
 options are as follows:
-
 
 - `none`tags are ephemeral and deleted on exit
 - `global`tags are scoped to a global namespace
@@ -758,7 +739,6 @@ There are three additional scope resolvers which should be preferred when
 creating a **fallback scope resolver** or **suffix scope resolver**. These
 resolvers act identically to their similarly named counterparts, but do not
 have default fallbacks.
-
 
 - `lsp_fallback`the same as `lsp`, but without a fallback
 - `git_fallback`the same as `git`, but without a fallback
@@ -842,7 +822,7 @@ within a scope will be displayed to the left of the project scope.
 
 **Command**`:GrapplePopup scopes`
 
-**API**`require("grapple.popup_scopes()`
+**API**`require("grapple").popup_scopes()`
 
 Examples ~
 
@@ -856,7 +836,7 @@ PERSISTENT STATE                  *grapple.nvim-grapple.nvim-persistent-state*
 
 Grapple saves all |grapple.nvim-project-scopes| to a common directory. This
 directory is aptly named `grapple` and lives in Neovim’s `"data"` directory
-(see: |`:h standard-path`|). Each non-empty scope (scope contains at least one
+(see: ||standard-path||). Each non-empty scope (scope contains at least one
 item) will be saved as an individiual scope file; serialized as a JSON blob,
 and named using the resolved scope’s path.
 
@@ -901,8 +881,8 @@ INTEGRATIONS                          *grapple.nvim-grapple.nvim-integrations*
 STATUSLINE ~
 
 A statusline component can be easily added to show whether a buffer is tagged
-or not by using either (or both) |grapple.nvim-`grapplekey`| and
-|grapple.nvim-`grapplefind`|.
+or not by using either (or both) |grapple.nvim-`grapple#key`| and
+|grapple.nvim-`grapple#find`|.
 
 **Simple lualine.nvim statusline**
 
@@ -928,7 +908,7 @@ or not by using either (or both) |grapple.nvim-`grapplekey`| and
                 {
                     function()
                         local key = require("grapple").key()
-                        return "  [" .. key .. "]"
+                        return "  [" .. key .. "]"
                     end,
                     cond = require("grapple").exists,
                 }
@@ -950,7 +930,6 @@ toggle, etc).
 
 **Type**`table`
 
-
 - **buffer**`integer`
 - **file_path**`string`
 - **key**|grapple.nvim-`grapple.tagkey`|
@@ -966,7 +945,6 @@ table keyed with a |grapple.nvim-`grapple.tagkey`|, but can only be
 deterministically identified by its `file_path`.
 
 **Type**`table`
-
 
 - **file_path**`string`
 - **cursor**`integer[2]` (row, column)
@@ -996,11 +974,10 @@ during a Neovim session. The `cache` option may be one of the following: `cache
 = true`project scope is resolved once and cached until explicitly invalidated
 `cache = false` project scope is never cached and must always be resolved
 `cache = string | string[]` project scope is cached and invalidated when a
-given autocommand event is triggered (see: |`:h autocmd`|) `cache = integer`
+given autocommand event is triggered (see: ||autocmd||) `cache = integer`
 project scope is cached and updated on a given interval (in milliseconds)
 
 **Type**`table`
-
 
 - **cache**`boolean` | `string` | `string[]` | `integer`
 - **persist**`boolean`
@@ -1027,7 +1004,6 @@ the command should be executed in.
 
 **Type**`table`
 
-
 - **command**`string`
 - **args**`string[]`
 - **cwd**`string`
@@ -1038,11 +1014,10 @@ the command should be executed in.
 GRAPPLE.SCOPERESOLVER ~
 
 Resolves into a |grapple.nvim-`grapple.scope`|. Should be created using the
-Scope API (e.g. |grapple.nvim-`grapple.scoperesolver`|). For more information,
-see |grapple.nvim-project-scopes|.
+Scope API (e.g. |grapple.nvim-`grapple.scope#resolver`|). For more
+information, see |grapple.nvim-project-scopes|.
 
 **Type**`table`
-
 
 - **key**`integer`
 - **callback**|grapple.nvim-`grapple.scopefunction`| | |grapple.nvim-`grapple.scopejob`|
@@ -1069,7 +1044,6 @@ The name of a project scope that has been resolved from a
 
 
 INSPIRATION AND THANKS      *grapple.nvim-grapple.nvim-inspiration-and-thanks*
-
 
 - tjdevries vlog.nvim <https://github.com/tjdevries/vlog.nvim>
 - ThePrimeagen’s harpoon <https://github.com/ThePrimeagen/harpoon>
