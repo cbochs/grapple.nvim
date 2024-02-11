@@ -1,5 +1,5 @@
 return require("telescope").register_extension {
   exports = {
-    hooks = require("telescope._extensions.hooks")
+    tags = require("telescope._extensions.tags")
   },
 }
