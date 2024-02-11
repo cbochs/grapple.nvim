@@ -856,7 +856,7 @@ require("lualine").setup({
 
 ### Telescope
 
-You can use telescope to search through your tagged files instead of the built in pop up menu.
+You can use telescope to search through your tagged files instead of the built in popup menu.
 
 Load the extension via
 ```lua
