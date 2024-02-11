@@ -183,7 +183,7 @@ function tags.select(tag)
         log.warn("Tagged file does not exist.")
     end
 
-    vim.api.nvim_cmd({ cmd = "edit", args = { tag.file_path } }, {})
+    vim.api.nvim_cmd({ cmd = "edit", args = { Path:new(tag.file_path):make_relative() } }, {})
     if tag.cursor then
         vim.api.nvim_win_set_cursor(0, tag.cursor)
     end
