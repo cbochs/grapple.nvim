@@ -53,7 +53,7 @@ return function(opts)
         sorter = require("telescope.sorters").get_generic_fuzzy_sorter(),
         previewer = require("telescope.config").values.grep_previewer {},
         results_title = "Grapple Tags",
-        prompt_title = "Find Grappling Hooks",
+        prompt_title = "Find Grappling Tags",
         layout_strategy = "flex",
         attach_mappings = function(_, map)
           map("i", "<C-X>", delete_grapple)
