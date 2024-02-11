@@ -864,7 +864,7 @@ require("telescope").load_extension("grapple")
 ```
 Then use this command to see the grapple tags for the project in a telescope window
 ```
-:Telescope grapple hooks
+:Telescope grapple tags
 ```
 
 
