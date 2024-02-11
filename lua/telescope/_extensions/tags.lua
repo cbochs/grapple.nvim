@@ -52,7 +52,7 @@ return function(opts)
         finder = generate_grapple_finder(),
         sorter = require("telescope.sorters").get_generic_fuzzy_sorter(),
         previewer = require("telescope.config").values.grep_previewer {},
-        results_title = "Grapple Hooks",
+        results_title = "Grapple Tags",
         prompt_title = "Find Grappling Hooks",
         layout_strategy = "flex",
         attach_mappings = function(_, map)
