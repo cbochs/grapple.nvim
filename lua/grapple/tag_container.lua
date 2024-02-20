@@ -1,8 +1,25 @@
-local Tag = require("grapple.new.tag")
-local Util = require("grapple.new.util")
+local Tag = require("grapple.tag")
+local Util = require("grapple.util")
 
----@class TagContainer
----@field tags Tag[]
+---@class grapple.tag.container.insert
+---@field path string
+---@field cursor integer[]
+---@field index? integer
+
+---@class grapple.tag.container.move
+---@field path string
+---@field index integer
+
+---@class grapple.tag.container.remove
+---@field path? string
+---@field index? integer
+
+---@class grapple.tag.container.get
+---@field path? string
+---@field index? integer
+
+---@class grapple.tag.container
+---@field tags grapple.tag[]
 local TagContainer = {}
 TagContainer.__index = TagContainer
 
@@ -12,13 +29,8 @@ function TagContainer:new()
     }, self)
 end
 
----@class TagInsertOpts
----@field path string
----@field cursor integer[]
----@field index integer?
-
----@param opts TagInsertOpts
----@return Tag, string? error
+---@param opts grapple.tag.container.insert
+---@return grapple.tag, string? error
 function TagContainer:insert(opts)
     if self:has(opts.path) then
         return {}, string.format("tag already exists: %s", opts.path)
@@ -38,12 +50,8 @@ function TagContainer:insert(opts)
     return tag, nil
 end
 
----@class TagMoveOpts
----@field path string
----@field index integer
-
----@param opts TagMoveOpts
----@return Tag, string? error
+---@param opts grapple.tag.container.move
+---@return grapple.tag, string? error
 function TagContainer:move(opts)
     local index = self:index(opts.path)
     if not index then
@@ -67,12 +75,8 @@ function TagContainer:move(opts)
     error(string.format("tag could not be moved from index %s to %s: %s", index, opts.index, opts.path))
 end
 
----@class TagRemoveOpts
----@field path string?
----@field index integer?
-
----@param opts TagRemoveOpts?
----@return Tag, string? error
+---@param opts? grapple.tag.container.remove
+---@return grapple.tag, string? error
 function TagContainer:remove(opts)
     if #self.tags == 0 then
         return {}, "tag container is empty"
@@ -99,10 +103,8 @@ function TagContainer:remove(opts)
     return table.remove(self.tags, index)
 end
 
----@alias TagGetOpts TagRemoveOpts
-
----@param opts TagGetOpts
----@return Tag, string? error
+---@param opts grapple.tag.container.get
+---@return grapple.tag, string? error
 function TagContainer:get(opts)
     local index
     if opts.path then
@@ -150,16 +152,16 @@ function TagContainer:into_table()
         return obj:into_table()
     end
 
-    ---@class TagContainerFormat
+    ---@class grapple.tag.container.format
     return {
-        ---@type TagFormat[]
+        ---@type grapple.tag.format[]
         tags = vim.tbl_map(into_table, self.tags),
     }
 end
 
 -- Implements Deserialize
----@param tbl TagContainerFormat
----@return TagContainer, string? error
+---@param tbl grapple.tag.container.format
+---@return grapple.tag.container, string? error
 function TagContainer.from_table(tbl)
     local container = TagContainer:new()
 

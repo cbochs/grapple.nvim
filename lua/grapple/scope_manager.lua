@@ -1,9 +1,9 @@
----@class ScopeManager
----@field scopes table<string, Scope>
+---@class grapple.scope.manager
+---@field scopes table<string, grapple.scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
----@return ScopeManager
+---@return grapple.scope.manager
 function ScopeManager:new()
     return setmetatable({
         scopes = {},
@@ -11,7 +11,7 @@ function ScopeManager:new()
 end
 
 ---@param scope_name string
----@return Scope, string? error
+---@return grapple.scope, string? error
 function ScopeManager:get(scope_name)
     local scope = self.scopes[scope_name]
     if not scope then

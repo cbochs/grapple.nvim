@@ -1,14 +1,14 @@
-local TagContainer = require("grapple.new.tag_container")
-local StateManager = require("grapple.new.state_manager")
+local TagContainer = require("grapple.tag_container")
+local StateManager = require("grapple.state_manager")
 
----@class TagManager
----@field state StateManager
----@field containers table<string, TagContainer>
+---@class grapple.tag.manager
+---@field state grapple.state.manager
+---@field containers table<string, grapple.tag.container>
 local TagManager = {}
 TagManager.__index = TagManager
 
----@param state StateManager
----@return TagManager
+---@param state grapple.state.manager
+---@return grapple.tag.manager
 function TagManager:new(state)
     return setmetatable({
         state = state,
@@ -17,7 +17,7 @@ function TagManager:new(state)
 end
 
 ---@param id string
----@param callback fun(container: TagContainer): string?
+---@param callback fun(container: grapple.tag.container): string?
 ---@param opts? { sync?: boolean }
 ---@return string? error
 function TagManager:transaction(id, callback, opts)
@@ -44,7 +44,7 @@ function TagManager:transaction(id, callback, opts)
 end
 
 ---@param id string
----@return TagContainer, string? error
+---@return grapple.tag.container, string? error
 function TagManager:container(id)
     if self.containers[id] then
         return self.containers[id], nil

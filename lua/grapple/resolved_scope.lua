@@ -1,16 +1,16 @@
----@class ResolvedScope
+---@class grapple.scope.resolved
 ---@field id string
 ---@field path string
 ---@field persisted boolean
----@field tag_manager TagManager
+---@field tag_manager grapple.tag.manager
 local ResolvedScope = {}
 ResolvedScope.__index = ResolvedScope
 
 ---@param id string
 ---@param path string | nil
 ---@param persisted boolean
----@param tag_manager TagManager
----@return ResolvedScope
+---@param tag_manager grapple.tag.manager
+---@return grapple.scope.resolved
 function ResolvedScope:new(id, path, persisted, tag_manager)
     return setmetatable({
         id = id,
@@ -20,13 +20,13 @@ function ResolvedScope:new(id, path, persisted, tag_manager)
     }, self)
 end
 
----@param callback fun(container: TagContainer): string?
+---@param callback fun(container: grapple.tag.container): string?
 ---@return string? error
 function ResolvedScope:enter(callback)
     return self.tag_manager:transaction(self.id, callback, { sync = self.persisted })
 end
 
----@return Tag[], string? error
+---@return grapple.tag[], string? error
 function ResolvedScope:tags()
     local container, err = self.tag_manager:container(self.id)
     if err then

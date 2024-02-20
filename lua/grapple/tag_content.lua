@@ -1,13 +1,13 @@
-local Util = require("grapple.new.util")
+local Util = require("grapple.util")
 
----@class TagContent
----@field scope ResolvedScope
+---@class grapple.tag.content
+---@field scope grapple.scope.resolved
 ---@field entries table[]
 local TagContent = {}
 TagContent.__index = TagContent
 
----@param scope ResolvedScope
----@return TagContent
+---@param scope grapple.scope.resolved
+---@return grapple.tag.content
 function TagContent:new(scope)
     return setmetatable({
         scope = scope,
@@ -102,14 +102,14 @@ function TagContent:reconcile(buf_id)
     return nil
 end
 
----@class Change
+---@class grapple.tag.content.change
 ---@field action "insert" | "move" | "remove"
 ---@field path string
 ---@field index integer
 
 ---@param original string[]
 ---@param modified string[]
----@return Change[], string[] errors
+---@return grapple.tag.content.change[], string[] errors
 function TagContent:diff(original, modified)
     local changes = {}
     local errors = {}
@@ -155,7 +155,7 @@ function TagContent:diff(original, modified)
     return changes, errors
 end
 
----@param changes Change[]
+---@param changes grapple.tag.content.change[]
 ---@return string? error
 function TagContent:apply_changes(changes)
     local err = self.scope:enter(function(container)

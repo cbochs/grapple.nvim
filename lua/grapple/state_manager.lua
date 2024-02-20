@@ -1,7 +1,6 @@
-local ErrorBuilder = require("grapple.new.error_builder")
+local ErrorBuilder = require("grapple.error_builder")
 
--- JSON State Manager
----@class StateManager
+---@class grapple.state.manager
 ---@field save_dir string
 local StateManager = {}
 StateManager.__index = StateManager
@@ -60,7 +59,7 @@ local function path_decode(encoded_string)
 end
 
 ---@param state_path string
----@return StateManager
+---@return grapple.state.manager
 function StateManager:new(state_path)
     return setmetatable({
         save_dir = vim.fs.normalize(state_path),
@@ -86,7 +85,7 @@ function StateManager:exists(name)
     return permission
 end
 
----@return Error? error
+---@return grapple.error? error
 function StateManager:remove(name)
     local path = self:save_path(name)
     local _, err = os.remove(path)
@@ -96,7 +95,7 @@ function StateManager:remove(name)
 end
 
 ---@param name string
----@return any decoded, Error? error
+---@return any decoded, grapple.error? error
 function StateManager:read(name)
     local path = self:save_path(name)
 
@@ -142,7 +141,7 @@ end
 
 ---@param name string
 ---@param obj any
----@return Error? error
+---@return grapple.error? error
 function StateManager:write(name, obj)
     local path = self:save_path(name)
 

@@ -1,20 +1,20 @@
-local ResolvedScope = require("grapple.new.resolved_scope")
+local ResolvedScope = require("grapple.resolved_scope")
 
----@class Scope
+---@class grapple.scope
 ---@field name string
----@field resolver Resolver
+---@field resolver grapple.scope.resolver
 ---@field persisted boolean
 local Scope = {}
 Scope.__index = Scope
 
----@alias Id string
----@alias Path string
----@alias Resolver fun(): Id, Path | nil, string?
+---@alias grapple.scope.id string
+---@alias grapple.scope.path string
+---@alias grapple.scope.resolver fun(): grapple.scope.id, grapple.scope.path | nil, string?
 
 ---@param name string
----@param resolver Resolver
+---@param resolver grapple.scope.resolver
 ---@param persisted boolean
----@return Scope
+---@return grapple.scope
 function Scope:new(name, resolver, persisted)
     return setmetatable({
         name = name,
@@ -23,8 +23,8 @@ function Scope:new(name, resolver, persisted)
     }, self)
 end
 
----@param tag_manager TagManager
----@return ResolvedScope, string? error
+---@param tag_manager grapple.tag.manager
+---@return grapple.scope.resolved, string? error
 function Scope:resolve(tag_manager)
     local id, path, err = self.resolver()
     if err then

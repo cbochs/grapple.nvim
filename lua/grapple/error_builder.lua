@@ -1,6 +1,6 @@
-local Error = require("grapple.new.error")
+local Error = require("grapple.error")
 
----@class ErrorBuilder
+---@class grapple.error.builder
 ---@field type string
 ---@field err fun(...): string
 local ErrorBuilder = {}
@@ -8,7 +8,7 @@ ErrorBuilder.__index = ErrorBuilder
 
 ---@param type string
 ---@param err fun(...): string
----@return ErrorBuilder
+---@return grapple.error.builder
 function ErrorBuilder:create(type, err)
     return setmetatable({
         type = type,
@@ -25,7 +25,7 @@ function ErrorBuilder:default(type)
     }, self)
 end
 
----@return Error
+---@return grapple.error
 function ErrorBuilder:new(...)
     return Error:new(self.type, self.err(...))
 end

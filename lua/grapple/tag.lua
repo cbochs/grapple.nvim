@@ -1,6 +1,4 @@
-local Util = require("grapple.new.util")
-
----@class Tag
+---@class grapple.tag
 ---@field path string absolute path
 ---@field cursor integer[] (1, 0)-based cursor position
 local Tag = {}
@@ -28,7 +26,7 @@ end
 
 -- Implements Serialize
 function Tag:into_table()
-    ---@class TagFormat
+    ---@class grapple.tag.format
     return {
         path = self.path,
         cursor = self.cursor,
@@ -36,8 +34,8 @@ function Tag:into_table()
 end
 
 -- Implements Deserialize
----@param tbl TagFormat
----@return Tag, string? error
+---@param tbl grapple.tag.format
+---@return grapple.tag, string? error
 function Tag.from_table(tbl)
     return Tag:new(tbl.path, tbl.cursor), nil
 end

@@ -1,6 +1,6 @@
----@class Window
----@field content TagContent
----@field hook fun(window: Window): string? | nil
+---@class grapple.window
+---@field content grapple.tag.content
+---@field hook fun(window: grapple.window): string? | nil
 ---@field buf_id integer
 ---@field win_id integer
 ---@field ns_id integer
@@ -8,9 +8,9 @@
 local Window = {}
 Window.__index = Window
 
----@param content TagContent
----@param hook? fun(window: Window): string?
----@return Window
+---@param content grapple.tag.content
+---@param hook? fun(window: grapple.window): string?
+---@return grapple.window
 function Window:new(content, hook)
     return setmetatable({
         content = content,
