@@ -18,7 +18,7 @@ function Deserializable.from_table(tbl)
 end
 
 ---See :h nvim_open_win
----@class WinOpts
+---@class grapple.vim.win_opts
 ---@field relative? "editor" | "win" | "cursor" | "mouse"
 ---@field win? integer
 ---@field anchor? "NW" | "NW" | "SW" | "SE"

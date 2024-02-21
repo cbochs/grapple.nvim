@@ -19,11 +19,11 @@ function Window:new(content, hook)
         win_id = nil,
         ns_id = nil,
         augroup = nil,
-    }, Window)
+    }, self)
 end
 
----@param opts WinOpts
----@return WinOpts valid_opts
+---@param opts grapple.vim.win_opts
+---@return grapple.vim.win_opts valid_opts
 function Window:canonicalize(opts)
     ---@diagnostic disable-next-line: redefined-local
     local opts = vim.tbl_deep_extend("keep", opts, {})
@@ -68,7 +68,7 @@ function Window:is_closed()
     return not self:is_open()
 end
 
----@param opts WinOpts?
+---@param opts grapple.vim.win_opts?
 function Window:open(opts)
     if self:is_open() then
         return
@@ -133,11 +133,12 @@ function Window:render()
     vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
 
-    -- Render content
-    local err = self.content:render(self.buf_id, self.ns_id)
+    -- Update and render content
+    local err = self.content:update()
     if err then
         return err
     end
+    self.content:render(self.buf_id, self.ns_id)
 
     -- Set active buffer and restore cursor
     vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
@@ -199,6 +200,26 @@ function Window:select(index)
     local err = self.content:select(index)
     if err then
         return err
+    end
+
+    self:close()
+end
+
+---@return string? error
+function Window:quickfix()
+    if self:is_closed() then
+        return
+    end
+
+    local err = self:reconcile()
+    if err then
+        return err
+    end
+
+    local list = self.content:quickfix()
+    if #list > 0 then
+        vim.fn.setqflist(list, "r")
+        vim.cmd.copen()
     end
 
     self:close()

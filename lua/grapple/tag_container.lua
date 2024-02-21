@@ -18,6 +18,10 @@ local Util = require("grapple.util")
 ---@field path? string
 ---@field index? integer
 
+---@class grapple.tag.container.update
+---@field path string
+---@field cursor integer[]
+
 ---@class grapple.tag.container
 ---@field tags grapple.tag[]
 local TagContainer = {}
@@ -101,6 +105,21 @@ function TagContainer:remove(opts)
     end
 
     return table.remove(self.tags, index)
+end
+
+---@param opts grapple.tag.container.update
+---@return string? error
+function TagContainer:update(opts)
+    local tag, err = self:get({ path = opts.path })
+    if err then
+        return err
+    end
+
+    tag:update(opts.cursor)
+end
+
+function TagContainer:clear()
+    self.tags = {}
 end
 
 ---@param opts grapple.tag.container.get
