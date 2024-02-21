@@ -1,40 +1,50 @@
 local Util = require("grapple.util")
 
 ---@class grapple.tag.content
----@field scope grapple.scope.resolved
 ---@field entries grapple.tag.content.entry[]
+---@field scope grapple.scope.resolved
+---@field hook_fn grapple.tag.content.hook
 local TagContent = {}
 TagContent.__index = TagContent
 
+---@alias grapple.tag.content.hook fun(window: grapple.window, content: grapple.tag.content): string?
+
 ---@param scope grapple.scope.resolved
+---@param hook_fn grapple.tag.content.hook
 ---@return grapple.tag.content
-function TagContent:new(scope)
+function TagContent:new(scope, hook_fn)
     return setmetatable({
-        scope = scope,
         entries = {},
+        scope = scope,
+        hook_fn = hook_fn,
     }, self)
 end
 
----@return string? error
-function TagContent:select(index)
-    return self.scope:enter(function(container)
-        local tag, err = container:get({ index = index })
-        if err then
-            return err
-        end
-
-        tag:select()
-    end)
+function TagContent:id()
+    return self.scope.id
 end
 
----@return grapple.vim.quickfix[]
-function TagContent:quickfix()
-    ---@param entry grapple.tag.content.entry
-    local function quickfix(entry)
-        return entry.quickfix
+---@param window grapple.window
+---@return string? error
+function TagContent:attach(window)
+    local err = self:update()
+    if err then
+        return err
     end
 
-    return vim.tbl_map(quickfix, self.entries)
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.hook_fn(window, self)
+    if err then
+        return err
+    end
+
+    return nil
+end
+
+---@param window grapple.window
+---@return string? error
+function TagContent:detach(window)
+    self:reconcile(window.buf_id)
 end
 
 ---@return string? error
@@ -78,6 +88,7 @@ end
 
 ---@param buf_id integer
 ---@param ns_id integer
+---@return string? error
 function TagContent:render(buf_id, ns_id)
     ---@param entry grapple.tag.content.entry
     local function lines(entry)
@@ -94,6 +105,8 @@ function TagContent:render(buf_id, ns_id)
     for _, mark in ipairs(vim.tbl_map(marks, self.entries)) do
         vim.api.nvim_buf_set_extmark(buf_id, ns_id, mark.line, mark.col, mark.opts)
     end
+
+    return nil
 end
 
 ---@param buf_id integer
@@ -203,6 +216,40 @@ function TagContent:apply_changes(changes)
     end
 
     return nil
+end
+
+---@param index integer
+---@return string? error
+function TagContent:select(index)
+    local err = self.scope:enter(function(container)
+        local tag, err = container:get({ index = index })
+        if err then
+            return err
+        end
+
+        ---@diagnostic disable-next-line: redefined-local
+        local err = tag:select()
+        if err then
+            return err
+        end
+
+        return nil
+    end)
+    if err then
+        return err
+    end
+
+    return nil
+end
+
+---@return grapple.vim.quickfix[]
+function TagContent:quickfix()
+    ---@param entry grapple.tag.content.entry
+    local function quickfix(entry)
+        return entry.quickfix
+    end
+
+    return vim.tbl_map(quickfix, self.entries)
 end
 
 return TagContent

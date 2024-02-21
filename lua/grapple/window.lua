@@ -1,30 +1,29 @@
 ---@class grapple.window
 ---@field content grapple.tag.content
----@field hook fun(window: grapple.window): string? | nil
+---@field ns_id integer
+---@field au_id integer
 ---@field buf_id integer
 ---@field win_id integer
----@field ns_id integer
----@field augroup integer
+---@field win_opts grapple.vim.win_opts
 local Window = {}
 Window.__index = Window
 
----@param content grapple.tag.content
----@param hook? fun(window: grapple.window): string?
+---@param win_opts? grapple.vim.win_opts
 ---@return grapple.window
-function Window:new(content, hook)
+function Window:new(win_opts)
     return setmetatable({
-        content = content,
-        hook = hook,
+        content = nil,
+        ns_id = nil,
+        au_id = nil,
         buf_id = nil,
         win_id = nil,
-        ns_id = nil,
-        augroup = nil,
+        win_opts = win_opts or {},
     }, self)
 end
 
 ---@param opts grapple.vim.win_opts
 ---@return grapple.vim.win_opts valid_opts
-function Window:canonicalize(opts)
+function Window.canonicalize(opts)
     ---@diagnostic disable-next-line: redefined-local
     local opts = vim.tbl_deep_extend("keep", opts, {})
 
@@ -68,93 +67,155 @@ function Window:is_closed()
     return not self:is_open()
 end
 
----@param opts grapple.vim.win_opts?
-function Window:open(opts)
+function Window:open()
     if self:is_open() then
         return
     end
 
-    local win_opts = self:canonicalize(opts or {})
+    -- Create or get namespaces
+    self.ns_id = vim.api.nvim_create_namespace("grapple")
+    self.au_id = vim.api.nvim_create_augroup("Grapple", { clear = true })
 
     -- Create temporary buffer
-    self.buf_id = vim.api.nvim_create_buf(false, false)
+    self.buf_id = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
+    self:buffer_defaults()
 
     -- Create window
+    local win_opts = Window.canonicalize(self.win_opts)
     self.win_id = vim.api.nvim_open_win(self.buf_id, true, win_opts)
-
-    -- Create or get virtual text namespace
-    self.ns_id = vim.api.nvim_create_namespace("grapple")
 end
 
 ---@return string? error
-function Window:reconcile()
-    if self:is_closed() then
-        return
-    end
-
-    local err = self.content:reconcile(self.buf_id)
-    if err then
-        return err
-    end
-end
-
 function Window:close()
     if self:is_closed() then
         return
+    end
+
+    local err = self:detach()
+    if err then
+        return err
     end
 
     if vim.api.nvim_win_is_valid(self.win_id) then
         vim.api.nvim_win_close(self.win_id, true)
     end
 
-    self.win_id = nil
-    self.buf_id = nil
     self.ns_id = nil
-    self.augroup = nil
+    self.au_id = nil
+    self.buf_id = nil
+    self.win_id = nil
+end
+
+---@param content grapple.tag.content
+---@return string? error
+function Window:attach(content)
+    if self.content then
+        if self.content:id() == content:id() then
+            return
+        end
+
+        local err = self:detach()
+        if err then
+            return err
+        end
+    end
+
+    self.content = content
+    local err = self.content:attach(self)
+    if err then
+        return err
+    end
+
+    return nil
 end
 
 ---@return string? error
-function Window:render()
-    if not self:is_open() then
+function Window:detach()
+    if not self.content then
+        return
+    end
+
+    local err = self.content:detach(self)
+    if err then
+        return err
+    end
+
+    self.content = nil
+
+    return nil
+end
+
+---@param content? grapple.tag.content
+---@return string? error
+function Window:render(content)
+    if self:is_closed() then
         return "window is not open"
+    end
+
+    if not content and not self.content then
+        return "no content available"
     end
 
     -- Store cursor location to reposition later
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
-    -- Create or get autocommand group
-    self.augroup = vim.api.nvim_create_augroup("Grapple", { clear = true })
-
     -- Create content buffer
     self.buf_id = vim.api.nvim_create_buf(false, true)
-
-    -- Set buffer options
     vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
+    self:buffer_defaults()
 
-    -- Update and render content
+    -- Render content
+    if content then
+        self:attach(content)
+    end
+
     local err = self.content:update()
     if err then
         return err
     end
-    self.content:render(self.buf_id, self.ns_id)
 
-    -- Set active buffer and restore cursor
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.content:render(self.buf_id, self.ns_id)
+    if err then
+        return err
+    end
+
+    -- Set active buffer
     vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
-    vim.api.nvim_win_set_cursor(self.win_id, cursor)
 
-    -- Notify hook
-    if self.hook then
-        ---@diagnostic disable-next-line: redefined-local
-        local err = self.hook(self)
-        if err then
-            return err
-        end
+    -- Restore cursor location
+    local ok = pcall(vim.api.nvim_win_set_cursor, 0, cursor)
+    if not ok then
+        vim.api.nvim_win_set_cursor(self.win_id, { 1, 0 })
     end
 end
 
+function Window:buffer_defaults()
+    self:autocmd({ "WinLeave" }, {
+        once = true,
+        callback = function()
+            local err = self:close()
+            if err then
+                vim.notify(err, vim.log.levels.ERROR)
+            end
+        end,
+    })
+
+    self:map("n", "q", "<cmd>close<cr>")
+    self:map("n", "<c-c>", "<cmd>close<cr>")
+
+    self:autocmd({ "VimResized" }, {
+        callback = function()
+            self:reposition()
+        end,
+    })
+end
+
 -- See :h vim.keymap.set
+---Safety: used only inside a callback hook when a window is open
 ---@param mode string | table
 ---@param lhs string
 ---@param rhs string | function
@@ -171,58 +232,29 @@ function Window:map(mode, lhs, rhs, opts)
 end
 
 ---See :h vim.api.nvim_create_autocmd
+---Safety: used only inside a callback hook when a window is open
 ---@param event any
 ---@param opts vim.api.keyset.create_autocmd
 function Window:autocmd(event, opts)
     vim.api.nvim_create_autocmd(
         event,
         vim.tbl_extend("force", opts or {}, {
-            group = self.augroup,
+            group = self.au_id,
             buffer = self.buf_id,
         })
     )
 end
 
----@param index? integer
----@return string? error
-function Window:select(index)
-    if not index then
-        local cursor = vim.api.nvim_win_get_cursor(self.win_id)
-        index = cursor[1]
-    end
-
-    local err = self:reconcile()
-    if err then
-        return err
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self.content:select(index)
-    if err then
-        return err
-    end
-
-    self:close()
+---Safety: used only inside an autocmd associated with a known buffer
+function Window:reposition()
+    local win_opts = Window.canonicalize(self.win_opts)
+    vim.api.nvim_win_set_config(self.win_id, win_opts)
 end
 
----@return string? error
-function Window:quickfix()
-    if self:is_closed() then
-        return
-    end
-
-    local err = self:reconcile()
-    if err then
-        return err
-    end
-
-    local list = self.content:quickfix()
-    if #list > 0 then
-        vim.fn.setqflist(list, "r")
-        vim.cmd.copen()
-    end
-
-    self:close()
+---Safety: used only inside a callback hook when a window is open
+---@return integer[]
+function Window:cursor()
+    return vim.api.nvim_win_get_cursor(self.win_id)
 end
 
 return Window
