@@ -82,6 +82,8 @@ function TagManager:reset(id)
         return string.format("no container for id: %s", id)
     end
 
+    self.containers[id] = nil
+
     local err = self.state:remove(id)
     if err then
         return err:error()
