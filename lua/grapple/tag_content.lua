@@ -3,36 +3,48 @@ local Util = require("grapple.util")
 ---@class grapple.tag.content
 ---@field entries grapple.tag.content.entry[]
 ---@field scope grapple.scope.resolved
----@field hook_fn grapple.tag.content.hook
+---@field hook_fn grapple.tag.content.hook_fn
+---@field title_fn grapple.tag.content.title_fn
 local TagContent = {}
 TagContent.__index = TagContent
 
----@alias grapple.tag.content.hook fun(window: grapple.window): string?
+---@alias grapple.tag.content.hook_fn fun(window: grapple.window): string?
+---@alias grapple.tag.content.title_fn fun(scope: grapple.scope.resolved): string
 
 ---@param scope grapple.scope.resolved
----@param hook_fn grapple.tag.content.hook
+---@param hook_fn grapple.tag.content.hook_fn
+---@param title_fn? grapple.tag.content.title_fn
 ---@return grapple.tag.content
-function TagContent:new(scope, hook_fn)
+function TagContent:new(scope, hook_fn, title_fn)
     return setmetatable({
         entries = {},
         scope = scope,
         hook_fn = hook_fn,
+        title_fn = title_fn,
     }, self)
 end
 
+---@return string id
 function TagContent:id()
     return self.scope.id
+end
+
+---@return string title
+function TagContent:title()
+    if self.title_fn then
+        return self.title_fn(self.scope)
+    end
+
+    ---@type string
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local title = vim.fn.fnamemodify(self.scope.path, ":~")
+
+    return title
 end
 
 ---@param window grapple.window
 ---@return string? error
 function TagContent:attach(window)
-    local err = self:update()
-    if err then
-        return err
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
     local err = self.hook_fn(window)
     if err then
         return err
@@ -45,6 +57,23 @@ end
 ---@return string? error
 function TagContent:detach(buf_id)
     self:sync(buf_id)
+end
+
+---@param buf_id integer
+---@return string? error
+function TagContent:sync(buf_id)
+    local err = self:reconcile(buf_id)
+    if err then
+        return err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self:update()
+    if err then
+        return err
+    end
+
+    return nil
 end
 
 ---@return string? error
@@ -72,23 +101,6 @@ function TagContent:update()
                 },
             },
         })
-    end
-
-    return nil
-end
-
----@param buf_id integer
----@return string? error
-function TagContent:sync(buf_id)
-    local err = self:reconcile(buf_id)
-    if err then
-        return err
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self:update()
-    if err then
-        return err
     end
 
     return nil

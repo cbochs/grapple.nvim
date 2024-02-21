@@ -5,6 +5,7 @@
 ---@field buf_id integer
 ---@field win_id integer
 ---@field win_opts grapple.vim.win_opts
+---@field rendered boolean
 local Window = {}
 Window.__index = Window
 
@@ -18,18 +19,20 @@ function Window:new(win_opts)
         buf_id = nil,
         win_id = nil,
         win_opts = win_opts or {},
+        rendered = false,
     }, self)
 end
 
----@param opts grapple.vim.win_opts
----@return grapple.vim.win_opts valid_opts
-function Window.canonicalize(opts)
-    ---@diagnostic disable-next-line: redefined-local
-    local opts = vim.tbl_deep_extend("keep", opts, {})
+---@return grapple.vim.win_opts win_opts
+function Window:canonicalize()
+    local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
 
     -- window title
-    if opts.title and type(opts.title) == "function" then
-        opts.title = opts.title()
+    if self:has_content() then
+        opts.title = self.content:title()
+    else
+        opts.title = nil
+        opts.title_pos = nil
     end
 
     -- window size
@@ -67,6 +70,16 @@ function Window:is_closed()
     return not self:is_open()
 end
 
+---@return boolean
+function Window:has_content()
+    return self.content ~= nil
+end
+
+---@return boolean
+function Window:is_rendered()
+    return self:is_open() and self:has_content() and self.rendered
+end
+
 function Window:open()
     if self:is_open() then
         return
@@ -83,7 +96,7 @@ function Window:open()
     self:buffer_defaults()
 
     -- Create window
-    local win_opts = Window.canonicalize(self.win_opts)
+    local win_opts = self:canonicalize()
     self.win_id = vim.api.nvim_open_win(self.buf_id, true, win_opts)
 end
 
@@ -93,7 +106,7 @@ function Window:close()
         return
     end
 
-    if self.content then
+    if self:is_rendered() then
         self.content:sync(self.buf_id)
     end
 
@@ -105,53 +118,62 @@ function Window:close()
     self.au_id = nil
     self.buf_id = nil
     self.win_id = nil
+    self.rendered = false
 end
 
----@param content? grapple.tag.content
+---@param content grapple.tag.content
 ---@return string? error
 function Window:attach(content)
-    if not content and not self.content then
-        return "no content available"
-    end
-
-    if self.content and content and self.content:id() ~= content:id() then
+    if self:has_content() and self.content:id() ~= content:id() then
         local err = self:detach()
         if err then
             return err
         end
     end
 
-    if content then
-        self.content = content
-    end
-
-    local err = self.content:attach(self)
-    if err then
-        return err
-    end
+    self.content = content
+    self.rendered = false
 end
 
 ---@return string? error
 function Window:detach()
-    if not self.content then
-        return
+    if self:is_rendered() then
+        local err = self.content:detach(self.buf_id)
+        if err then
+            return err
+        end
     end
 
-    local err = self.content:detach(self.buf_id)
+    self.content = nil
+    self.rendered = false
+end
+
+---@return string? error
+function Window:refresh()
+    if not self:is_rendered() then
+        return "window is not rendered"
+    end
+
+    local err = self.content:sync(self.buf_id)
     if err then
         return err
     end
 
-    self.content = nil
-
-    return nil
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self:render()
+    if err then
+        return err
+    end
 end
 
----@param content? grapple.tag.content
 ---@return string? error
-function Window:render(content)
+function Window:render()
     if self:is_closed() then
         return "window is not open"
+    end
+
+    if not self:has_content() then
+        return "no content available"
     end
 
     -- Store cursor location to reposition later
@@ -162,13 +184,18 @@ function Window:render(content)
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
     self:buffer_defaults()
 
-    -- Attach to content provider
-    local err = self:attach(content)
+    -- Safety: we are guaranteed to have content by this point
+    local err = self.content:update()
     if err then
         return err
     end
 
-    -- Safety: we are guaranteed to have content by this point
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.content:attach(self)
+    if err then
+        return err
+    end
+
     ---@diagnostic disable-next-line: redefined-local
     local err = self.content:render(self.buf_id, self.ns_id)
     if err then
@@ -178,18 +205,23 @@ function Window:render(content)
     -- Set active buffer
     vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
 
+    -- Update window options
+    local win_opts = self:canonicalize()
+    vim.api.nvim_win_set_config(self.win_id, win_opts)
+
     -- Restore cursor location
     local ok = pcall(vim.api.nvim_win_set_cursor, 0, cursor)
     if not ok then
         vim.api.nvim_win_set_cursor(self.win_id, { 1, 0 })
     end
+
+    self.rendered = true
 end
 
 function Window:buffer_defaults()
     self:autocmd({ "WinLeave" }, {
         once = true,
         callback = function()
-            ---@diagnostic disable-next-line: redefined-local
             local err = self:close()
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
@@ -203,7 +235,8 @@ function Window:buffer_defaults()
 
     self:autocmd({ "VimResized" }, {
         callback = function()
-            self:reposition()
+            local win_opts = self:canonicalize()
+            vim.api.nvim_win_set_config(self.win_id, win_opts)
         end,
     })
 end
@@ -241,17 +274,9 @@ end
 
 ---Safety: used only inside a callback hook when a window is open
 ---@param action grapple.action
----@param opts grapple.action.options
+---@param opts? grapple.action.options
 ---@return string? error
 function Window:perform(action, opts)
-    if self:is_closed() then
-        return "window is not open"
-    end
-
-    if not self.content then
-        return "no content available"
-    end
-
     local err = self:close()
     if err then
         return err
@@ -262,12 +287,6 @@ function Window:perform(action, opts)
     if err then
         return err
     end
-end
-
----Safety: used only inside an autocmd associated with a known buffer
-function Window:reposition()
-    local win_opts = Window.canonicalize(self.win_opts)
-    vim.api.nvim_win_set_config(self.win_id, win_opts)
 end
 
 ---Safety: used only inside a callback hook when a window is open
