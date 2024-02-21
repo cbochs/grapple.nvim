@@ -93,9 +93,8 @@ function Window:close()
         return
     end
 
-    local err = self:detach()
-    if err then
-        return err
+    if self.content then
+        self.content:sync(self.buf_id)
     end
 
     if vim.api.nvim_win_is_valid(self.win_id) then
@@ -108,27 +107,28 @@ function Window:close()
     self.win_id = nil
 end
 
----@param content grapple.tag.content
+---@param content? grapple.tag.content
 ---@return string? error
 function Window:attach(content)
-    if self.content then
-        if self.content:id() == content:id() then
-            return
-        end
+    if not content and not self.content then
+        return "no content available"
+    end
 
+    if self.content and content and self.content:id() ~= content:id() then
         local err = self:detach()
         if err then
             return err
         end
     end
 
-    self.content = content
+    if content then
+        self.content = content
+    end
+
     local err = self.content:attach(self)
     if err then
         return err
     end
-
-    return nil
 end
 
 ---@return string? error
@@ -137,7 +137,7 @@ function Window:detach()
         return
     end
 
-    local err = self.content:detach(self)
+    local err = self.content:detach(self.buf_id)
     if err then
         return err
     end
@@ -154,29 +154,21 @@ function Window:render(content)
         return "window is not open"
     end
 
-    if not content and not self.content then
-        return "no content available"
-    end
-
     -- Store cursor location to reposition later
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
-    -- Create content buffer
     self.buf_id = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
     self:buffer_defaults()
 
-    -- Render content
-    if content then
-        self:attach(content)
-    end
-
-    local err = self.content:update()
+    -- Attach to content provider
+    local err = self:attach(content)
     if err then
         return err
     end
 
+    -- Safety: we are guaranteed to have content by this point
     ---@diagnostic disable-next-line: redefined-local
     local err = self.content:render(self.buf_id, self.ns_id)
     if err then
@@ -197,6 +189,7 @@ function Window:buffer_defaults()
     self:autocmd({ "WinLeave" }, {
         once = true,
         callback = function()
+            ---@diagnostic disable-next-line: redefined-local
             local err = self:close()
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
@@ -206,6 +199,7 @@ function Window:buffer_defaults()
 
     self:map("n", "q", "<cmd>close<cr>")
     self:map("n", "<c-c>", "<cmd>close<cr>")
+    self:map("n", "<esc>", "<cmd>close<cr>")
 
     self:autocmd({ "VimResized" }, {
         callback = function()
@@ -243,6 +237,31 @@ function Window:autocmd(event, opts)
             buffer = self.buf_id,
         })
     )
+end
+
+---Safety: used only inside a callback hook when a window is open
+---@param action grapple.action
+---@param opts grapple.action.options
+---@return string? error
+function Window:perform(action, opts)
+    if self:is_closed() then
+        return "window is not open"
+    end
+
+    if not self.content then
+        return "no content available"
+    end
+
+    local err = self:close()
+    if err then
+        return err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.content:perform(action, opts)
+    if err then
+        return err
+    end
 end
 
 ---Safety: used only inside an autocmd associated with a known buffer

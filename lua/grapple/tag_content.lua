@@ -7,7 +7,7 @@ local Util = require("grapple.util")
 local TagContent = {}
 TagContent.__index = TagContent
 
----@alias grapple.tag.content.hook fun(window: grapple.window, content: grapple.tag.content): string?
+---@alias grapple.tag.content.hook fun(window: grapple.window): string?
 
 ---@param scope grapple.scope.resolved
 ---@param hook_fn grapple.tag.content.hook
@@ -33,7 +33,7 @@ function TagContent:attach(window)
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = self.hook_fn(window, self)
+    local err = self.hook_fn(window)
     if err then
         return err
     end
@@ -41,10 +41,10 @@ function TagContent:attach(window)
     return nil
 end
 
----@param window grapple.window
+---@param buf_id integer
 ---@return string? error
-function TagContent:detach(window)
-    self:reconcile(window.buf_id)
+function TagContent:detach(buf_id)
+    self:sync(buf_id)
 end
 
 ---@return string? error
@@ -71,16 +71,24 @@ function TagContent:update()
                     sign_text = string.format("%s", i),
                 },
             },
-
-            ---See :h vim.fn.setqflist
-            ---@class grapple.vim.quickfix
-            quickfix = {
-                filename = tag.path,
-                lnum = tag.cursor[1],
-                col = tag.cursor[2] + 1,
-                text = Util.relative(tag.path, self.scope.path),
-            },
         })
+    end
+
+    return nil
+end
+
+---@param buf_id integer
+---@return string? error
+function TagContent:sync(buf_id)
+    local err = self:reconcile(buf_id)
+    if err then
+        return err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self:update()
+    if err then
+        return err
     end
 
     return nil
@@ -104,6 +112,18 @@ function TagContent:render(buf_id, ns_id)
 
     for _, mark in ipairs(vim.tbl_map(marks, self.entries)) do
         vim.api.nvim_buf_set_extmark(buf_id, ns_id, mark.line, mark.col, mark.opts)
+    end
+
+    return nil
+end
+
+---@param action grapple.action
+---@param opts? grapple.action.options
+---@return string? error
+function TagContent:perform(action, opts)
+    local err = action(self.scope, opts)
+    if err then
+        return err
     end
 
     return nil
@@ -134,12 +154,6 @@ function TagContent:reconcile(buf_id)
 
     ---@diagnostic disable-next-line: redefined-local
     local err = self:apply_changes(changes)
-    if err then
-        return err
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self:update()
     if err then
         return err
     end
@@ -216,40 +230,6 @@ function TagContent:apply_changes(changes)
     end
 
     return nil
-end
-
----@param index integer
----@return string? error
-function TagContent:select(index)
-    local err = self.scope:enter(function(container)
-        local tag, err = container:get({ index = index })
-        if err then
-            return err
-        end
-
-        ---@diagnostic disable-next-line: redefined-local
-        local err = tag:select()
-        if err then
-            return err
-        end
-
-        return nil
-    end)
-    if err then
-        return err
-    end
-
-    return nil
-end
-
----@return grapple.vim.quickfix[]
-function TagContent:quickfix()
-    ---@param entry grapple.tag.content.entry
-    local function quickfix(entry)
-        return entry.quickfix
-    end
-
-    return vim.tbl_map(quickfix, self.entries)
 end
 
 return TagContent
