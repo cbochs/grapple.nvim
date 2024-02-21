@@ -8,7 +8,11 @@ function Tag:new(path, cursor)
     return setmetatable({
         path = path,
         cursor = cursor,
-    }, Tag)
+    }, self)
+end
+
+function Tag:update(cursor)
+    self.cursor = cursor
 end
 
 ---@return string? error
@@ -21,7 +25,10 @@ function Tag:select()
     local short_path = vim.fn.fnamemodify(self.path, ":~:.")
     vim.cmd.edit(short_path)
 
-    vim.api.nvim_win_set_cursor(0, self.cursor)
+    local ok = pcall(vim.api.nvim_win_set_cursor, 0, self.cursor)
+    if not ok then
+        return string.format("invalid cursor location: %s", vim.inspect(self.cursor))
+    end
 end
 
 -- Implements Serialize

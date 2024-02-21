@@ -86,6 +86,12 @@ function Util.is_relative(path, root)
     return vim.startswith(abs_path, abs_root)
 end
 
+---@param ... string
+---@return string path
+function Util.join(...)
+    return vim.fs.joinpath(...)
+end
+
 -- TODO: remove this code
 --
 ---@param path string
