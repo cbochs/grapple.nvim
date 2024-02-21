@@ -1,6 +1,6 @@
 ---@class grapple.scope.resolved
----@field id string
----@field path string
+---@field id string uniquely identifies a scope
+---@field path string an absolute path
 ---@field persisted boolean
 ---@field tag_manager grapple.tag.manager
 local ResolvedScope = {}

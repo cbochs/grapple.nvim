@@ -32,7 +32,7 @@ end
 ---@field zindex? integer
 ---@field style? "minimal"
 ---@field border? "none" | "single" | "double" | "rounded" | "solid" | "shadow" | string[] default is "none"
----@field title? string | fun(): string
+---@field title? string
 ---@field title_pos? "left" | "center" | "right" default is "left"
 ---@field footer? string | fun(): string
 ---@field footer_pos? "left" | "center" | "right" default is "left"
