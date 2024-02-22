@@ -109,20 +109,22 @@ function Window:close()
         return
     end
 
+    -- TODO: Could this be handled better?
+    -- Content sync errors should not block closing the window
     local err
     if self:is_rendered() then
         err = self.content:sync(self.buf_id)
+        self.rendered = false
     end
 
     if vim.api.nvim_win_is_valid(self.win_id) then
         vim.api.nvim_win_close(self.win_id, true)
+        self.win_id = nil
     end
 
     self.ns_id = nil
     self.au_id = nil
     self.buf_id = nil
-    self.win_id = nil
-    self.rendered = false
 
     if err then
         return err
@@ -313,6 +315,10 @@ end
 ---@return integer[]
 function Window:cursor()
     return vim.api.nvim_win_get_cursor(self.win_id)
+end
+
+function Window:current_line()
+    return vim.api.nvim_get_current_line()
 end
 
 return Window

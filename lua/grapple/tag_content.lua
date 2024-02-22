@@ -64,23 +64,6 @@ function TagContent:detach(buf_id)
     return nil
 end
 
----@param buf_id integer
----@return string? error
-function TagContent:sync(buf_id)
-    local err = self:reconcile(buf_id)
-    if err then
-        return err
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self:update()
-    if err then
-        return err
-    end
-
-    return nil
-end
-
 ---@return string? error
 function TagContent:update()
     local tags, err = self.scope:tags()
@@ -115,7 +98,7 @@ function TagContent:update()
         local icon = get_icon(tag)
         local rel_path = Util.relative(tag.path, self.scope.path)
 
-        return string.format("%s %s %s", id, icon, rel_path)
+        return string.format("%s %s  %s", id, icon, rel_path)
     end
 
     ---@param index integer
@@ -173,7 +156,7 @@ end
 
 ---@param buf_id integer
 ---@return string? error
-function TagContent:reconcile(buf_id)
+function TagContent:sync(buf_id)
     ---@param entry grapple.tag.content.entry
     local function paths(entry)
         return entry.path
@@ -182,9 +165,9 @@ function TagContent:reconcile(buf_id)
     local original_paths = vim.tbl_map(paths, self.entries)
 
     local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
-    local modified_paths, errs = self:parse_lines(lines)
+    local modified_paths, errs = self:parse(lines)
     if #errs > 0 then
-        return string.format("failed to parse lines:\n\n%s", table.concat(errs, "\n"))
+        return string.format("failed to parse lines:\n%s", table.concat(errs, "\n"))
     end
 
     local changes, errs = self:diff(original_paths, modified_paths)
@@ -198,48 +181,60 @@ function TagContent:reconcile(buf_id)
         return string.format("failed to apply changes:\n%s", table.concat(errs, "\n"))
     end
 
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self:update()
+    if err then
+        return err
+    end
+
     return nil
 end
 
 ---@param lines string[]
 ---@return string[] paths, string[] errors
-function TagContent:parse_lines(lines)
-    ---@param results { paths: string[], errors: string[] }
-    ---@param line string
-    ---@param index integer
-    ---@return { paths: string[], errors: string[] }
-    local function parse_line(results, line, index)
-        if line == "" then
-            return results
-        end
+function TagContent:parse(lines)
+    local paths = {}
+    local errors = {}
 
-        local id, _, path = string.match(line, "^/(%d+) (.+) (.+)$")
-
-        -- If an ID is not present, parse as a new entry
-        if not id then
-            path = line
-        end
-
-        -- If a path starts with "./" or "..", parse without scope path
-        local abs_path, err
-        if vim.startswith(path, "..") or vim.startswith(path, "./") then
-            abs_path, err = Util.absolute(path)
-        else
-            abs_path, err = Util.absolute(Util.join(self.scope.path, path))
-        end
-
+    for _, line in ipairs(lines) do
+        local path, err = self:parse_line(line)
         if err then
-            table.insert(results.errors, err)
+            table.insert(errors, err)
         else
-            table.insert(results.paths, abs_path)
+            table.insert(paths, path)
         end
-
-        return results
     end
 
-    local results = Util.reduce(lines, parse_line, { paths = {}, errors = {} })
+    return paths, errors
+end
 
-    return results.paths, results.errors
+---@param line string
+---@return string path, string? error
+function TagContent:parse_line(line)
+    if line == "" then
+        return "", ""
+    end
+
+    local id, _, path = string.match(line, "^/(%d+) (.+)  (.+)$")
+
+    -- If an ID is not present, parse as a new entry
+    if not id then
+        path = line
+    end
+
+    -- If a path starts with "./" or "../", parse without scope path
+    local abs_path, err
+    if vim.startswith(path, "../") or vim.startswith(path, "./") then
+        abs_path, err = Util.absolute(path)
+    else
+        abs_path, err = Util.absolute(Util.join(self.scope.path, path))
+    end
+
+    if err then
+        return "", err
+    end
+
+    return abs_path, nil
 end
 
 ---@class grapple.tag.content.change
