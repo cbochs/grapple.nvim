@@ -241,6 +241,32 @@ function Window:render()
 end
 
 function Window:buffer_defaults()
+    -- TODO: We are leaking the content abstraction here
+    -- Window is trying to parse the content's ID and find
+    -- where the fixed column should be. The content should
+    -- provide this information somehow
+    self:autocmd("CursorMoved", {
+        callback = function()
+            local cursor = self:cursor()
+            local line = self:current_line()
+
+            local id = string.find(line, "^/%d+")
+            if not id then
+                return
+            end
+
+            local fixed_column = string.find(line, "%s%s")
+            if not fixed_column then
+                return
+            end
+
+            local expected_column = fixed_column + 1
+            if cursor[2] < expected_column then
+                vim.api.nvim_win_set_cursor(self.win_id, { cursor[1], expected_column })
+            end
+        end,
+    })
+
     self:autocmd({ "WinLeave", "BufLeave" }, {
         once = true,
         callback = function()

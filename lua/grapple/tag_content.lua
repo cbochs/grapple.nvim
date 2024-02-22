@@ -197,12 +197,18 @@ function TagContent:parse(lines)
     local errors = {}
 
     for _, line in ipairs(lines) do
+        if line == "" then
+            goto continue
+        end
+
         local path, err = self:parse_line(line)
         if err then
             table.insert(errors, err)
         else
             table.insert(paths, path)
         end
+
+        ::continue::
     end
 
     return paths, errors
@@ -212,7 +218,7 @@ end
 ---@return string path, string? error
 function TagContent:parse_line(line)
     if line == "" then
-        return "", ""
+        return "", "empty line"
     end
 
     local id, _, path = string.match(line, "^/(%d+) (.+)  (.+)$")
