@@ -83,23 +83,60 @@ function TagContent:update()
         return err
     end
 
+    ---@param tag grapple.tag
+    ---@return string icon, string? hl_group
+    local function get_icon(tag)
+        local icons = require("nvim-web-devicons")
+        local name = vim.fn.fnamemodify(tag.path, ":t")
+        local icon, hl = icons.get_icon(name)
+
+        if not icon then
+            if name == "" then
+                icon = ""
+            else
+                icon = ""
+            end
+        end
+
+        return icon, hl
+    end
+
+    -- In compliance with "grapple" syntax
+    ---@param index integer
+    ---@param tag grapple.tag
+    ---@return string
+    local function into_line(index, tag)
+        local id = string.format("/%03d", index)
+        local icon = get_icon(tag)
+        local rel_path = Util.relative(tag.path, self.scope.path)
+
+        return string.format("%s %s %s", id, icon, rel_path)
+    end
+
+    ---@param index integer
+    ---@return grapple.vim.extmark
+    local function into_mark(index)
+        ---See :h vim.api.nvim_buf_set_extmark
+        ---@class grapple.vim.extmark
+        local mark = {
+            line = index - 1,
+            col = 0,
+            opts = {
+                sign_text = string.format("%d", index),
+            },
+        }
+
+        return mark
+    end
+
     self.entries = {}
 
     for i, tag in ipairs(tags) do
         ---@class grapple.tag.content.entry
         table.insert(self.entries, {
             path = tag.path,
-            line = Util.relative(tag.path, self.scope.path),
-
-            ---See :h vim.api.nvim_buf_set_extmark
-            ---@class grapple.vim.extmark
-            mark = {
-                line = i - 1,
-                col = 0,
-                opts = {
-                    sign_text = string.format("%s", i),
-                },
-            },
+            line = into_line(i, tag),
+            mark = into_mark(i),
         })
     end
 
@@ -120,7 +157,7 @@ function TagContent:render(buf_id, ns_id)
         return entry.mark
     end
 
-    vim.api.nvim_buf_set_lines(buf_id, 0, 0, false, vim.tbl_map(lines, self.entries))
+    vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, vim.tbl_map(lines, self.entries))
 
     for _, mark in ipairs(vim.tbl_map(marks, self.entries)) do
         vim.api.nvim_buf_set_extmark(buf_id, ns_id, mark.line, mark.col, mark.opts)
@@ -129,35 +166,40 @@ function TagContent:render(buf_id, ns_id)
     return nil
 end
 
----@param action grapple.action
----@param opts? grapple.action.options
----@return string? error
-function TagContent:perform(action, opts)
-    local err = action(self.scope, opts)
-    if err then
-        return err
-    end
-
-    return nil
-end
-
 ---@param buf_id integer
 ---@return string? error
 function TagContent:reconcile(buf_id)
+    ---@param entry grapple.tag.content.entry
+    local function paths(entry)
+        return entry.path
+    end
+
+    local function filter_empty(line)
+        return line ~= ""
+    end
+
+    -- In compliance with "grapple" syntax
+    local function from_line(line)
+        local id, _, path = string.match(line, "^/(%d+) (.+) (.+)$")
+
+        -- If an ID is not present, parse as a new entry
+        if not id then
+            path = line
+        end
+
+        -- If a path starts with "." or "..", parse without scope path
+        if vim.startswith(path, ".") then
+            return Util.absolute(path)
+        else
+            return Util.absolute(Util.join(self.scope.path, path))
+        end
+    end
+
     local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
 
-    local original_paths = vim.tbl_map(function(entry)
-        return entry.path
-    end, self.entries)
+    local original_paths = vim.tbl_map(paths, self.entries)
 
-    local modified_paths = vim.tbl_map(
-        function(line)
-            return Util.absolute(Util.join(self.scope.path, line))
-        end,
-        vim.tbl_filter(function(line)
-            return line ~= ""
-        end, lines)
-    )
+    local modified_paths = vim.tbl_map(from_line, vim.tbl_filter(filter_empty, lines))
 
     local changes, err = self:diff(original_paths, modified_paths)
     if #err > 0 then
@@ -237,6 +279,18 @@ function TagContent:apply_changes(changes)
             end
         end
     end)
+    if err then
+        return err
+    end
+
+    return nil
+end
+
+---@param action grapple.action
+---@param opts? grapple.action.options
+---@return string? error
+function TagContent:perform(action, opts)
+    local err = action(self.scope, opts)
     if err then
         return err
     end

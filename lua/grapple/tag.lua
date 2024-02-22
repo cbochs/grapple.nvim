@@ -23,6 +23,9 @@ function Tag:select()
     end
 
     local short_path = vim.fn.fnamemodify(self.path, ":~:.")
+    if short_path == "" then
+        short_path = self.path
+    end
     vim.cmd.edit(short_path)
 
     local ok = pcall(vim.api.nvim_win_set_cursor, 0, self.cursor)

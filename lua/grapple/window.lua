@@ -85,19 +85,22 @@ function Window:open()
         return
     end
 
-    -- Create or get namespaces
+    -- Get or create namespaces
     self.ns_id = vim.api.nvim_create_namespace("grapple")
     self.au_id = vim.api.nvim_create_augroup("Grapple", { clear = true })
 
     -- Create temporary buffer
     self.buf_id = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = self.buf_id })
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
     self:buffer_defaults()
 
     -- Create window
     local win_opts = self:canonicalize()
+
     self.win_id = vim.api.nvim_open_win(self.buf_id, true, win_opts)
+    vim.api.nvim_set_option_value("concealcursor", "nvic", { win = self.win_id })
+    vim.api.nvim_set_option_value("conceallevel", 3, { win = self.win_id })
 end
 
 ---@return string? error
@@ -179,10 +182,23 @@ function Window:render()
     -- Store cursor location to reposition later
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
+    -- Create new content buffer
+    vim.api.nvim_clear_autocmds({ event = "BufLeave", group = self.au_id, buffer = self.buf_id })
+
     self.buf_id = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
+    vim.api.nvim_set_option_value("syntax", "grapple", { buf = self.buf_id })
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = self.buf_id })
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
+    vim.api.nvim_set_option_value("undolevels", -1, { buf = self.buf_id })
     self:buffer_defaults()
+
+    -- Replace active buffer
+    vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
+
+    -- Update window options
+    local win_opts = self:canonicalize()
+    vim.api.nvim_win_set_config(self.win_id, win_opts)
 
     -- Safety: we are guaranteed to have content by this point
     local err = self.content:update()
@@ -202,12 +218,11 @@ function Window:render()
         return err
     end
 
-    -- Set active buffer
-    vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
-
-    -- Update window options
-    local win_opts = self:canonicalize()
-    vim.api.nvim_win_set_config(self.win_id, win_opts)
+    -- Prevent undo after content has been rendered. Set undolevels to -1 before
+    -- rendering and then set back to its global default afterwards
+    -- See :h clear-undo
+    local undolevels = vim.api.nvim_get_option_value("undolevels", { scope = "global" })
+    vim.api.nvim_set_option_value("undolevels", undolevels, { buf = self.buf_id })
 
     -- Restore cursor location
     local ok = pcall(vim.api.nvim_win_set_cursor, 0, cursor)
@@ -219,7 +234,7 @@ function Window:render()
 end
 
 function Window:buffer_defaults()
-    self:autocmd({ "WinLeave" }, {
+    self:autocmd({ "WinLeave", "BufLeave" }, {
         once = true,
         callback = function()
             local err = self:close()

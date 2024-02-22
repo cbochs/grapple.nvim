@@ -34,6 +34,8 @@ end
 function Util.absolute(path)
     local norm_path = vim.fs.normalize(path)
 
+    -- TODO: upwards relative paths are hard :p
+
     ---@type string
     ---@diagnostic disable-next-line: assign-type-mismatch
     local abs_path = vim.fn.fnamemodify(norm_path, ":p")
@@ -69,11 +71,17 @@ function Util.relative(path, root)
         start_index = string.len(abs_root) + 1
     end
 
+    -- TODO: might prefer keeping trailing slashes
     if vim.endswith(abs_path, "/") then
         end_index = string.len(abs_path) - 1
     end
 
-    return string.sub(abs_path, start_index, end_index)
+    local rel_path = string.sub(abs_path, start_index, end_index)
+    if rel_path == "" then
+        rel_path = "."
+    end
+
+    return rel_path
 end
 
 ---@param path string
@@ -90,43 +98,6 @@ end
 ---@return string path
 function Util.join(...)
     return vim.fs.joinpath(...)
-end
-
--- TODO: remove this code
---
----@param path string
----@param max_length integer
----@return string compact_path
-function Util.compact(path, max_length)
-    ---@diagnostic disable-next-line: redefined-local
-    local path = Util.absolute(path)
-
-    ---@type string
-    ---@diagnostic disable-next-line: assign-type-mismatch
-    local basename = vim.fs.basename(path)
-
-    if string.len(basename) > max_length then
-        return string.sub(basename, 1, max_length - 2) .. ".."
-    end
-
-    local index = 1
-    while string.len(path) > max_length do
-        local parts = vim.split(path, "/", { plain = true })
-        if index == #parts or (parts[#parts] == "" and index == #parts - 1) then
-            parts[index] = string.sub(parts[index], 1, max_length - 2 * index)
-        elseif parts[index] ~= "" then
-            parts[index] = string.sub(parts[index], 1, 1)
-        end
-
-        path = table.concat(parts, "/")
-
-        index = index + 1
-        if index > #parts then
-            break
-        end
-    end
-
-    return path
 end
 
 return Util
