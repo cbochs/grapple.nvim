@@ -16,12 +16,26 @@ Util.windows = Util.os == "windows"
 Util.macos = Util.os == "macos"
 Util.linux = Util.os == "linux"
 
+---@param list table
+---@param fn fun(acc: any, value: any, index?: integer): any
+---@param init any
+---@return any
+function Util.reduce(list, fn, init)
+    local acc = init
+    for i, v in ipairs(list) do
+        if i == 1 and not init then
+            acc = init
+        else
+            fn(acc, v, i)
+        end
+    end
+    return acc
+end
+
 ---@param path string
 ---@return boolean
 function Util.exists(path)
-    local abs_path = Util.absolute(path)
-
-    local permission = vim.uv.fs_access(abs_path, "R")
+    local permission = vim.uv.fs_access(path, "R")
     if not permission then
         return false
     end
@@ -30,17 +44,44 @@ function Util.exists(path)
 end
 
 ---@param path string
----@return string abs_path
+---@return string abs_path, string? error
 function Util.absolute(path)
-    local norm_path = vim.fs.normalize(path)
+    if path == "" then
+        return "", "no path provided"
+    end
 
-    -- TODO: upwards relative paths are hard :p
+    local normal_path = vim.fs.normalize(path)
 
     ---@type string
     ---@diagnostic disable-next-line: assign-type-mismatch
-    local abs_path = vim.fn.fnamemodify(norm_path, ":p")
+    local expanded_path = vim.fn.fnamemodify(normal_path, ":p")
 
-    return abs_path
+    local abs_parts = Util.reduce(vim.split(expanded_path, "/"), function(path_parts, part)
+        if part == "" and not vim.tbl_isempty(path_parts) then
+            return path_parts
+        elseif part == "." then
+            return path_parts
+        elseif part == ".." then
+            table.remove(path_parts)
+            return path_parts
+        else
+            table.insert(path_parts, part)
+            return path_parts
+        end
+    end, {})
+
+    local abs_path = table.concat(abs_parts, "/")
+
+    ---@type string
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    abs_path = vim.fn.fnamemodify(abs_path, ":p")
+
+    if not Util.exists(abs_path) then
+        return "", string.format("no such file or directory: %s", path)
+    end
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return abs_path, nil
 end
 
 ---@param path string
@@ -55,14 +96,22 @@ end
 
 ---@param path string
 ---@param root? string
----@return string rel_path
+---@return string rel_path, string? error
 function Util.relative(path, root)
     if not root then
         return Util.absolute(path)
     end
 
-    local abs_path = Util.absolute(path)
-    local abs_root = Util.absolute(root)
+    local abs_path, err = Util.absolute(path)
+    if err then
+        return "", err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local abs_root, err = Util.absolute(root)
+    if err then
+        return "", err
+    end
 
     local start_index = 1
     local end_index = nil
@@ -81,15 +130,23 @@ function Util.relative(path, root)
         rel_path = "."
     end
 
-    return rel_path
+    return rel_path, nil
 end
 
 ---@param path string
 ---@param root string
 ---@return boolean
 function Util.is_relative(path, root)
-    local abs_path = Util.absolute(path)
-    local abs_root = Util.absolute(root)
+    local abs_path, err = Util.absolute(path)
+    if err then
+        return false
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local abs_root, err = Util.absolute(root)
+    if err then
+        return false
+    end
 
     return vim.startswith(abs_path, abs_root)
 end
