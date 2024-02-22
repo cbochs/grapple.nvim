@@ -40,7 +40,10 @@ function TagContainer:insert(opts)
         return {}, string.format("tag already exists: %s", opts.path)
     end
 
-    local abs_path = Util.absolute(opts.path)
+    local abs_path, err = Util.absolute(opts.path)
+    if err then
+        return {}, err
+    end
 
     assert(type(abs_path) == "string", "path must be a string")
     assert(type(opts.cursor) == "table", "cursor must be a table")
@@ -148,7 +151,10 @@ end
 ---@param path string
 ---@return integer | nil
 function TagContainer:index(path)
-    local abs_path = Util.absolute(path)
+    local abs_path, err = Util.absolute(path)
+    if err then
+        return nil
+    end
 
     for i, tag in ipairs(self.tags) do
         if tag.path == abs_path then

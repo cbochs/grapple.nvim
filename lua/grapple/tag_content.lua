@@ -56,7 +56,12 @@ end
 ---@param buf_id integer
 ---@return string? error
 function TagContent:detach(buf_id)
-    self:sync(buf_id)
+    local err = self:sync(buf_id)
+    if err then
+        return err
+    end
+
+    return nil
 end
 
 ---@param buf_id integer
@@ -174,12 +179,40 @@ function TagContent:reconcile(buf_id)
         return entry.path
     end
 
-    local function filter_empty(line)
-        return line ~= ""
+    local original_paths = vim.tbl_map(paths, self.entries)
+
+    local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
+    local modified_paths, errs = self:parse_lines(lines)
+    if #errs > 0 then
+        return string.format("failed to parse lines:\n\n%s", table.concat(errs, "\n"))
     end
 
-    -- In compliance with "grapple" syntax
-    local function from_line(line)
+    local changes, errs = self:diff(original_paths, modified_paths)
+    if #errs > 0 then
+        return table.concat(errs, "\n")
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self:apply_changes(changes)
+    if err then
+        return string.format("failed to apply changes:\n%s", table.concat(errs, "\n"))
+    end
+
+    return nil
+end
+
+---@param lines string[]
+---@return string[] paths, string[] errors
+function TagContent:parse_lines(lines)
+    ---@param results { paths: string[], errors: string[] }
+    ---@param line string
+    ---@param index integer
+    ---@return { paths: string[], errors: string[] }
+    local function parse_line(results, line, index)
+        if line == "" then
+            return results
+        end
+
         local id, _, path = string.match(line, "^/(%d+) (.+) (.+)$")
 
         -- If an ID is not present, parse as a new entry
@@ -187,32 +220,26 @@ function TagContent:reconcile(buf_id)
             path = line
         end
 
-        -- If a path starts with "." or "..", parse without scope path
-        if vim.startswith(path, ".") then
-            return Util.absolute(path)
+        -- If a path starts with "./" or "..", parse without scope path
+        local abs_path, err
+        if vim.startswith(path, "..") or vim.startswith(path, "./") then
+            abs_path, err = Util.absolute(path)
         else
-            return Util.absolute(Util.join(self.scope.path, path))
+            abs_path, err = Util.absolute(Util.join(self.scope.path, path))
         end
+
+        if err then
+            table.insert(results.errors, err)
+        else
+            table.insert(results.paths, abs_path)
+        end
+
+        return results
     end
 
-    local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
+    local results = Util.reduce(lines, parse_line, { paths = {}, errors = {} })
 
-    local original_paths = vim.tbl_map(paths, self.entries)
-
-    local modified_paths = vim.tbl_map(from_line, vim.tbl_filter(filter_empty, lines))
-
-    local changes, err = self:diff(original_paths, modified_paths)
-    if #err > 0 then
-        return table.concat(err, "\n")
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self:apply_changes(changes)
-    if err then
-        return err
-    end
-
-    return nil
+    return results.paths, results.errors
 end
 
 ---@class grapple.tag.content.change

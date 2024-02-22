@@ -109,8 +109,9 @@ function Window:close()
         return
     end
 
+    local err
     if self:is_rendered() then
-        self.content:sync(self.buf_id)
+        err = self.content:sync(self.buf_id)
     end
 
     if vim.api.nvim_win_is_valid(self.win_id) then
@@ -122,6 +123,10 @@ function Window:close()
     self.buf_id = nil
     self.win_id = nil
     self.rendered = false
+
+    if err then
+        return err
+    end
 end
 
 ---@param content grapple.tag.content
