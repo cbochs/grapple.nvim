@@ -29,17 +29,13 @@ function TagContent:id()
     return self.scope.id
 end
 
----@return string title
+---@return string | nil title
 function TagContent:title()
-    if self.title_fn then
-        return self.title_fn(self.scope)
+    if not self.title_fn then
+        return
     end
 
-    ---@type string
-    ---@diagnostic disable-next-line: assign-type-mismatch
-    local title = vim.fn.fnamemodify(self.scope.path, ":~")
-
-    return title
+    return self.title_fn(self.scope)
 end
 
 ---@param window grapple.window
@@ -133,7 +129,6 @@ end
 
 ---@param buf_id integer
 ---@param ns_id integer
----@return string? error
 function TagContent:render(buf_id, ns_id)
     ---@param entry grapple.tag.content.entry
     local function lines(entry)
@@ -150,8 +145,6 @@ function TagContent:render(buf_id, ns_id)
     for _, mark in ipairs(vim.tbl_map(marks, self.entries)) do
         vim.api.nvim_buf_set_extmark(buf_id, ns_id, mark.line, mark.col, mark.opts)
     end
-
-    return nil
 end
 
 ---@param buf_id integer
@@ -170,12 +163,12 @@ function TagContent:sync(buf_id)
         return string.format("failed to parse lines:\n%s", table.concat(errs, "\n"))
     end
 
+    ---@diagnostic disable-next-line: redefined-local
     local changes, errs = self:diff(original_paths, modified_paths)
     if #errs > 0 then
-        return table.concat(errs, "\n")
+        return string.format("failed to diff lines:\n%s", table.concat(errs, "\n"))
     end
 
-    ---@diagnostic disable-next-line: redefined-local
     local err = self:apply_changes(changes)
     if err then
         return string.format("failed to apply changes:\n%s", table.concat(errs, "\n"))
@@ -193,32 +186,32 @@ end
 ---@param lines string[]
 ---@return string[] paths, string[] errors
 function TagContent:parse(lines)
+    local function filter_empty(line)
+        return line ~= ""
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local lines = vim.tbl_filter(filter_empty, lines)
     local paths = {}
     local errors = {}
 
     for _, line in ipairs(lines) do
-        if line == "" then
-            goto continue
-        end
-
         local path, err = self:parse_line(line)
-        if err then
+        if not path then
             table.insert(errors, err)
         else
             table.insert(paths, path)
         end
-
-        ::continue::
     end
 
     return paths, errors
 end
 
 ---@param line string
----@return string path, string? error
+---@return string | nil path, string? error
 function TagContent:parse_line(line)
     if line == "" then
-        return "", "empty line"
+        return nil, "empty line"
     end
 
     local id, _, path = string.match(line, "^/(%d+) (.+)  (.+)$")
@@ -228,16 +221,14 @@ function TagContent:parse_line(line)
         path = line
     end
 
-    -- If a path starts with "./" or "../", parse without scope path
-    local abs_path, err
-    if vim.startswith(path, "../") or vim.startswith(path, "./") then
-        abs_path, err = Util.absolute(path)
-    else
-        abs_path, err = Util.absolute(Util.join(self.scope.path, path))
+    -- Only parse using the scope when the path does not start with either "./" or "../"
+    if not vim.startswith(path, "../") and not vim.startswith(path, "./") then
+        path = Util.join(self.scope.path, path)
     end
 
-    if err then
-        return "", err
+    local abs_path, err = Util.absolute(path)
+    if not abs_path then
+        return nil, err
     end
 
     return abs_path, nil
@@ -257,7 +248,7 @@ function TagContent:diff(original, modified)
     -- Perform a naive diff. Assume all original paths have been removed and
     -- all modified lines are inserted. This makes it easier to resolve
     -- differences and guarantees that the content and container tags are
-    -- the same.
+    -- the same. Could be improved if performance becomes a problem
 
     for _, path in ipairs(original) do
         table.insert(changes, {
@@ -280,7 +271,6 @@ function TagContent:diff(original, modified)
             action = "insert",
             opts = {
                 path = path,
-                cursor = { 1, 0 },
                 index = i,
             },
         })
@@ -294,7 +284,7 @@ end
 ---@param changes grapple.tag.content.change[]
 ---@return string? error
 function TagContent:apply_changes(changes)
-    local err = self.scope:enter(function(container)
+    return self.scope:enter(function(container)
         for _, change in ipairs(changes) do
             if change.action == "insert" then
                 ---@diagnostic disable-next-line: param-type-mismatch
@@ -307,23 +297,13 @@ function TagContent:apply_changes(changes)
             end
         end
     end)
-    if err then
-        return err
-    end
-
-    return nil
 end
 
 ---@param action grapple.action
 ---@param opts? grapple.action.options
 ---@return string? error
 function TagContent:perform(action, opts)
-    local err = action(self.scope, opts)
-    if err then
-        return err
-    end
-
-    return nil
+    return action(self.scope, opts)
 end
 
 return TagContent

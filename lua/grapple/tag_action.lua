@@ -6,21 +6,11 @@ local TagAction = {}
 ---@alias grapple.action.options table
 
 ---@param scope grapple.scope.resolved
----@param opts? { index?: integer }
+---@param opts grapple.tag.container.get
 function TagAction.select(scope, opts)
-    local index
-
-    if opts and opts.index then
-        index = opts.index
-    end
-
-    if not index then
-        return "tag index is required"
-    end
-
     local err = scope:enter(function(container)
-        local tag, err = container:get({ index = index })
-        if err then
+        local tag, err = container:get(opts)
+        if not tag then
             return err
         end
 
@@ -42,19 +32,21 @@ end
 ---@diagnostic disable-next-line: unused-local
 function TagAction.quickfix(scope, opts)
     local tags, err = scope:tags()
-    if err then
+    if not tags then
         return err
     end
 
     local quickfix_list = {}
 
     for _, tag in ipairs(tags) do
+        local cursor = Util.cursor(tag.path)
+
         ---See :h vim.fn.setqflist
         ---@class grapple.vim.quickfix
         table.insert(quickfix_list, {
             filename = tag.path,
-            lnum = tag.cursor[1],
-            col = tag.cursor[2] + 1,
+            lnum = cursor[1],
+            col = cursor[2] + 1,
             text = Util.relative(tag.path, scope.path),
         })
     end

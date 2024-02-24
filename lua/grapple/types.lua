@@ -11,11 +11,9 @@ local Deserializable = {}
 
 ---@generic T
 ---@param tbl table
----@return T obj, string? error
+---@return T | nil obj, string? error
 ---@diagnostic disable-next-line: unused-local
-function Deserializable.from_table(tbl)
-    return {}, ""
-end
+function Deserializable.from_table(tbl) end
 
 ---See :h nvim_open_win
 ---@class grapple.vim.win_opts

@@ -3,7 +3,6 @@ local Util = require("grapple.util")
 
 ---@class grapple.tag.container.insert
 ---@field path string
----@field cursor integer[]
 ---@field index? integer
 
 ---@class grapple.tag.container.move
@@ -18,10 +17,6 @@ local Util = require("grapple.util")
 ---@field path? string
 ---@field index? integer
 
----@class grapple.tag.container.update
----@field path string
----@field cursor integer[]
-
 ---@class grapple.tag.container
 ---@field tags grapple.tag[]
 local TagContainer = {}
@@ -34,35 +29,29 @@ function TagContainer:new()
 end
 
 ---@param opts grapple.tag.container.insert
----@return grapple.tag, string? error
+---@return grapple.tag | nil, string? error
 function TagContainer:insert(opts)
     if self:has(opts.path) then
-        return {}, string.format("tag already exists: %s", opts.path)
+        return nil, string.format("tag already exists: %s", opts.path)
     end
 
     local abs_path, err = Util.absolute(opts.path)
-    if err then
-        return {}, err
+    if not abs_path then
+        return nil, err
     end
 
-    assert(type(abs_path) == "string", "path must be a string")
-    assert(type(opts.cursor) == "table", "cursor must be a table")
-    assert(#opts.cursor == 2, "cursor must only have 2 values")
-    assert(opts.cursor[1] >= 1, string.format("cursor row uses 1-based indexing: %s", opts.cursor[1]))
-    assert(opts.cursor[2] >= 0, string.format("cursor col uses 0-based indexing: %s", opts.cursor[2]))
-
-    local tag = Tag:new(abs_path, opts.cursor)
+    local tag = Tag:new(abs_path)
     table.insert(self.tags, opts.index or (#self.tags + 1), tag)
 
     return tag, nil
 end
 
 ---@param opts grapple.tag.container.move
----@return grapple.tag, string? error
+---@return grapple.tag | nil, string? error
 function TagContainer:move(opts)
     local index = self:index(opts.path)
     if not index then
-        return {}, string.format("tag does not exist for file path: %s", opts.path)
+        return nil, string.format("tag does not exist for file path: %s", opts.path)
     end
 
     local tag = self.tags[index]
@@ -82,43 +71,38 @@ function TagContainer:move(opts)
     error(string.format("tag could not be moved from index %s to %s: %s", index, opts.index, opts.path))
 end
 
----@param opts? grapple.tag.container.remove
----@return grapple.tag, string? error
+---@param opts grapple.tag.container.get
+---@return grapple.tag | nil, string? error
 function TagContainer:remove(opts)
     if #self.tags == 0 then
-        return {}, "tag container is empty"
+        return nil, "tag container is empty"
     end
 
-    local index
-    if opts and opts.path then
-        index = self:index(opts.path)
-
-        if not index then
-            return {}, string.format("tag does not exist for file path: %s", opts.path)
-        end
-    elseif opts and opts.index then
-        assert(type(opts.index) == "number", "opts.index must be a number")
-        index = opts.index
-
-        if index < 1 or index > #self.tags then
-            return {}, string.format("tag index is out-of-bounds: %s", opts.index)
-        end
-    else
-        index = #self.tags
+    local index, err = self:find(opts)
+    if not index then
+        return nil, err
     end
 
-    return table.remove(self.tags, index)
+    local tag = table.remove(self.tags, index)
+
+    return tag, nil
 end
 
----@param opts grapple.tag.container.update
----@return string? error
+---@param opts grapple.tag.container.get
+---@return boolean success, string? error
 function TagContainer:update(opts)
-    local tag, err = self:get({ path = opts.path })
-    if err then
-        return err
+    local tag, err = self:get(opts)
+    if not tag then
+        return false, err
     end
 
-    tag:update(opts.cursor)
+    ---@diagnostic disable-next-line: redefined-local
+    local ok, err = tag:update()
+    if not ok then
+        return false, err
+    end
+
+    return true, nil
 end
 
 function TagContainer:clear()
@@ -126,33 +110,46 @@ function TagContainer:clear()
 end
 
 ---@param opts grapple.tag.container.get
----@return grapple.tag, string? error
+---@return grapple.tag | nil, string? error
 function TagContainer:get(opts)
-    local index
-    if opts.path then
-        index = self:index(opts.path)
-
-        if not index then
-            return {}, string.format("tag does not exist for file path: %s", opts.path)
-        end
-    elseif opts.index then
-        index = opts.index
-
-        if index < 1 or index > #self.tags then
-            return {}, string.format("tag index is out-of-bounds: %s", opts.index)
-        end
-    else
-        return {}, string.format("tag not found: %s", vim.inspect(opts))
+    local index, err = self:find(opts)
+    if not index then
+        return nil, err
     end
 
     return self.tags[index], nil
 end
 
+---@param opts grapple.tag.container.get
+---@return integer | nil index, string? error
+function TagContainer:find(opts)
+    local index
+    if opts.path then
+        index = self:index(opts.path)
+
+        if not index then
+            return nil, string.format("tag does not exist for file path: %s", opts.path)
+        end
+    elseif opts.index then
+        index = opts.index
+
+        if index < 1 or index > #self.tags then
+            return nil, string.format("tag index is out-of-bounds: %s", opts.index)
+        end
+    end
+
+    if not index then
+        return nil, "must provide either a tag path or index"
+    end
+
+    return index, nil
+end
+
 ---@param path string
----@return integer | nil
+---@return integer | nil index
 function TagContainer:index(path)
-    local abs_path, err = Util.absolute(path)
-    if err then
+    local abs_path, _ = Util.absolute(path)
+    if not abs_path then
         return nil
     end
 
@@ -171,35 +168,34 @@ end
 
 -- Implements Serializable
 function TagContainer:into_table()
-    ---@param obj Serializable
-    ---@return table
-    local function into_table(obj)
-        return obj:into_table()
+    ---@param tag grapple.tag
+    ---@return grapple.tag.format
+    local function into_table(tag)
+        return tag:into_table()
     end
 
     ---@class grapple.tag.container.format
     return {
-        ---@type grapple.tag.format[]
         tags = vim.tbl_map(into_table, self.tags),
     }
 end
 
 -- Implements Deserialize
 ---@param tbl grapple.tag.container.format
----@return grapple.tag.container, string? error
+---@return grapple.tag.container | nil, string? error
 function TagContainer.from_table(tbl)
     local container = TagContainer:new()
 
     for _, tag_tbl in ipairs(tbl.tags) do
         local tag, err = Tag.from_table(tag_tbl)
-        if err then
-            return {}, err
+        if not tag then
+            return nil, err
         end
 
         table.insert(container.tags, tag)
     end
 
-    return container
+    return container, nil
 end
 
 return TagContainer

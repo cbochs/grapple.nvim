@@ -101,9 +101,9 @@ function StateManager:read(name)
 
     local fd, err, err_type = vim.uv.fs_open(path, "r", 438)
     if err_type == "ENOENT" then
-        return {}, StateManager.NoExistError:new(path)
+        return nil, StateManager.NoExistError:new(path)
     elseif err_type then
-        return {}, StateManager.FileError:new(err)
+        return nil, StateManager.FileError:new(err)
     end
 
     assert(fd, string.format("could not open file: %s", path))
@@ -112,7 +112,7 @@ function StateManager:read(name)
     local stat, err = vim.uv.fs_fstat(fd)
     if err then
         assert(vim.uv.fs_close(fd), string.format("could not close file: %s", path))
-        return {}, StateManager.FileError:new(err)
+        return nil, StateManager.FileError:new(err)
     end
 
     assert(stat, string.format("could not inspect file: %s", path))
@@ -121,7 +121,7 @@ function StateManager:read(name)
     local data, err = vim.uv.fs_read(fd, stat.size, 0)
     if err then
         assert(vim.uv.fs_close(fd), string.format("could not close file: %s", path))
-        return {}, StateManager.FileError:new(err)
+        return nil, StateManager.FileError:new(err)
     end
 
     assert(data, string.format("could not read file: %s", path))
@@ -133,7 +133,7 @@ function StateManager:read(name)
     if not ok then
         ---@diagnostic disable-next-line: redefined-local
         local err_msg = decoded
-        return {}, StateManager.DecodeError:new(err_msg)
+        return nil, StateManager.DecodeError:new(err_msg)
     end
 
     return decoded, nil

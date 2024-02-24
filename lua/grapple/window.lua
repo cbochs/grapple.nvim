@@ -87,7 +87,7 @@ function Window:open()
 
     -- Get or create namespaces
     self.ns_id = vim.api.nvim_create_namespace("grapple")
-    self.au_id = vim.api.nvim_create_augroup("Grapple", { clear = true })
+    self.au_id = vim.api.nvim_create_augroup("GrappleWindow", { clear = true })
 
     -- Create temporary buffer
     self.buf_id = vim.api.nvim_create_buf(false, true)
@@ -220,10 +220,7 @@ function Window:render()
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = self.content:render(self.buf_id, self.ns_id)
-    if err then
-        return err
-    end
+    self.content:render(self.buf_id, self.ns_id)
 
     -- Prevent undo after content has been rendered. Set undolevels to -1 before
     -- rendering and then set back to its global default afterwards

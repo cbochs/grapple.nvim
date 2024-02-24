@@ -43,11 +43,38 @@ function Util.exists(path)
     return permission
 end
 
+-- TODO: support more than just file paths (e.g. ssh://, oil://)
+---@param uri string
+---@return string path, string | nil protocol
+function Util.parts(uri)
+    local protocol, path = string.match(uri, "^(.*)://(.*)$")
+
+    if not protocol then
+        return path, nil
+    end
+
+    ---@class grapple.uri.parts
+    local parts = {
+        protocol = "",
+        user = "",
+        hostname = "",
+        port = "",
+        path = "",
+    }
+
+    return path, protocol
+end
+
+function Util.is_valid(uri)
+    local path, protocol = Util.parts(uri)
+    local path = Util.absolute(path)
+end
+
 ---@param path string
----@return string abs_path, string? error
+---@return string | nil abs_path, string? error
 function Util.absolute(path)
     if path == "" then
-        return "", "no path provided"
+        return nil, "no path provided"
     end
 
     local normal_path = vim.fs.normalize(path)
@@ -77,7 +104,7 @@ function Util.absolute(path)
     abs_path = vim.fn.fnamemodify(abs_path, ":p")
 
     if not Util.exists(abs_path) then
-        return "", string.format("no such file or directory: %s", path)
+        return nil, string.format("no such file or directory: %s", path)
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -96,21 +123,21 @@ end
 
 ---@param path string
 ---@param root? string
----@return string rel_path, string? error
+---@return string | nil rel_path, string? error
 function Util.relative(path, root)
     if not root then
         return Util.absolute(path)
     end
 
     local abs_path, err = Util.absolute(path)
-    if err then
-        return "", err
+    if not abs_path then
+        return nil, err
     end
 
     ---@diagnostic disable-next-line: redefined-local
     local abs_root, err = Util.absolute(root)
-    if err then
-        return "", err
+    if not abs_root then
+        return nil, err
     end
 
     local start_index = 1
@@ -137,24 +164,78 @@ end
 ---@param root string
 ---@return boolean
 function Util.is_relative(path, root)
-    local abs_path, err = Util.absolute(path)
-    if err then
+    local abs_path, _ = Util.absolute(path)
+    if not abs_path then
         return false
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local abs_root, err = Util.absolute(root)
-    if err then
+    local abs_root, _ = Util.absolute(root)
+    if not abs_root then
         return false
     end
 
     return vim.startswith(abs_path, abs_root)
 end
 
+---@param path string
+---@return string short_path
+function Util.short(path)
+    ---@type string
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local short_path = vim.fn.fnamemodify(path, ":~:.")
+
+    if short_path == "" then
+        short_path = "."
+    end
+
+    return short_path
+end
+
 ---@param ... string
 ---@return string path
 function Util.join(...)
     return vim.fs.joinpath(...)
+end
+
+-- HACK: This feels seriously wrong
+-- Load the `" mark for a given file path. Afaik this cannot be obtained
+-- from the shada file directly and must be inspected on an open AND loaded
+-- buffer. There are several difficulties present:
+-- 1. the buffer must be in the background
+-- 2. the buffer must be loaded for marks to be present
+-- 3. the buffer must not trigger autocommands (e.g. LSP)
+-- 4. nvim_buf_set_name does not load the buffer
+-- 5. nvim_buf_call does not load the buffer (see reference)
+-- 6. nvim_create_buf does not cooperate with bufload
+--
+-- Reference: https://www.reddit.com/r/neovim/comments/10idl7u/how_to_load_a_file_into_neovims_buffer_without/
+--
+---@param path string
+---@return integer[] cursor
+function Util.cursor(path)
+    local buf_ids = vim.api.nvim_list_bufs()
+
+    local abs_path = Util.absolute(path)
+
+    ---@type integer
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local buf_id = vim.fn.bufadd(abs_path)
+
+    if not vim.api.nvim_buf_is_loaded(buf_id) then
+        local eventignore = vim.api.nvim_get_option_value("eventignore", { scope = "global" })
+        vim.api.nvim_set_option_value("eventignore", "all", { scope = "global" })
+        vim.fn.bufload(buf_id)
+        vim.api.nvim_set_option_value("eventignore", eventignore, { scope = "global" })
+    end
+
+    local mark = vim.api.nvim_buf_get_mark(buf_id, '"')
+
+    if not vim.tbl_contains(buf_ids, buf_id) then
+        vim.api.nvim_buf_delete(buf_id, { force = true })
+    end
+
+    return mark
 end
 
 return Util
