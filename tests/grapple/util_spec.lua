@@ -38,7 +38,7 @@ describe("util", function()
         local function test_abs_fail(path)
             it(string.format('does not parse "%s"', path), function()
                 local abs_path, err = Util.absolute(path)
-                assert.are.same("", abs_path)
+                assert.is_nil(abs_path)
                 assert.not_nil(err)
             end)
         end
