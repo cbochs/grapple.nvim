@@ -191,8 +191,8 @@ function Window:render()
     -- Store cursor location to reposition later
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
-    -- Prevent "BufLeave" from closing the window
-    vim.api.nvim_clear_autocmds({ event = "BufLeave", group = self.au_id, buffer = self.buf_id })
+    -- Prevent "BufWinLeave" from closing the window
+    vim.api.nvim_clear_autocmds({ event = "BufWinLeave", group = self.au_id, buffer = self.buf_id })
 
     -- Replace active buffer
     self.buf_id = self:create_buffer()
@@ -272,7 +272,7 @@ function Window:create_buffer_defaults(buf_id)
         callback = vim.schedule_wrap(constrain_cursor),
     })
 
-    vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
+    vim.api.nvim_create_autocmd({ "WinLeave", "BufWinLeave" }, {
         group = self.au_id,
         buffer = buf_id,
         once = true,
