@@ -51,6 +51,11 @@ function TagManager:transaction(id, callback)
         return err
     end
 
+    vim.api.nvim_exec_autocmds("User", {
+        pattern = "GrappleUpdate",
+        modeline = false,
+    })
+
     ---@diagnostic disable-next-line: redefined-local
     local err = self:sync(id)
     if err then
