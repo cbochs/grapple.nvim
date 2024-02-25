@@ -1,8 +1,10 @@
 local App = {}
 
 ---A global instance of the Grapple app
+---@type grapple.app
 local app = nil
 
+---@return grapple.app
 function App.get()
     if app then
         return app
