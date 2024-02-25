@@ -12,7 +12,7 @@ function Grapple.initialize()
         end,
     })
 
-    vim.api.nvim_create_autocmd({ "QuitPre" }, {
+    vim.api.nvim_create_autocmd({ "ExitPre" }, {
         pattern = "?*", -- non-empty file
         group = "Grapple",
         callback = function(opts)
@@ -23,7 +23,23 @@ function Grapple.initialize()
     })
 
     local app = require("grapple.app").get()
+
+    app.scope_manager:define("global", function()
+        return "global", vim.uv.cwd()
+    end)
+
+    app.scope_manager:define("cwd", function()
+        local cwd = vim.uv.cwd()
+
+        -- stylua: ignore
+        if not cwd then return end
+
+        return cwd, cwd
+    end)
+
     app.scope_manager:define("git_branch", function()
+        -- TODO: exit early if not in .git
+
         local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
         local root = vim.trim(string.gsub(root.stdout, "\n", ""))
 
@@ -34,7 +50,10 @@ function Grapple.initialize()
         local path = root
 
         return id, path
-    end)
+    end, { fallback = "cwd" })
+
+    local scope = app.scope_manager:get_resolved("git_branch")
+    app.tag_manager:load(scope.id)
 end
 
 function Grapple.tag()
