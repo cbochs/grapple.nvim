@@ -191,7 +191,7 @@ function TagContent:sync(buf_id)
 
     local err = self:apply_changes(changes)
     if err then
-        return string.format("failed to apply changes:\n%s", table.concat(errs, "\n"))
+        return string.format("failed to apply changes: %s", err)
     end
 
     ---@diagnostic disable-next-line: redefined-local
