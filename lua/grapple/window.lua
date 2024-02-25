@@ -9,13 +9,20 @@
 local Window = {}
 Window.__index = Window
 
+-- Create global namespace for Grapple windows
+local WINDOW_NS = vim.api.nvim_create_namespace("grapple")
+
+-- Create global autocommand group for Grapple windows. All autocommands are
+-- buffer-local and will be cleared whenever the buffer is closed.
+local WINDOW_GROUP = vim.api.nvim_create_augroup("GrappleWindow", { clear = true })
+
 ---@param win_opts? grapple.vim.win_opts
 ---@return grapple.window
 function Window:new(win_opts)
     return setmetatable({
         content = nil,
-        ns_id = nil,
-        au_id = nil,
+        ns_id = WINDOW_NS,
+        au_id = WINDOW_GROUP,
         buf_id = nil,
         win_id = nil,
         win_opts = win_opts or {},
@@ -23,6 +30,7 @@ function Window:new(win_opts)
     }, self)
 end
 
+---Create a valid nvim api window configuration
 ---@return grapple.vim.win_opts win_opts
 function Window:canonicalize()
     local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
@@ -30,8 +38,9 @@ function Window:canonicalize()
     -- window title
     if self:has_content() then
         opts.title = self.content:title()
-    else
-        opts.title = nil
+    end
+
+    if not opts.title then
         opts.title_pos = nil
     end
 
@@ -85,15 +94,8 @@ function Window:open()
         return
     end
 
-    -- Get or create namespaces
-    self.ns_id = vim.api.nvim_create_namespace("grapple")
-    self.au_id = vim.api.nvim_create_augroup("GrappleWindow", { clear = true })
-
     -- Create temporary buffer
-    self.buf_id = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_set_option_value("buftype", "nofile", { buf = self.buf_id })
-    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
-    self:buffer_defaults()
+    self.buf_id = self:create_buffer()
 
     -- Create window
     local win_opts = self:canonicalize()
@@ -120,11 +122,8 @@ function Window:close()
     if vim.api.nvim_win_is_valid(self.win_id) then
         vim.api.nvim_win_close(self.win_id, true)
         self.win_id = nil
+        self.buf_id = nil
     end
-
-    self.ns_id = nil
-    self.au_id = nil
-    self.buf_id = nil
 
     if err then
         return err
@@ -189,18 +188,11 @@ function Window:render()
     -- Store cursor location to reposition later
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
-    -- Create new content buffer
+    -- Prevent "BufLeave" from closing the window
     vim.api.nvim_clear_autocmds({ event = "BufLeave", group = self.au_id, buffer = self.buf_id })
 
-    self.buf_id = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_set_option_value("filetype", "grapple", { buf = self.buf_id })
-    vim.api.nvim_set_option_value("syntax", "grapple", { buf = self.buf_id })
-    vim.api.nvim_set_option_value("buftype", "nofile", { buf = self.buf_id })
-    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = self.buf_id })
-    vim.api.nvim_set_option_value("undolevels", -1, { buf = self.buf_id })
-    self:buffer_defaults()
-
     -- Replace active buffer
+    self.buf_id = self:create_buffer()
     vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
 
     -- Update window options
@@ -237,34 +229,49 @@ function Window:render()
     self.rendered = true
 end
 
-function Window:buffer_defaults()
-    -- TODO: We are leaking the content abstraction here
-    -- Window is trying to parse the content's ID and find
-    -- where the fixed column should be. The content should
-    -- provide this information somehow
-    self:autocmd("CursorMoved", {
-        callback = function()
-            local cursor = self:cursor()
-            local line = self:current_line()
+function Window:create_buffer()
+    local buf_id = vim.api.nvim_create_buf(false, true)
 
-            local id = string.find(line, "^/%d+")
-            if not id then
-                return
-            end
+    vim.api.nvim_set_option_value("filetype", "grapple", { buf = buf_id })
+    vim.api.nvim_set_option_value("syntax", "grapple", { buf = buf_id })
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf_id })
+    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf_id })
+    vim.api.nvim_set_option_value("undolevels", -1, { buf = buf_id })
 
-            local fixed_column = string.find(line, "%s%s")
-            if not fixed_column then
-                return
-            end
+    self:create_buffer_defaults(buf_id)
 
-            local expected_column = fixed_column + 1
-            if cursor[2] < expected_column then
-                vim.api.nvim_win_set_cursor(self.win_id, { cursor[1], expected_column })
-            end
-        end,
+    return buf_id
+end
+
+function Window:create_buffer_defaults(buf_id)
+    local function constrain_cursor()
+        if not self:is_rendered() then
+            return
+        end
+
+        local cursor = vim.api.nvim_win_get_cursor(self.win_id)
+        local line = vim.api.nvim_get_current_line()
+        local expected_column = self.content:minimum_column(line)
+        if cursor[2] < expected_column then
+            vim.api.nvim_win_set_cursor(self.win_id, { cursor[1], expected_column })
+        end
+    end
+
+    vim.api.nvim_create_autocmd("CursorMoved", {
+        group = self.au_id,
+        buffer = buf_id,
+        callback = constrain_cursor,
     })
 
-    self:autocmd({ "WinLeave", "BufLeave" }, {
+    vim.api.nvim_create_autocmd("InsertEnter", {
+        group = self.au_id,
+        buffer = buf_id,
+        callback = vim.schedule_wrap(constrain_cursor),
+    })
+
+    vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
+        group = self.au_id,
+        buffer = buf_id,
         once = true,
         callback = function()
             local err = self:close()
@@ -274,16 +281,18 @@ function Window:buffer_defaults()
         end,
     })
 
-    self:map("n", "q", "<cmd>close<cr>")
-    self:map("n", "<c-c>", "<cmd>close<cr>")
-    self:map("n", "<esc>", "<cmd>close<cr>")
-
-    self:autocmd({ "VimResized" }, {
+    vim.api.nvim_create_autocmd({ "VimResized" }, {
+        group = self.au_id,
+        buffer = buf_id,
         callback = function()
             local win_opts = self:canonicalize()
             vim.api.nvim_win_set_config(self.win_id, win_opts)
         end,
     })
+
+    vim.keymap.set("n", "q", vim.cmd.close, { buffer = buf_id })
+    vim.keymap.set("n", "<c-c>", vim.cmd.close, { buffer = buf_id })
+    vim.keymap.set("n", "<esc>", vim.cmd.close, { buffer = buf_id })
 end
 
 -- See :h vim.keymap.set

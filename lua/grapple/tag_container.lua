@@ -3,6 +3,7 @@ local Util = require("grapple.util")
 
 ---@class grapple.tag.container.insert
 ---@field path string
+---@field cursor? integer[]
 ---@field index? integer
 
 ---@class grapple.tag.container.move
@@ -40,7 +41,7 @@ function TagContainer:insert(opts)
         return nil, err
     end
 
-    local tag = Tag:new(abs_path)
+    local tag = Tag:new(abs_path, opts.cursor)
     table.insert(self.tags, opts.index or (#self.tags + 1), tag)
 
     return tag, nil

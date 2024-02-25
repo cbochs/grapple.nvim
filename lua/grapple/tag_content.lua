@@ -60,20 +60,19 @@ function TagContent:detach(buf_id)
     return nil
 end
 
----@return string? error
-function TagContent:update()
-    local tags, err = self.scope:tags()
-    if err then
-        return err
-    end
+---@param tag grapple.tag
+---@param index integer
+---@return grapple.tag.content.entry
+function TagContent:update_entry(tag, index)
+    ---@param name string
+    ---@return string? icon, string? hl_group
+    local function get_icon(name)
+        local ok, icons = pcall(require, "nvim-web-devicons")
+        if not ok then
+            return nil, nil
+        end
 
-    ---@param tag grapple.tag
-    ---@return string icon, string? hl_group
-    local function get_icon(tag)
-        local icons = require("nvim-web-devicons")
-        local name = vim.fn.fnamemodify(tag.path, ":t")
         local icon, hl = icons.get_icon(name)
-
         if not icon then
             if name == "" then
                 icon = ""
@@ -85,88 +84,109 @@ function TagContent:update()
         return icon, hl
     end
 
-    -- In compliance with "grapple" syntax
-    ---@param index integer
-    ---@param tag grapple.tag
-    ---@return string
-    local function into_line(index, tag)
-        local id = string.format("/%03d", index)
-        local icon = get_icon(tag)
-        local rel_path = Util.relative(tag.path, self.scope.path)
+    local id = string.format("/%03d", index)
+    local name = vim.fn.fnamemodify(tag.path, ":p")
+    local rel_path = Util.relative(tag.path, self.scope.path)
 
-        return string.format("%s %s  %s", id, icon, rel_path)
+    ---@diagnostic disable-next-line: param-type-mismatch
+    local icon, icon_hl = get_icon(name)
+    local min_col = 10 -- width of id and icon
+
+    -- In compliance with "grapple" syntax
+    local text = string.format("%s %s  %s", id, icon, rel_path)
+
+    ---@type grapple.vim.highlight?
+    local highlight
+
+    if icon_hl then
+        highlight = {
+            hl_group = icon_hl,
+            line = index,
+            col_start = 0,
+            col_end = 0,
+        }
     end
 
-    ---@param index integer
-    ---@return grapple.vim.extmark
-    local function into_mark(index)
-        ---See :h vim.api.nvim_buf_set_extmark
-        ---@class grapple.vim.extmark
-        local mark = {
+    ---@class grapple.tag.content.entry
+    local entry = {
+        tag = tag,
+
+        id = id,
+        name = name,
+        min_col = min_col,
+
+        ---@type grapple.vim.line
+        line = {
+            index = index - 1,
+            text = text,
+        },
+
+        ---@type grapple.vim.highlight[]
+        highlights = { highlight },
+
+        ---@type grapple.vim.extmark
+        mark = {
             line = index - 1,
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
             },
-        }
+        },
+    }
 
-        return mark
+    return entry
+end
+
+---@return string? error
+function TagContent:update()
+    local tags, err = self.scope:tags()
+    if not tags then
+        return err
     end
 
     self.entries = {}
-
     for i, tag in ipairs(tags) do
-        ---@class grapple.tag.content.entry
-        table.insert(self.entries, {
-            path = tag.path,
-            line = into_line(i, tag),
-            mark = into_mark(i),
-        })
+        local entry = self:update_entry(tag, i)
+        table.insert(self.entries, entry)
+    end
+end
+
+---@param entry grapple.tag.content.entry
+---@param buf_id integer
+---@param ns_id integer
+function TagContent:render_line(entry, buf_id, ns_id)
+    vim.api.nvim_buf_set_lines(buf_id, entry.line.index, entry.line.index, true, { entry.line.text })
+
+    if entry.mark then
+        vim.api.nvim_buf_set_extmark(buf_id, ns_id, entry.mark.line, entry.mark.col, entry.mark.opts)
     end
 
-    return nil
+    for _, hl in ipairs(entry.highlights) do
+        vim.api.nvim_buf_add_highlight(buf_id, ns_id, hl.hl_group, hl.line, hl.col_start, hl.col_end)
+    end
 end
 
 ---@param buf_id integer
 ---@param ns_id integer
 function TagContent:render(buf_id, ns_id)
-    ---@param entry grapple.tag.content.entry
-    local function lines(entry)
-        return entry.line
-    end
-
-    ---@param entry grapple.tag.content.entry
-    local function marks(entry)
-        return entry.mark
-    end
-
-    vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, vim.tbl_map(lines, self.entries))
-
-    for _, mark in ipairs(vim.tbl_map(marks, self.entries)) do
-        vim.api.nvim_buf_set_extmark(buf_id, ns_id, mark.line, mark.col, mark.opts)
+    for _, entry in ipairs(self.entries) do
+        self:render_line(entry, buf_id, ns_id)
     end
 end
 
 ---@param buf_id integer
 ---@return string? error
 function TagContent:sync(buf_id)
-    ---@param entry grapple.tag.content.entry
-    local function paths(entry)
-        return entry.path
-    end
-
-    local original_paths = vim.tbl_map(paths, self.entries)
-
     local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
-    local modified_paths, errs = self:parse(lines)
+    local parsed, errs = self:parse(lines)
     if #errs > 0 then
-        return string.format("failed to parse lines:\n%s", table.concat(errs, "\n"))
+        return string.format("failed to parse:\n%s", table.concat(errs, "\n"))
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local changes, errs = self:diff(original_paths, modified_paths)
+    local changes, errs = self:diff(self.entries, parsed)
     if #errs > 0 then
-        return string.format("failed to diff lines:\n%s", table.concat(errs, "\n"))
+        return string.format("failed to diff:\n%s", table.concat(errs, "\n"))
     end
 
     local err = self:apply_changes(changes)
@@ -183,32 +203,13 @@ function TagContent:sync(buf_id)
     return nil
 end
 
----@param lines string[]
----@return string[] paths, string[] errors
-function TagContent:parse(lines)
-    local function filter_empty(line)
-        return line ~= ""
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local lines = vim.tbl_filter(filter_empty, lines)
-    local paths = {}
-    local errors = {}
-
-    for _, line in ipairs(lines) do
-        local path, err = self:parse_line(line)
-        if not path then
-            table.insert(errors, err)
-        else
-            table.insert(paths, path)
-        end
-    end
-
-    return paths, errors
-end
+---A strict optional subset of grapple.tag.content.entry
+---@class grapple.tag.content.parsed_entry
+---@field id string | nil
+---@field path string
 
 ---@param line string
----@return string | nil path, string? error
+---@return grapple.tag.content.parsed_entry | nil, string? error
 function TagContent:parse_line(line)
     if line == "" then
         return nil, "empty line"
@@ -231,18 +232,73 @@ function TagContent:parse_line(line)
         return nil, err
     end
 
-    return abs_path, nil
+    local entry = {
+        id = tonumber(id),
+        path = abs_path,
+    }
+
+    return entry, nil
+end
+
+---@param lines string[]
+---@return grapple.tag.content.parsed_entry[], string[] errors
+function TagContent:parse(lines)
+    local function filter_empty(line)
+        return line ~= ""
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local lines = vim.tbl_filter(filter_empty, lines)
+
+    ---@type grapple.tag.content.parsed_entry[]
+    local parsed = {}
+
+    ---@type string[]
+    local errors = {}
+
+    for _, line in ipairs(lines) do
+        local entry, err = self:parse_line(line)
+        if not entry then
+            table.insert(errors, err)
+        else
+            table.insert(parsed, entry)
+        end
+    end
+
+    return parsed, errors
+end
+
+function TagContent:minimum_column(line)
+    local parsed, _ = self:parse_line(line)
+    if not parsed then
+        return 0
+    end
+
+    if not parsed.id then
+        return 0
+    end
+
+    local entry = self.entries[parsed.id]
+    if not entry then
+        error("id should be the index of a valid entry")
+    end
+
+    return entry.min_col
 end
 
 ---@class grapple.tag.content.change
 ---@field action "insert" | "move" | "remove"
+---@field priority integer
 ---@field opts grapple.tag.container.insert | grapple.tag.container.move | grapple.tag.container.remove
 
----@param original string[]
----@param modified string[]
+---@param original grapple.tag.content.entry[]
+---@param modified grapple.tag.content.parsed_entry[]
 ---@return grapple.tag.content.change[], string[] errors
 function TagContent:diff(original, modified)
+    ---@type grapple.tag.content.change[]
     local changes = {}
+
+    ---@type string[]
     local errors = {}
 
     -- Perform a naive diff. Assume all original paths have been removed and
@@ -250,32 +306,26 @@ function TagContent:diff(original, modified)
     -- differences and guarantees that the content and container tags are
     -- the same. Could be improved if performance becomes a problem
 
-    for _, path in ipairs(original) do
-        table.insert(changes, {
-            action = "remove",
-            opts = {
-                path = path,
-            },
-        })
+    ---@type table<string, integer>
+    local original_lookup = {}
+
+    for i, entry in ipairs(original) do
+        original_lookup[entry.tag.path] = i
     end
 
-    local modified_lookup = {}
-    for i, path in ipairs(modified) do
-        if modified_lookup[path] then
-            table.insert(errors, string.format("duplicate path: %s", path))
-            goto continue
-        end
+    for i, entry in ipairs(modified) do
+        local path = entry.path
+        local index = original_lookup[path]
+        local original_entry = self.entries[index]
 
-        modified_lookup[path] = true
         table.insert(changes, {
             action = "insert",
             opts = {
-                path = path,
+                path = entry.path,
+                cursor = original_entry and original_entry.tag.cursor,
                 index = i,
             },
         })
-
-        ::continue::
     end
 
     return changes, errors
@@ -285,10 +335,15 @@ end
 ---@return string? error
 function TagContent:apply_changes(changes)
     return self.scope:enter(function(container)
+        container:clear()
+
         for _, change in ipairs(changes) do
             if change.action == "insert" then
                 ---@diagnostic disable-next-line: param-type-mismatch
                 container:insert(change.opts)
+            elseif change.action == "move" then
+                ---@diagnostic disable-next-line: param-type-mismatch
+                container:move(change.opts)
             elseif change.action == "remove" then
                 ---@diagnostic disable-next-line: param-type-mismatch
                 container:remove(change.opts)

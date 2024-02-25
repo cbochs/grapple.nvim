@@ -39,14 +39,12 @@ function TagAction.quickfix(scope, opts)
     local quickfix_list = {}
 
     for _, tag in ipairs(tags) do
-        local cursor = Util.cursor(tag.path)
-
         ---See :h vim.fn.setqflist
         ---@class grapple.vim.quickfix
         table.insert(quickfix_list, {
             filename = tag.path,
-            lnum = cursor[1],
-            col = cursor[2] + 1,
+            lnum = tag.cursor[1],
+            col = tag.cursor[2] + 1,
             text = Util.relative(tag.path, scope.path),
         })
     end

@@ -2,7 +2,7 @@ local Util = require("grapple.util")
 
 ---@class grapple.tag
 ---@field path string absolute path
----@field cursor integer[] (1,0)-indexed cursor position
+---@field cursor integer[] (1, 0)-indexed cursor position
 local Tag = {}
 Tag.__index = Tag
 
@@ -11,13 +11,18 @@ Tag.__index = Tag
 function Tag:new(path, cursor)
     return setmetatable({
         path = path,
-        cursor = cursor or Util.cursor(path),
+        cursor = cursor or { 1, 0 },
     }, self)
 end
 
 ---@return boolean success, string? error
 function Tag:update()
-    self.cursor = Util.cursor(self.path)
+    local cursor, err = Util.cursor(self.path)
+    if not cursor then
+        return false, err
+    end
+
+    self.cursor = cursor
 
     return true, nil
 end
@@ -31,7 +36,13 @@ function Tag:select()
     local short_path = Util.short(self.path)
     vim.cmd.edit(short_path)
 
-    vim.api.nvim_win_set_cursor(0, self.cursor)
+    -- If the cursor has already been set, update instead
+    local current_cursor = vim.api.nvim_win_get_cursor(0)
+    if current_cursor[1] > 1 or current_cursor[2] > 0 then
+        self.cursor = current_cursor
+    else
+        vim.api.nvim_win_set_cursor(0, self.cursor)
+    end
 end
 
 -- Implements Serialize

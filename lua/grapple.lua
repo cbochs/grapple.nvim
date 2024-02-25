@@ -12,7 +12,7 @@ function Grapple.initialize()
             local buf_name = vim.api.nvim_buf_get_name(opts.buf)
             app.tag_manager:update({ path = buf_name })
 
-            local err = app.state_manager:write("update", {
+            local err = app.state_manager:write("bufwinleave", {
                 event = opts.event,
                 event_file = opts.file,
                 buf_id = opts.buf,
@@ -22,6 +22,28 @@ function Grapple.initialize()
             if err then
                 vim.notify(err:error(), vim.log.levels.INFO)
             end
+        end,
+    })
+
+    vim.api.nvim_create_autocmd({ "QuitPre" }, {
+        pattern = "?*", -- non-empty file
+        group = "Grapple",
+        callback = function(opts)
+            local Util = require("grapple.util")
+
+            local app = Grapple.app()
+            local buf_name = vim.api.nvim_buf_get_name(opts.buf)
+            local ok, err = app.tag_manager:update({ path = buf_name })
+
+            app.state_manager:write("quitpre", {
+                a_ok = ok,
+                b_err = err,
+                c_event = opts.event,
+                d_event_file = opts.file,
+                e_buf_id = opts.buf,
+                f_buf_name = buf_name,
+                g_cursor = Util.cursor(buf_name),
+            })
         end,
     })
 end
@@ -83,6 +105,34 @@ function Grapple.tag()
 end
 
 function Grapple.untag() end
+
+function Grapple.select(opts)
+    local app = Grapple.app()
+    local scope, err = app.scope_manager:get_resolved("git_branch")
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = scope:enter(function(container)
+        ---@diagnostic disable-next-line: redefined-local
+        local tag, err = container:get(opts)
+        if not tag then
+            return err
+        end
+
+        ---@diagnostic disable-next-line: redefined-local
+        local err = tag:select()
+        if err then
+            return err
+        end
+    end)
+
+    if err then
+        vim.notify(err, vim.log.levels.WARN)
+    end
+end
 
 function Grapple.open_tags()
     local TagAction = require("grapple.tag_action")

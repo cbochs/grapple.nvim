@@ -43,7 +43,6 @@ function Util.exists(path)
     return permission
 end
 
--- TODO: support more than just file paths (e.g. ssh://, oil://)
 ---@param uri string
 ---@return string path, string | nil protocol
 function Util.parts(uri)
@@ -56,9 +55,9 @@ function Util.parts(uri)
     ---@class grapple.uri.parts
     local parts = {
         protocol = "",
-        user = "",
-        hostname = "",
-        port = "",
+        -- user = "",
+        -- hostname = "",
+        -- port = "",
         path = "",
     }
 
@@ -179,11 +178,16 @@ function Util.is_relative(path, root)
 end
 
 ---@param path string
----@return string short_path
+---@return string | nil short_path, string? error
 function Util.short(path)
+    local abs_path, err = Util.absolute(path)
+    if not abs_path then
+        return nil, err
+    end
+
     ---@type string
     ---@diagnostic disable-next-line: assign-type-mismatch
-    local short_path = vim.fn.fnamemodify(path, ":~:.")
+    local short_path = vim.fn.fnamemodify(abs_path, ":~:.")
 
     if short_path == "" then
         short_path = "."
@@ -212,15 +216,19 @@ end
 -- Reference: https://www.reddit.com/r/neovim/comments/10idl7u/how_to_load_a_file_into_neovims_buffer_without/
 --
 ---@param path string
----@return integer[] cursor
+---@return integer[] | nil cursor, string? error
 function Util.cursor(path)
-    local buf_ids = vim.api.nvim_list_bufs()
-
-    local abs_path = Util.absolute(path)
+    local abs_path, err = Util.absolute(path)
+    if not abs_path then
+        return nil, err
+    end
 
     ---@type integer
     ---@diagnostic disable-next-line: assign-type-mismatch
     local buf_id = vim.fn.bufadd(abs_path)
+    if buf_id == 0 then
+        return nil, string.format("could not add buffer for path: %s", abs_path)
+    end
 
     if not vim.api.nvim_buf_is_loaded(buf_id) then
         local eventignore = vim.api.nvim_get_option_value("eventignore", { scope = "global" })
@@ -231,11 +239,12 @@ function Util.cursor(path)
 
     local mark = vim.api.nvim_buf_get_mark(buf_id, '"')
 
+    local buf_ids = vim.api.nvim_list_bufs()
     if not vim.tbl_contains(buf_ids, buf_id) then
         vim.api.nvim_buf_delete(buf_id, { force = true })
     end
 
-    return mark
+    return mark, nil
 end
 
 return Util
