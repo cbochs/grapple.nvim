@@ -88,23 +88,28 @@ function TagContent:update_entry(tag, index)
     local name = vim.fn.fnamemodify(tag.path, ":p")
     local rel_path = Util.relative(tag.path, self.scope.path)
 
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local icon, icon_hl = get_icon(name)
-    local min_col = 10 -- width of id and icon
-
     -- In compliance with "grapple" syntax
-    local text = string.format("%s %s  %s", id, icon, rel_path)
+    local text, min_col, icon_highlight
+    local use_icons = require("grapple.app").get().settings.icons
+    if use_icons then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local icon, icon_group = get_icon(name)
 
-    ---@type grapple.vim.highlight?
-    local highlight
+        text = string.format("%s %s  %s", id, icon, rel_path)
+        min_col = string.find(text, "%s%s") + 1 -- width of id and icon
 
-    if icon_hl then
-        highlight = {
-            hl_group = icon_hl,
-            line = index,
-            col_start = 0,
-            col_end = 0,
-        }
+        if icon_group then
+            ---@type grapple.vim.highlight
+            icon_highlight = {
+                hl_group = icon_group,
+                line = index - 1,
+                col_start = assert(string.find(text, "%s")),
+                col_end = assert(string.find(text, "%s%s")),
+            }
+        end
+    else
+        text = string.format("%s %s", id, rel_path)
+        min_col = string.find(text, "%s") -- width of id
     end
 
     ---@class grapple.tag.content.entry
@@ -122,7 +127,7 @@ function TagContent:update_entry(tag, index)
         },
 
         ---@type grapple.vim.highlight[]
-        highlights = { highlight },
+        highlights = { icon_highlight },
 
         ---@type grapple.vim.extmark
         mark = {
@@ -215,7 +220,13 @@ function TagContent:parse_line(line)
         return nil, "empty line"
     end
 
-    local id, _, path = string.match(line, "^/(%d+) (.+)  (.+)$")
+    local id, path
+    local use_icons = require("grapple.app").get().settings.icons
+    if use_icons then
+        id, _, path = string.match(line, "^/(%d+) (.+)  (.+)$")
+    else
+        id, path = string.match(line, "^/(%d+) (.+)$")
+    end
 
     -- If an ID is not present, parse as a new entry
     if not id then

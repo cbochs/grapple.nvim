@@ -5,14 +5,14 @@ Settings.__index = Settings
 ---@class grapple.settings
 local DEFAULT_SETTINGS = {
 
-    load_on_start = true,
+    icons = true,
 
     ---@type string
     ---@diagnostic disable-next-line: param-type-mismatch
     save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
 
     ---@type string
-    scope = "git_branch",
+    scope = "git",
 
     ---@type grapple.spec.scope[]
     scopes = {
@@ -27,6 +27,22 @@ local DEFAULT_SETTINGS = {
             name = "cwd",
             resolver = function()
                 return vim.uv.cwd(), vim.uv.cwd()
+            end,
+        },
+
+        {
+            name = "git",
+            fallback = "cwd",
+            resolver = function()
+                local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
+                if #git_files == 0 then
+                    return
+                end
+
+                local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
+                local root = vim.trim(string.gsub(root.stdout, "\n", ""))
+
+                return root, root
             end,
         },
 
@@ -70,7 +86,7 @@ local DEFAULT_SETTINGS = {
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
             end
-        end)
+        end, { desc = "Select" })
 
         -- Quick select
         for i = 1, 9 do
@@ -79,7 +95,7 @@ local DEFAULT_SETTINGS = {
                 if err then
                     vim.notify(err, vim.log.levels.ERROR)
                 end
-            end)
+            end, { desc = string.format("Select %d", i) })
         end
 
         -- Quickfix list
@@ -88,21 +104,21 @@ local DEFAULT_SETTINGS = {
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
             end
-        end)
+        end, { desc = "Quickfix" })
 
         window:map("n", "<c-r>", function()
             local err = window:refresh()
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
             end
-        end)
+        end, { desc = "Refresh" })
     end,
 
     ---@type grapple.vim.win_opts
     win_opts = {
         relative = "editor",
         width = 0.5,
-        height = 0.5,
+        height = 10,
         row = 0.5,
         col = 0.5,
         style = "minimal",
