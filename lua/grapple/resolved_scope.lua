@@ -28,7 +28,7 @@ end
 
 ---@return grapple.tag[] | nil, string? error
 function ResolvedScope:tags()
-    local container, err = self.tag_manager:container(self.id)
+    local container, err = self.tag_manager:load(self.id)
     if not container then
         return nil, err
     end

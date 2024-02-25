@@ -40,7 +40,7 @@ end
 ---@param callback fun(container: grapple.tag.container): string?
 ---@return string? error
 function TagManager:transaction(id, callback)
-    local container, err = self:container(id)
+    local container, err = self:load(id)
     if not container then
         return err
     end
@@ -62,7 +62,7 @@ end
 
 ---@param id string
 ---@return grapple.tag.container | nil, string? error
-function TagManager:container(id)
+function TagManager:load(id)
     if self.containers[id] then
         return self.containers[id], nil
     end
