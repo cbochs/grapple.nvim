@@ -25,6 +25,14 @@ function TagContainer:new()
     }, self)
 end
 
+function TagContainer:len()
+    return #self.tags
+end
+
+function TagContainer:is_empty()
+    return self:len() == 0
+end
+
 ---@param opts grapple.tag.container.insert
 ---@return string? error
 function TagContainer:insert(opts)
@@ -71,7 +79,7 @@ end
 ---@param opts grapple.tag.container.get
 ---@return string? error
 function TagContainer:remove(opts)
-    if #self.tags == 0 then
+    if self:is_empty() then
         return "tag container is empty"
     end
 
