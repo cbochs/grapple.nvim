@@ -37,7 +37,10 @@ function Window:canonicalize()
 
     -- window title
     if self:has_content() then
-        opts.title = self.content:title()
+        local title = self.content:title()
+        if title then
+            opts.title = title
+        end
     end
 
     if not opts.title then
