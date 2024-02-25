@@ -42,14 +42,22 @@ end
 
 ---@param name string
 ---@param resolver grapple.scope.resolver
----@param opts? { overwrite?: boolean }
+---@param opts? { fallback?: string, force?: boolean }
 ---@return grapple.scope | nil, string? error
 function ScopeManager:define(name, resolver, opts)
-    if self:exists(name) and not (opts and opts.overwrite) then
+    if self:exists(name) and not (opts and opts.force) then
         return nil, string.format("scope already exists: %s", name)
     end
 
-    local scope = Scope:new(name, resolver)
+    local fallback, err
+    if opts and opts.fallback then
+        fallback, err = self:get(opts.fallback)
+        if not fallback then
+            return nil, err
+        end
+    end
+
+    local scope = Scope:new(name, resolver, fallback)
     self.scopes[name] = scope
 
     return scope, nil
