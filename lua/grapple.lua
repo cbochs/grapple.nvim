@@ -23,7 +23,7 @@ function Grapple.initialize()
 
             local args = Util.reduce({ unpack(opts.fargs, 2) }, function(args, arg)
                 local key, value = string.match(arg, "^(.*)=(.*)$")
-                args[key] = value
+                args[key] = tonumber(value) or value
                 return args
             end, {})
 
@@ -31,28 +31,22 @@ function Grapple.initialize()
         end,
         { desc = "Grapple", nargs = "*" }
     )
+
+    -- TODO: This shouldn't need to be called during initialize
+    Grapple.setup()
 end
 
 ---@param opts? grapple.settings
 function Grapple.setup(opts)
     local app = require("grapple.app").get()
-
-    vim.print("Setting up grapple")
-
     app.settings:update(opts)
-
-    if app.settings.load_on_start then
-        app:load_current_scope()
-    end
+    app:load_current_scope()
 end
 
----@class grapple.spec.tag
----@field buffer? integer
----@field path? string
----@field index? integer
-
----@param opts? grapple.spec.tag
+---@param opts? { buffer?: integer, path?: string, index?: integer }
 function Grapple.tag(opts)
+    opts = opts or {}
+
     local app = require("grapple.app").get()
     local scope, err = app:current_scope()
     if not scope then
@@ -62,7 +56,8 @@ function Grapple.tag(opts)
 
     ---@diagnostic disable-next-line: redefined-local
     local err = scope:enter(function(container)
-        return container:insert({ path = vim.api.nvim_buf_get_name(0) })
+        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        return container:insert({ path = path, index = opts.index })
     end)
 
     if err then
@@ -70,8 +65,10 @@ function Grapple.tag(opts)
     end
 end
 
----@param opts? grapple.spec.tag
+---@param opts? { buffer?: integer, path?: string, index?: integer }
 function Grapple.untag(opts)
+    opts = opts or {}
+
     local app = require("grapple.app").get()
     local scope, err = app:current_scope()
     if not scope then
@@ -81,7 +78,8 @@ function Grapple.untag(opts)
 
     ---@diagnostic disable-next-line: redefined-local
     local err = scope:enter(function(container)
-        return container:remove({ path = vim.api.nvim_buf_get_name(0) })
+        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        return container:remove({ path = path, index = opts.index })
     end)
 
     if err then
@@ -89,8 +87,10 @@ function Grapple.untag(opts)
     end
 end
 
----@param opts grapple.spec.tag
+---@param opts? { buffer?: integer, path?: string }
 function Grapple.toggle(opts)
+    opts = opts or {}
+
     local app = require("grapple.app").get()
     local scope, err = app:current_scope()
     if not scope then
@@ -100,11 +100,11 @@ function Grapple.toggle(opts)
 
     ---@diagnostic disable-next-line: redefined-local
     local err = scope:enter(function(container)
-        local buf_name = vim.api.nvim_buf_get_name(0)
-        if container:has(buf_name) then
-            return container:remove({ path = buf_name })
+        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        if container:has(path) then
+            return container:remove({ path = path })
         else
-            return container:insert({ path = buf_name })
+            return container:insert({ path = path })
         end
     end)
 
@@ -113,11 +113,39 @@ function Grapple.toggle(opts)
     end
 end
 
----@param opts grapple.tag.container.get
+---@param opts? { buffer?: integer, path?: string, index?: integer }
 function Grapple.select(opts)
-    local TagAction = require("grapple.tag_action")
-    local app = require("grapple.app").get()
+    opts = opts or {}
 
+    local TagAction = require("grapple.tag_action")
+
+    local app = require("grapple.app").get()
+    local scope, err = app:current_scope()
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = TagAction.select(scope, { path = path, index = opts.index })
+    if err then
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+end
+
+function Grapple.cycle_forward()
+    Grapple.cycle("forward")
+end
+
+function Grapple.cycle_backward()
+    Grapple.cycle("backward")
+end
+
+---@param direction? "forward" | "backward"
+function Grapple.cycle(direction)
+    local app = require("grapple.app").get()
     local scope, err = app:current_scope()
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
@@ -125,7 +153,34 @@ function Grapple.select(opts)
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = TagAction.select(scope, opts)
+    local err = scope:enter(function(container)
+        if container:is_empty() then
+            return
+        end
+
+        local path = vim.api.nvim_buf_get_name(0)
+
+        -- Fancy maths to get the next index for a given direction
+        -- 1. Change to 0-based indexing
+        -- 2. Perform index % container length, being careful of negative values
+        -- 3. Change back to 1-based indexing
+        local index = (container:index(path) or 1) - 1
+        local next_direction = direction == "forward" and 1 or -1
+        local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
+
+        ---@diagnostic disable-next-line: redefined-local
+        local tag, err = container:get({ index = next_index })
+        if not tag then
+            return err
+        end
+
+        ---@diagnostic disable-next-line: redefined-local
+        local err = tag:select()
+        if err then
+            return err
+        end
+    end)
+
     if err then
         return vim.notify(err, vim.log.levels.ERROR)
     end
