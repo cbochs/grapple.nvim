@@ -17,12 +17,7 @@ end
 
 ---@return boolean success, string? error
 function Tag:update()
-    local cursor, err = Util.cursor(self.path)
-    if not cursor then
-        return false, err
-    end
-
-    self.cursor = cursor
+    self.cursor = vim.api.nvim_win_get_cursor(0)
 
     return true, nil
 end
