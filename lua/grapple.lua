@@ -2,17 +2,7 @@ local Grapple = {}
 
 function Grapple.initialize()
     vim.api.nvim_create_augroup("Grapple", { clear = true })
-    vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
-        pattern = "?*", -- non-empty file
-        group = "Grapple",
-        callback = function(opts)
-            local app = require("grapple.app").get()
-            local buf_name = vim.api.nvim_buf_get_name(opts.buf)
-            app.tag_manager:update({ path = buf_name })
-        end,
-    })
-
-    vim.api.nvim_create_autocmd({ "ExitPre" }, {
+    vim.api.nvim_create_autocmd({ "BufWinLeave", "QuitPre" }, {
         pattern = "?*", -- non-empty file
         group = "Grapple",
         callback = function(opts)
