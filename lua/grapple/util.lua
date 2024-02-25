@@ -202,49 +202,4 @@ function Util.join(...)
     return vim.fs.joinpath(...)
 end
 
--- HACK: This feels seriously wrong
--- Load the `" mark for a given file path. Afaik this cannot be obtained
--- from the shada file directly and must be inspected on an open AND loaded
--- buffer. There are several difficulties present:
--- 1. the buffer must be in the background
--- 2. the buffer must be loaded for marks to be present
--- 3. the buffer must not trigger autocommands (e.g. LSP)
--- 4. nvim_buf_set_name does not load the buffer
--- 5. nvim_buf_call does not load the buffer (see reference)
--- 6. nvim_create_buf does not cooperate with bufload
---
--- Reference: https://www.reddit.com/r/neovim/comments/10idl7u/how_to_load_a_file_into_neovims_buffer_without/
---
----@param path string
----@return integer[] | nil cursor, string? error
-function Util.cursor(path)
-    local abs_path, err = Util.absolute(path)
-    if not abs_path then
-        return nil, err
-    end
-
-    ---@type integer
-    ---@diagnostic disable-next-line: assign-type-mismatch
-    local buf_id = vim.fn.bufadd(abs_path)
-    if buf_id == 0 then
-        return nil, string.format("could not add buffer for path: %s", abs_path)
-    end
-
-    if not vim.api.nvim_buf_is_loaded(buf_id) then
-        local eventignore = vim.api.nvim_get_option_value("eventignore", { scope = "global" })
-        vim.api.nvim_set_option_value("eventignore", "all", { scope = "global" })
-        vim.fn.bufload(buf_id)
-        vim.api.nvim_set_option_value("eventignore", eventignore, { scope = "global" })
-    end
-
-    local mark = vim.api.nvim_buf_get_mark(buf_id, '"')
-
-    local buf_ids = vim.api.nvim_list_bufs()
-    if not vim.tbl_contains(buf_ids, buf_id) then
-        vim.api.nvim_buf_delete(buf_id, { force = true })
-    end
-
-    return mark, nil
-end
-
 return Util
