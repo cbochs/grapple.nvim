@@ -8,7 +8,7 @@ local Scope = {}
 Scope.__index = Scope
 
 ---A resolving function which returns a tuple of (id, path?, error?)
----@alias grapple.scope.resolver fun(): string, string?, string?
+---@alias grapple.scope.resolver fun(): string?, string?, string?
 
 ---@param name string
 ---@param resolver grapple.scope.resolver
@@ -30,9 +30,9 @@ function Scope:resolve(tag_manager)
     if not id then
         if self.fallback then
             return self.fallback:resolve(tag_manager)
-        else
-            return nil, err
         end
+
+        return nil, err
     end
 
     return ResolvedScope:new(self.name, id, path, tag_manager), nil
