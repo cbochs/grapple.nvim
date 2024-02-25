@@ -1,54 +1,121 @@
-local Path = require("plenary.path")
+---@class grapple.settings
+local Settings = {}
+Settings.__index = Settings
 
----@type Grapple.Settings
-local settings = {}
-
----@class Grapple.Settings
+---@class grapple.settings
 local DEFAULT_SETTINGS = {
-    ---@type "debug" | "info" | "warn" | "error"
-    log_level = "warn",
 
-    ---Can be either the name of a builtin scope resolver,
-    ---or a custom scope resolver
-    ---@type string | Grapple.ScopeResolver
-    scope = "git",
+    load_on_start = true,
 
-    ---The save location for tags
     ---@type string
-    save_path = tostring(Path:new(vim.fn.stdpath("data")) / "grapple"),
+    ---@diagnostic disable-next-line: param-type-mismatch
+    -- save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
+    save_path = "test_saves",
 
-    --- A callback function that returns the popup tags window title
-    ---@type nil | fun(string): string | nil
-    popup_tags_title = nil,
+    ---@type string
+    scope = "git_branch",
 
-    ---Window options used for the popup menu
-    popup_options = {
+    ---@type grapple.spec.scope[]
+    scopes = {
+        {
+            name = "global",
+            resolver = function()
+                return "global", vim.uv.cwd()
+            end,
+        },
+
+        {
+            name = "cwd",
+            resolver = function() end,
+        },
+
+        ---@class grapple.spec.scope
+        {
+            name = "git_branch",
+            fallback = "cwd",
+            resolver = function()
+                -- TODO: exit early if not in .git
+
+                local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
+                local root = vim.trim(string.gsub(root.stdout, "\n", ""))
+
+                local branch = vim.system({ "git", "symbolic-ref", "--short", "HEAD" }, { text = true }):wait()
+                local branch = vim.trim(string.gsub(branch.stdout, "\n", ""))
+
+                local id = string.format("%s:%s", root, branch)
+                local path = root
+
+                return id, path
+            end,
+        },
+    },
+
+    ---@type grapple.tag.content.title_fn
+    tag_title = function(scope)
+        return scope.path or scope.id
+    end,
+
+    ---@type grapple.tag.content.hook_fn
+    tag_hook = function(window)
+        local TagAction = require("grapple.tag_action")
+
+        -- Select
+        window:map("n", "<cr>", function()
+            local cursor = window:cursor()
+            local err = window:perform(TagAction.select, { index = cursor[1] })
+            if err then
+                vim.notify(err, vim.log.levels.ERROR)
+            end
+        end)
+
+        -- Quick select
+        for i = 1, 9 do
+            window:map("n", string.format("%s", i), function()
+                local err = window:perform(TagAction.select, { index = i })
+                if err then
+                    vim.notify(err, vim.log.levels.ERROR)
+                end
+            end)
+        end
+
+        -- Quickfix list
+        window:map("n", "<c-q>", function()
+            local err = window:perform(TagAction.quickfix)
+            if err then
+                vim.notify(err, vim.log.levels.ERROR)
+            end
+        end)
+
+        window:map("n", "<c-r>", function()
+            local err = window:refresh()
+            if err then
+                vim.notify(err, vim.log.levels.ERROR)
+            end
+        end)
+    end,
+
+    ---@type grapple.vim.win_opts
+    win_opts = {
         relative = "editor",
-        width = 60,
-        height = 12,
+        width = 0.5,
+        height = 0.5,
+        row = 0.5,
+        col = 0.5,
         style = "minimal",
         focusable = false,
         border = "single",
-    },
-
-    integrations = {
-        ---Support for saving tag state using resession.nvim
-        resession = false,
+        title = "Grapple",
+        title_pos = "center",
     },
 }
 
----@type Grapple.Settings
-local _settings = DEFAULT_SETTINGS
-
----@param overrides? Grapple.Settings
-function settings.update(overrides)
-    _settings = vim.tbl_deep_extend("force", DEFAULT_SETTINGS, overrides or {})
+function Settings:new()
+    return setmetatable(DEFAULT_SETTINGS, self)
 end
 
-setmetatable(settings, {
-    __index = function(_, index)
-        return _settings[index]
-    end,
-})
+---@param opts? grapple.settings
+function Settings:update(opts)
+    self = vim.tbl_deep_extend("force", self, opts or {})
+end
 
-return settings
+return Settings

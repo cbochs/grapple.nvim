@@ -33,6 +33,21 @@ function Deserializable.from_table(tbl) end
 ---@field index integer
 ---@field text string
 
+---See :h vim.api.nvim_create_user_command
+---@class grapple.vim.user_command
+---@field name string
+---@field args string
+---@field fargs table
+---@field nargs string
+---@field bang boolean
+---@field line1 number
+---@field line2 number
+---@field range number
+---@field count number
+---@field reg? string
+---@field mods? string
+---@field smods table
+
 ---See :h vim.api.nvim_open_win
 ---@class grapple.vim.win_opts
 ---@field relative? "editor" | "win" | "cursor" | "mouse"

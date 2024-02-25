@@ -7,6 +7,7 @@ local TagAction = {}
 
 ---@param scope grapple.scope.resolved
 ---@param opts grapple.tag.container.get
+---@return string? error
 function TagAction.select(scope, opts)
     local err = scope:enter(function(container)
         local tag, err = container:get(opts)
@@ -29,6 +30,7 @@ end
 
 ---@param scope grapple.scope.resolved
 ---@param opts? table not used
+---@return string? error
 ---@diagnostic disable-next-line: unused-local
 function TagAction.quickfix(scope, opts)
     local tags, err = scope:tags()
@@ -53,6 +55,8 @@ function TagAction.quickfix(scope, opts)
         vim.fn.setqflist(quickfix_list, "r")
         vim.cmd.copen()
     end
+
+    return nil
 end
 
 return TagAction

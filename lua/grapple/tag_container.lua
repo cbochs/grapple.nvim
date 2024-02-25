@@ -6,17 +6,13 @@ local Util = require("grapple.util")
 ---@field cursor? integer[]
 ---@field index? integer
 
----@class grapple.tag.container.move
----@field path string
----@field index integer
-
----@class grapple.tag.container.remove
----@field path? string
----@field index? integer
-
 ---@class grapple.tag.container.get
 ---@field path? string
 ---@field index? integer
+
+---@class grapple.tag.container.move
+---@field path string
+---@field index integer
 
 ---@class grapple.tag.container
 ---@field tags grapple.tag[]
@@ -30,63 +26,63 @@ function TagContainer:new()
 end
 
 ---@param opts grapple.tag.container.insert
----@return grapple.tag | nil, string? error
+---@return string? error
 function TagContainer:insert(opts)
     if self:has(opts.path) then
-        return nil, string.format("tag already exists: %s", opts.path)
+        return string.format("tag already exists: %s", opts.path)
     end
 
     local abs_path, err = Util.absolute(opts.path)
     if not abs_path then
-        return nil, err
+        return err
     end
 
     local tag = Tag:new(abs_path, opts.cursor)
     table.insert(self.tags, opts.index or (#self.tags + 1), tag)
 
-    return tag, nil
+    return nil
 end
 
 ---@param opts grapple.tag.container.move
----@return grapple.tag | nil, string? error
+---@return string? error
 function TagContainer:move(opts)
     local index = self:index(opts.path)
     if not index then
-        return nil, string.format("tag does not exist for file path: %s", opts.path)
+        return string.format("tag does not exist for file path: %s", opts.path)
     end
 
     local tag = self.tags[index]
 
     if opts.index == index then
-        return tag, nil
+        return nil
     elseif opts.index < index then
         table.remove(self.tags, index)
         table.insert(self.tags, opts.index, tag)
-        return tag, nil
+        return nil
     elseif opts.index > index then
         table.insert(self.tags, opts.index + 1, tag)
         table.remove(self.tags, index)
-        return tag, nil
+        return nil
     end
 
     error(string.format("tag could not be moved from index %s to %s: %s", index, opts.index, opts.path))
 end
 
 ---@param opts grapple.tag.container.get
----@return grapple.tag | nil, string? error
+---@return string? error
 function TagContainer:remove(opts)
     if #self.tags == 0 then
-        return nil, "tag container is empty"
+        return "tag container is empty"
     end
 
     local index, err = self:find(opts)
     if not index then
-        return nil, err
+        return err
     end
 
-    local tag = table.remove(self.tags, index)
+    table.remove(self.tags, index)
 
-    return tag, nil
+    return nil
 end
 
 ---@param opts grapple.tag.container.get
