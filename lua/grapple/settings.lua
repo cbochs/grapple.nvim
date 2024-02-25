@@ -9,8 +9,7 @@ local DEFAULT_SETTINGS = {
 
     ---@type string
     ---@diagnostic disable-next-line: param-type-mismatch
-    -- save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
-    save_path = "test_saves",
+    save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
 
     ---@type string
     scope = "git_branch",
@@ -26,7 +25,9 @@ local DEFAULT_SETTINGS = {
 
         {
             name = "cwd",
-            resolver = function() end,
+            resolver = function()
+                return vim.uv.cwd(), vim.uv.cwd()
+            end,
         },
 
         ---@class grapple.spec.scope
@@ -34,7 +35,10 @@ local DEFAULT_SETTINGS = {
             name = "git_branch",
             fallback = "cwd",
             resolver = function()
-                -- TODO: exit early if not in .git
+                local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
+                if #git_files == 0 then
+                    return
+                end
 
                 local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
                 local root = vim.trim(string.gsub(root.stdout, "\n", ""))
