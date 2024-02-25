@@ -6,22 +6,9 @@ function Grapple.initialize()
         pattern = "?*", -- non-empty file
         group = "Grapple",
         callback = function(opts)
-            local Util = require("grapple.util")
-
-            local app = Grapple.app()
+            local app = require("grapple.app").get()
             local buf_name = vim.api.nvim_buf_get_name(opts.buf)
             app.tag_manager:update({ path = buf_name })
-
-            local err = app.state_manager:write("bufwinleave", {
-                event = opts.event,
-                event_file = opts.file,
-                buf_id = opts.buf,
-                buf_name = buf_name,
-                cursor = Util.cursor(buf_name),
-            })
-            if err then
-                vim.notify(err:error(), vim.log.levels.INFO)
-            end
         end,
     })
 
@@ -29,42 +16,14 @@ function Grapple.initialize()
         pattern = "?*", -- non-empty file
         group = "Grapple",
         callback = function(opts)
-            local Util = require("grapple.util")
-
-            local app = Grapple.app()
+            local app = require("grapple.app").get()
             local buf_name = vim.api.nvim_buf_get_name(opts.buf)
-            local ok, err = app.tag_manager:update({ path = buf_name })
-
-            app.state_manager:write("quitpre", {
-                a_ok = ok,
-                b_err = err,
-                c_event = opts.event,
-                d_event_file = opts.file,
-                e_buf_id = opts.buf,
-                f_buf_name = buf_name,
-                g_cursor = Util.cursor(buf_name),
-            })
+            app.tag_manager:update({ path = buf_name })
         end,
     })
-end
 
-local App = nil
-
----@return grapple.app
-function Grapple.app()
-    if App then
-        return App
-    end
-
-    local ScopeManager = require("grapple.scope_manager")
-    local StateManager = require("grapple.state_manager")
-    local TagManager = require("grapple.tag_manager")
-
-    local state_manager = StateManager:new("test_saves")
-    local tag_manager = TagManager:new(state_manager)
-    local scope_manager = ScopeManager:new(tag_manager)
-
-    scope_manager:define("git_branch", function()
+    local app = require("grapple.app").get()
+    app.scope_manager:define("git_branch", function()
         local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
         local root = vim.trim(string.gsub(root.stdout, "\n", ""))
 
@@ -76,19 +35,10 @@ function Grapple.app()
 
         return id, path
     end)
-
-    ---@class grapple.app
-    App = {
-        scope_manager = scope_manager,
-        state_manager = state_manager,
-        tag_manager = tag_manager,
-    }
-
-    return App
 end
 
 function Grapple.tag()
-    local app = Grapple.app()
+    local app = require("grapple.app").get()
     local scope, err = app.scope_manager:get_resolved("git_branch")
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
@@ -106,29 +56,20 @@ end
 
 function Grapple.untag() end
 
+---@param opts grapple.tag.container.get
 function Grapple.select(opts)
-    local app = Grapple.app()
+    local app = require("grapple.app").get()
+
     local scope, err = app.scope_manager:get_resolved("git_branch")
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
+    local TagAction = require("grapple.tag_action")
+
     ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(function(container)
-        ---@diagnostic disable-next-line: redefined-local
-        local tag, err = container:get(opts)
-        if not tag then
-            return err
-        end
-
-        ---@diagnostic disable-next-line: redefined-local
-        local err = tag:select()
-        if err then
-            return err
-        end
-    end)
-
+    local err = TagAction.select(scope, opts)
     if err then
         vim.notify(err, vim.log.levels.WARN)
     end
@@ -193,7 +134,7 @@ function Grapple.open_tags()
         return scope.id
     end
 
-    local app = Grapple.app()
+    local app = require("grapple.app").get()
     local scope, err = app.scope_manager:get_resolved("git_branch")
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
