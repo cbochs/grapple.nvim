@@ -1,39 +1,7 @@
-local ErrorBuilder = require("grapple.error_builder")
-
 ---@class grapple.state.manager
 ---@field save_dir string
 local StateManager = {}
 StateManager.__index = StateManager
-
-StateManager.FileError = ErrorBuilder:default("FILE_ERROR")
-
-StateManager.NoExistError = ErrorBuilder:create(
-    "UV_ENOENT",
-
-    ---@param path string
-    function(path)
-        return string.format("no such file or directory: %s", path)
-    end
-)
-
-StateManager.PermissionError = ErrorBuilder:create(
-    "UV_EACCES",
-
-    ---@param path string
-    function(path)
-        return string.format("permission denied: %s", path)
-    end
-)
-
-StateManager.DecodeError = ErrorBuilder:default("JSON_DECODE_ERROR")
-StateManager.EncodeError = ErrorBuilder:create(
-    "JSON_ENCODE_ERROR",
-
-    ---@param obj any
-    function(obj)
-        return string.format("failed to encode: %s", vim.inspect(obj))
-    end
-)
 
 ---Reference: https://github.com/golgote/neturl/blob/master/lib/net/url.lua
 ---
@@ -58,16 +26,30 @@ local function path_decode(encoded_string)
     return decoded
 end
 
----@param state_path string
+---@param save_dir string
 ---@return grapple.state.manager
-function StateManager:new(state_path)
+function StateManager:new(save_dir)
     return setmetatable({
-        save_dir = vim.fs.normalize(state_path),
+        save_dir = vim.fs.normalize(save_dir),
     }, self)
 end
 
 function StateManager:save_path(name)
     return vim.fs.joinpath(self.save_dir, string.format("%s.json", path_encode(name)))
+end
+
+---@return string? error
+function StateManager:ensure_created()
+    local exists, err = vim.uv.fs_access(self.save_dir, "RW")
+    if err then
+        return err
+    end
+
+    if not exists then
+        vim.fn.mkdir(self.save_dir, "-p")
+    end
+
+    return nil
 end
 
 ---@param name string
@@ -85,55 +67,46 @@ function StateManager:exists(name)
     return permission
 end
 
----@return grapple.error? error
+---@return string? error, string? error_kind
 function StateManager:remove(name)
     local path = self:save_path(name)
-    local _, err = os.remove(path)
+    local _, err = vim.uv.fs_unlink(path)
     if err then
-        return StateManager.FileError:new(err)
+        return err, "FS_UNLINK"
     end
 end
 
 ---@param name string
----@return any decoded, grapple.error? error
+---@return any decoded, string? error, string? error_kind
 function StateManager:read(name)
     local path = self:save_path(name)
 
-    local fd, err, err_type = vim.uv.fs_open(path, "r", 438)
-    if err_type == "ENOENT" then
-        return nil, StateManager.NoExistError:new(path)
-    elseif err_type then
-        return nil, StateManager.FileError:new(err)
+    local fd, err, err_kind = vim.uv.fs_open(path, "r", 438)
+    if not fd then
+        return nil, err, err_kind
     end
-
-    assert(fd, string.format("could not open file: %s", path))
 
     ---@diagnostic disable-next-line: redefined-local
-    local stat, err = vim.uv.fs_fstat(fd)
-    if err then
+    local stat, err, err_kind = vim.uv.fs_fstat(fd)
+    if not stat then
         assert(vim.uv.fs_close(fd), string.format("could not close file: %s", path))
-        return nil, StateManager.FileError:new(err)
+        return nil, err, err_kind
     end
-
-    assert(stat, string.format("could not inspect file: %s", path))
 
     ---@diagnostic disable-next-line: redefined-local
-    local data, err = vim.uv.fs_read(fd, stat.size, 0)
-    if err then
+    local data, err, err_kind = vim.uv.fs_read(fd, stat.size, 0)
+    if not data then
         assert(vim.uv.fs_close(fd), string.format("could not close file: %s", path))
-        return nil, StateManager.FileError:new(err)
+        return nil, err, err_kind
     end
-
-    assert(data, string.format("could not read file: %s", path))
-    assert(type(data) == "string")
 
     assert(vim.uv.fs_close(fd))
 
     local ok, decoded = pcall(vim.json.decode, data)
     if not ok then
         ---@diagnostic disable-next-line: redefined-local
-        local err_msg = decoded
-        return nil, StateManager.DecodeError:new(err_msg)
+        local err = decoded
+        return nil, err, "JSON_DECODE"
     end
 
     return decoded, nil
@@ -141,24 +114,22 @@ end
 
 ---@param name string
 ---@param obj any
----@return grapple.error? error
+---@return string? error, string? error_kind
 function StateManager:write(name, obj)
     local path = self:save_path(name)
 
     local ok, encoded = pcall(vim.json.encode, obj)
     if not ok then
-        return StateManager.EncodeError:new(obj)
+        local err = encoded
+        return err, "JSON_ENCODE"
+    end
+
+    local fd, err, err_kind = vim.uv.fs_open(path, "w", 438)
+    if not fd then
+        return err, err_kind
     end
 
     assert(type(encoded) == "string", "could not encode as json")
-
-    local fd, err = vim.uv.fs_open(path, "w", 438)
-    if err then
-        return StateManager.FileError:new(err)
-    end
-
-    assert(fd, string.format("could not open file: %s", path))
-
     assert(vim.uv.fs_write(fd, encoded, 0))
     assert(vim.uv.fs_close(fd))
 

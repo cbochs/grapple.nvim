@@ -76,7 +76,7 @@ function TagManager:load(id)
 
     local tbl, err = self.state:read(id)
     if err then
-        return nil, err:error()
+        return nil, err
     end
 
     ---@diagnostic disable-next-line: redefined-local
@@ -98,7 +98,7 @@ function TagManager:reset(id)
     if self.state:exists(id) then
         local err = self.state:remove(id)
         if err then
-            return err:error()
+            return err
         end
     end
 end
