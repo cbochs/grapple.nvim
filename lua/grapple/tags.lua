@@ -101,7 +101,7 @@ function tags.tag(scope, opts)
         file_path = vim.api.nvim_buf_get_name(opts.buffer)
 
         if opts.buffer == 0 or opts.buffer == vim.api.nvim_get_current_buf() then
-            cursor = vim.api.nvim_win_get_buf(0)
+            cursor = vim.api.nvim_win_get_cursor(0)
         else
             cursor = vim.api.nvim_buf_get_mark(opts.buffer, '"')
         end
