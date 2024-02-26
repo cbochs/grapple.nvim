@@ -88,6 +88,9 @@ function TagContent:update_entry(tag, index)
     local name = vim.fn.fnamemodify(tag.path, ":p")
     local rel_path = Util.relative(tag.path, self.scope.path)
 
+    -- TODO: it would be cool if invalid paths were highlighted somehow
+    -- Like if the extmark in the sign column was red or something
+
     -- In compliance with "grapple" syntax
     local text, min_col, icon_highlight
     local use_icons = require("grapple.app").get().settings.icons
@@ -135,6 +138,7 @@ function TagContent:update_entry(tag, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
+                invalidate = true,
             },
         },
     }
