@@ -15,25 +15,25 @@ local Deserializable = {}
 ---@diagnostic disable-next-line: unused-local
 function Deserializable.from_table(tbl) end
 
----See :h vim.api.nvim_buf_set_extmark
+---See :h nvim_buf_set_extmark
 ---@class grapple.vim.extmark
 ---@field line integer
 ---@field col integer
 ---@field opts? table<string, any>
 
----See :h vim.api.nvim_buf_set_highlights
+---See :h nvim_buf_set_highlights
 ---@class grapple.vim.highlight
 ---@field hl_group string
 ---@field line integer
 ---@field col_start integer
 ---@field col_end integer
 
----See :h vim.api.nvim_buf_set_lines
+---See :h nvim_buf_set_lines
 ---@class grapple.vim.line
 ---@field index integer
 ---@field text string
 
----See :h vim.api.nvim_create_user_command
+---See :h nvim_create_user_command
 ---@class grapple.vim.user_command
 ---@field name string
 ---@field args string
@@ -48,7 +48,7 @@ function Deserializable.from_table(tbl) end
 ---@field mods? string
 ---@field smods table
 
----See :h vim.api.nvim_open_win
+---See :h nvim_open_win
 ---@class grapple.vim.win_opts
 ---@field relative? "editor" | "win" | "cursor" | "mouse"
 ---@field win? integer
