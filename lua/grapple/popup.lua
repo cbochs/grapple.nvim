@@ -37,6 +37,15 @@ local popup = {}
 
 local current_popup = nil
 
+---@private
+---@param window_options Grapple.WindowOptions
+---@return number, number
+function popup.calculate_position(window_options)
+    local row = math.floor(((vim.o.lines - window_options.height) / 2) - 1)
+    local col = math.floor((vim.o.columns - window_options.width) / 2)
+    return row, col
+end
+
 ---@return Grapple.PopupMenu
 function popup.current()
     if current_popup == nil then
@@ -66,6 +75,14 @@ function popup.open(window_options, popup_handler, popup_state)
             popup.close(popup_menu)
         end,
     })
+    vim.api.nvim_create_autocmd({ "VimResized" }, {
+        group = "GrapplePopup",
+        callback = function()
+            popup_menu.popup.options.row, popup_menu.popup.options.col =
+                popup.calculate_position(popup_menu.popup.options)
+            vim.api.nvim_win_set_config(popup_menu.popup.window, popup_menu.popup.options)
+        end,
+    })
 
     current_popup = popup_menu
 
@@ -82,8 +99,7 @@ function popup.create_window(window_options)
 
     local buffer = vim.api.nvim_create_buf(false, true)
 
-    window_options.row = math.floor(((vim.o.lines - window_options.height) / 2) - 1)
-    window_options.col = math.floor((vim.o.columns - window_options.width) / 2)
+    window_options.row, window_options.col = popup.calculate_position(window_options)
 
     local window = vim.api.nvim_open_win(buffer, true, window_options)
 
@@ -156,6 +172,9 @@ function popup.close(popup_menu)
     if vim.api.nvim_win_is_valid(popup_menu.popup.window) then
         vim.api.nvim_win_close(popup_menu.popup.window, true)
     end
+
+    vim.api.nvim_clear_autocmds({ group = "GrapplePopup" })
+
     current_popup = nil
 end
 
