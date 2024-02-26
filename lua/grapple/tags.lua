@@ -185,7 +185,12 @@ function tags.select(tag)
 
     vim.api.nvim_cmd({ cmd = "edit", args = { Path:new(tag.file_path):make_relative() } }, {})
     if tag.cursor then
-        vim.api.nvim_win_set_cursor(0, tag.cursor)
+        local cursor = vim.api.nvim_win_get_cursor(0)
+
+        -- Set the cursor only if it is at the top of the file
+        if cursor[1] == 1 and cursor[2] == 0 then
+            vim.api.nvim_win_set_cursor(0, tag.cursor)
+        end
     end
 
     return true
