@@ -17,6 +17,9 @@ function M.create()
                     local scope = require("grapple.state").ensure_loaded(settings.scope)
 
                     require("grapple.tags").update(scope, tag, cursor)
+                end
+
+                if opts.event == "ExitPre" or tag ~= nil then
                     require("grapple").save()
                 end
             end)
