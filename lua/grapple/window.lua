@@ -114,8 +114,6 @@ function Window:close()
         return
     end
 
-    -- TODO: Could this be handled better?
-    -- Content sync errors should not block closing the window
     local err
     if self:is_rendered() then
         err = self.content:sync(self.buf_id)
@@ -235,10 +233,10 @@ end
 function Window:create_buffer()
     local buf_id = vim.api.nvim_create_buf(false, true)
 
+    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf_id })
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf_id })
     vim.api.nvim_set_option_value("filetype", "grapple", { buf = buf_id })
     vim.api.nvim_set_option_value("syntax", "grapple", { buf = buf_id })
-    vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf_id })
-    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf_id })
     vim.api.nvim_set_option_value("undolevels", -1, { buf = buf_id })
 
     self:create_buffer_defaults(buf_id)
