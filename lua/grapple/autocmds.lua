@@ -16,10 +16,8 @@ function M.create()
                     local cursor = vim.api.nvim_win_get_cursor(0)
                     local scope = require("grapple.state").ensure_loaded(settings.scope)
 
-                    if cursor[1] ~= tag.cursor[1] or cursor[2] ~= tag.cursor[2] then
-                        require("grapple.tags").update(scope, tag, cursor)
-                        require("grapple").save()
-                    end
+                    require("grapple.tags").update(scope, tag, cursor)
+                    require("grapple").save()
                 end
             end)
             if not ok then
