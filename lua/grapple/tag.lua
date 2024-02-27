@@ -1,4 +1,4 @@
-local Util = require("grapple.util")
+local Path = require("grapple.path")
 
 ---@class grapple.tag
 ---@field path string absolute path
@@ -24,11 +24,7 @@ end
 
 ---@return string? error
 function Tag:select()
-    if not Util.exists(self.path) then
-        return string.format("tag path does not exist", self.path)
-    end
-
-    local short_path = Util.short(self.path)
+    local short_path = Path.short(self.path)
     vim.cmd.edit(short_path)
 
     -- If the cursor has already been set, update instead
