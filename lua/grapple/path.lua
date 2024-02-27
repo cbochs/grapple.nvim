@@ -4,8 +4,8 @@ local Path = {}
 --
 -- Please note that this does not aim to parse or understand the entire spec
 -- for both Unix and Windows file paths. Most noteably, Windows absolute paths
--- are actually a syscall to the win32 api (GetFullPathNameW). Because of this,
--- some paths might not parse correctly.
+-- are a syscall to the win32 api (GetFullPathNameW). Because of this, some
+-- paths might not parse correctly.
 --
 -- However, most - if not all - use cases should be covered by simply parsing
 -- the Windows path as a Unix path + (optional) drive letter. At least, doing
@@ -323,11 +323,43 @@ function Path.relative(base, targ)
     return rel_path, nil
 end
 
+---@param ... string
+---@return string joined
 function Path.join(...)
     if Path.windows then
+        return ""
     else
         return Path.clean(table.concat({ ... }, Path.separator))
     end
+end
+
+---Not from the Go filepath package
+---A VERY simple check for whether a given file path should be considered to be a URI
+---@param path string
+---@return boolean
+function Path.is_uri(path)
+    local scheme, _ = string.match(path, "(.*)://(.*)")
+    return scheme ~= nil
+end
+
+---Not from the Go filepath package
+---@param path string
+---@return string short_path, string? error
+function Path.short(path)
+    local abs_path = Path.absolute(path)
+
+    ---@type string
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local short_path = vim.fn.fnamemodify(abs_path, ":~:.")
+
+    return short_path
+end
+
+---Not from the Go filepath package
+---@param path string
+---@return boolean exists
+function Path.exists(path)
+    return vim.uv.fs_stat(path) ~= nil
 end
 
 return Path
