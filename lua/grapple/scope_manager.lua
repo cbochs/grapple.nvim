@@ -33,7 +33,7 @@ function ScopeManager:get(name)
 end
 
 ---@param name string scope name
----@return grapple.scope.resolved | nil, string? error
+---@return grapple.resolved_scope | nil, string? error
 function ScopeManager:get_resolved(name)
     local scope, err = self:get(name)
     if not scope then
@@ -57,8 +57,8 @@ function ScopeManager:get_resolved(name)
 end
 
 ---@param name string
----@param resolver grapple.scope.resolver
----@param opts? { force?: boolean, fallback?: string, cache?: grapple.cache.opts }
+---@param resolver grapple.scope_resolver
+---@param opts? { force?: boolean, fallback?: string, cache?: grapple.cache.options }
 ---@return grapple.scope | nil, string? error
 function ScopeManager:define(name, resolver, opts)
     opts = opts or {}

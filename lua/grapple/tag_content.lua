@@ -3,18 +3,18 @@ local Util = require("grapple.util")
 
 ---@class grapple.tag.content
 ---@field entries grapple.tag.content.entry[]
----@field scope grapple.scope.resolved
----@field hook_fn grapple.tag.content.hook_fn
----@field title_fn grapple.tag.content.title_fn
+---@field scope grapple.resolved_scope
+---@field hook_fn grapple.hook_fn
+---@field title_fn grapple.title_fn
 local TagContent = {}
 TagContent.__index = TagContent
 
----@alias grapple.tag.content.hook_fn fun(window: grapple.window): string?
----@alias grapple.tag.content.title_fn fun(scope: grapple.scope.resolved): string
+---@alias grapple.hook_fn fun(window: grapple.window): string?
+---@alias grapple.title_fn fun(scope: grapple.resolved_scope): string
 
----@param scope grapple.scope.resolved
----@param hook_fn grapple.tag.content.hook_fn
----@param title_fn? grapple.tag.content.title_fn
+---@param scope grapple.resolved_scope
+---@param hook_fn grapple.hook_fn
+---@param title_fn? grapple.title_fn
 ---@return grapple.tag.content
 function TagContent:new(scope, hook_fn, title_fn)
     return setmetatable({
@@ -266,6 +266,8 @@ function TagContent:parse(lines)
     return parsed
 end
 
+---@param line string
+---@return integer col
 function TagContent:minimum_column(line)
     local parsed = self:parse_line(line)
     if not parsed then

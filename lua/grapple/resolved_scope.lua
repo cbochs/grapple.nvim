@@ -1,4 +1,4 @@
----@class grapple.scope.resolved
+---@class grapple.resolved_scope
 ---@field name string scope name
 ---@field id string uniquely identifies a scope
 ---@field path string an absolute path
@@ -10,7 +10,7 @@ ResolvedScope.__index = ResolvedScope
 ---@param id string
 ---@param path string | nil
 ---@param tag_manager grapple.tag.manager
----@return grapple.scope.resolved
+---@return grapple.resolved_scope
 function ResolvedScope:new(name, id, path, tag_manager)
     return setmetatable({
         name = name,

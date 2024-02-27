@@ -67,7 +67,7 @@ function App:load_current_scope()
     self.tag_manager:load(scope.id)
 end
 
----@return grapple.scope.resolved | nil, string? error
+---@return grapple.resolved_scope | nil, string? error
 function App:current_scope()
     return self.scope_manager:get_resolved(self.settings.scope)
 end

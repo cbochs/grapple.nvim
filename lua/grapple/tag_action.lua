@@ -2,10 +2,10 @@ local Path = require("grapple.path")
 
 local TagAction = {}
 
----@alias grapple.action fun(scope: grapple.scope.resolved, opts?: table): string?
+---@alias grapple.action fun(scope: grapple.resolved_scope, opts?: table): string?
 ---@alias grapple.action.options table
 
----@param scope grapple.scope.resolved
+---@param scope grapple.resolved_scope
 ---@param opts grapple.tag.container.get
 ---@return string? error
 function TagAction.select(scope, opts)
@@ -28,7 +28,7 @@ function TagAction.select(scope, opts)
     return nil
 end
 
----@param scope grapple.scope.resolved
+---@param scope grapple.resolved_scope
 ---@param opts? table not used
 ---@return string? error
 ---@diagnostic disable-next-line: unused-local

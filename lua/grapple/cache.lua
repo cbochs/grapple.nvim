@@ -4,13 +4,13 @@
 local Cache = {}
 Cache.__index = Cache
 
----@class grapple.cache.opts
----@field event? string
+---@class grapple.cache.options
+---@field event? string | string[]
 ---@field pattern? string
 ---@field interval? integer
 
 ---@class grapple.cache.value
----@field event string?
+---@field event? string | string[]
 ---@field pattern string?
 ---@field interval integer?
 ---@field au_id integer?
@@ -29,7 +29,7 @@ function Cache:new()
 end
 
 ---@param id string
----@param opts grapple.cache.opts
+---@param opts grapple.cache.options
 function Cache:open(id, opts)
     if self.cache[id] then
         self:close(id)
