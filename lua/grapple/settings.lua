@@ -5,16 +5,15 @@ Settings.__index = Settings
 ---@class grapple.settings
 local DEFAULT_SETTINGS = {
 
-    icons = true,
-
     ---@type string
     ---@diagnostic disable-next-line: param-type-mismatch
     save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
 
-    ---@type string
-    scope = "git",
+    icons = true,
 
-    ---@type grapple.spec.scope[]
+    ---@type string
+    scope = "git_branch",
+
     scopes = {
         {
             name = "global",
@@ -22,42 +21,39 @@ local DEFAULT_SETTINGS = {
                 return "global", vim.uv.cwd()
             end,
         },
-
         {
             name = "cwd",
+            cache = { event = "DirChanged" },
             resolver = function()
                 return vim.uv.cwd(), vim.uv.cwd()
             end,
         },
-
         {
             name = "git",
             fallback = "cwd",
+            cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
                 local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
                 if #git_files == 0 then
                     return
                 end
 
-                local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
-                local root = vim.trim(string.gsub(root.stdout, "\n", ""))
+                local root = vim.fn.fnamemodify(git_files[1], ":h")
 
                 return root, root
             end,
         },
-
-        ---@class grapple.spec.scope
         {
             name = "git_branch",
-            fallback = "cwd",
+            fallback = "git",
+            cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
                 local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
                 if #git_files == 0 then
                     return
                 end
 
-                local root = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
-                local root = vim.trim(string.gsub(root.stdout, "\n", ""))
+                local root = vim.fn.fnamemodify(git_files[1], ":h")
 
                 local branch = vim.system({ "git", "symbolic-ref", "--short", "HEAD" }, { text = true }):wait()
                 local branch = vim.trim(string.gsub(branch.stdout, "\n", ""))
@@ -66,6 +62,21 @@ local DEFAULT_SETTINGS = {
                 local path = root
 
                 return id, path
+            end,
+        },
+        {
+            name = "lsp",
+            fallback = "git",
+            cache = { event = { "LspAttach", "LspDetach" } },
+            resolver = function()
+                local clients = vim.lsp.get_clients({ bufnr = 0 })
+                if #clients == 0 then
+                    return
+                end
+
+                local path = clients[1].root_dir
+
+                return path, path
             end,
         },
     },
@@ -126,6 +137,7 @@ local DEFAULT_SETTINGS = {
         style = "minimal",
         title = "Grapple",
         title_pos = "center",
+        title_padding = " ",
     },
 }
 
