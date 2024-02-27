@@ -47,6 +47,11 @@ function Window:canonicalize()
         opts.title_pos = nil
     end
 
+    if opts.title and opts.title_padding then
+        opts.title = string.format("%s%s%s", opts.title_padding, opts.title, opts.title_padding)
+        opts.title_padding = nil
+    end
+
     -- window size
     if opts.width and opts.width < 1 then
         opts.width = math.floor(vim.o.columns * opts.width)

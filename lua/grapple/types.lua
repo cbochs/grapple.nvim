@@ -65,6 +65,7 @@ function Deserializable.from_table(tbl) end
 ---@field border? "none" | "single" | "double" | "rounded" | "solid" | "shadow" | string[] default is "none"
 ---@field title? string
 ---@field title_pos? "left" | "center" | "right" default is "left"
+---@field title_padding? string custom field
 ---@field footer? string | fun(): string
 ---@field footer_pos? "left" | "center" | "right" default is "left"
 ---@field noautocmd? boolean
