@@ -1,4 +1,4 @@
-local Util = require("grapple.util")
+local Path = require("grapple.path")
 
 local TagAction = {}
 
@@ -47,7 +47,7 @@ function TagAction.quickfix(scope, opts)
             filename = tag.path,
             lnum = tag.cursor[1],
             col = tag.cursor[2] + 1,
-            text = Util.relative(tag.path, scope.path),
+            text = Path.relative(scope.path, tag.path),
         })
     end
 
