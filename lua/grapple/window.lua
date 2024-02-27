@@ -119,20 +119,21 @@ function Window:close()
         return
     end
 
-    local err
+    -- Defer closing window
+    vim.schedule(function()
+        if vim.api.nvim_win_is_valid(self.win_id) then
+            vim.api.nvim_win_close(self.win_id, true)
+            self.win_id = nil
+            self.buf_id = nil
+        end
+    end)
+
     if self:is_rendered() then
-        err = self.content:sync(self.buf_id)
         self.rendered = false
-    end
-
-    if vim.api.nvim_win_is_valid(self.win_id) then
-        vim.api.nvim_win_close(self.win_id, true)
-        self.win_id = nil
-        self.buf_id = nil
-    end
-
-    if err then
-        return err
+        local err = self.content:sync(self.buf_id)
+        if err then
+            return err
+        end
     end
 end
 
@@ -195,7 +196,11 @@ function Window:render()
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
     -- Prevent "BufWinLeave" from closing the window
-    vim.api.nvim_clear_autocmds({ event = "BufWinLeave", group = self.au_id, buffer = self.buf_id })
+    vim.api.nvim_clear_autocmds({
+        event = { "BufUnload", "BufWinLeave" },
+        group = self.au_id,
+        buffer = self.buf_id,
+    })
 
     -- Replace active buffer
     self.buf_id = self:create_buffer()
@@ -275,15 +280,21 @@ function Window:create_buffer_defaults(buf_id)
         callback = vim.schedule_wrap(constrain_cursor),
     })
 
-    vim.api.nvim_create_autocmd({ "WinLeave", "BufWinLeave" }, {
+    vim.api.nvim_create_autocmd({ "BufWinLeave", "WinLeave" }, {
         group = self.au_id,
         buffer = buf_id,
         once = true,
-        callback = function()
+        callback = function(opts)
             local err = self:close()
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
             end
+
+            vim.api.nvim_clear_autocmds({
+                event = { "BufUnload", "BufWinLeave", "WinLeave" },
+                group = self.au_id,
+                buffer = self.buf_id,
+            })
         end,
     })
 
