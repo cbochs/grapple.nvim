@@ -71,7 +71,7 @@ function Cache:watch(id)
         self:unwatch(id)
     end
 
-    local invalidate_callback = function()
+    local callback = function()
         self:invalidate(id)
     end
 
@@ -79,13 +79,13 @@ function Cache:watch(id)
         cache_value.au_id = vim.api.nvim_create_autocmd(cache_value.event, {
             group = self.group_id,
             pattern = cache_value.pattern,
-            callback = invalidate_callback,
+            callback = callback,
         })
     end
 
     if cache_value.interval then
         cache_value.timer = vim.uv.new_timer()
-        cache_value.timer:start(cache_value.interval, cache_value.interval, invalidate_callback)
+        cache_value.timer:start(cache_value.interval, cache_value.interval, callback)
     end
 
     cache_value.watching = true
