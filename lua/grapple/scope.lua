@@ -29,7 +29,6 @@ function Scope:resolve(tag_manager)
 
     if not id then
         if self.fallback then
-            vim.print(string.format("GOING UP FROM %s TO %s", self.name, self.fallback.name))
             return self.fallback:resolve(tag_manager)
         end
 
