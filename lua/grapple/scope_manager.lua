@@ -42,10 +42,8 @@ function ScopeManager:get_resolved(name)
 
     local cached = self.cache:get(name)
     if cached then
-        vim.print(string.format("CACHE HIT %s: %s", name, cached.path))
         return cached, nil
     end
-    vim.print(string.format("CACHE MISS: %s", name))
 
     ---@diagnostic disable-next-line: redefined-local
     local resolved, err = scope:resolve(self.tag_manager)

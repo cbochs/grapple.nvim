@@ -288,13 +288,6 @@ function Path.relative(base, targ)
     local base_parts = filter_empty(vim.split(base_path, Path.separator))
     local targ_parts = filter_empty(vim.split(targ_path, Path.separator))
 
-    if base == "a" and targ == "/a" then
-        vim.print({
-            base_parts = base_parts,
-            targ_parts = targ_parts,
-        })
-    end
-
     local last_index = 1
     while Path.are_same(base_parts[last_index], targ_parts[last_index]) do
         last_index = last_index + 1

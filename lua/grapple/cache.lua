@@ -72,7 +72,6 @@ function Cache:watch(id)
     end
 
     local invalidate_callback = function()
-        vim.print(string.format("INVALIDATING %s", id))
         self:invalidate(id)
     end
 
