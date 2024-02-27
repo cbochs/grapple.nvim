@@ -83,7 +83,7 @@ local DEFAULT_SETTINGS = {
 
     ---@type grapple.tag.content.title_fn
     tag_title = function(scope)
-        return scope.path or scope.id
+        return scope.id
     end,
 
     ---@type grapple.tag.content.hook_fn
