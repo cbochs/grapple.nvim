@@ -3,6 +3,8 @@ MD013:
 
 MD033:
   allowed_elements:
+    - "a"
     - "b"
     - "details"
+    - "img"
     - "summary"

@@ -6,9 +6,7 @@ _Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location).
-
-See the [quickstart](#quickstart) section to get started.
+Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). See the [quickstart](#quickstart) section to get started.
 
 ## Features
 
@@ -19,7 +17,7 @@ See the [quickstart](#quickstart) section to get started.
 
 ## Requirements
 
-- [Neovim >= 0.8](https://github.com/neovim/neovim/releases/tag/v0.9.0)
+- [Neovim >= 0.9](https://github.com/neovim/neovim/releases/tag/v0.9.0)
 
 ## Quickstart
 
@@ -33,7 +31,7 @@ vim.keymap.set("n", "<leader>M", "<cmd>Grapple open_tags<cr>"
 
 **Next steps**
 
-- Check out the default settings in the [settings](#settings) section
+- Check out the default [settings](#settings)
 - View your tags with `:Grapple open_tags`
 - Choose a scope with `:Grapple open_scopes`
 - Add a [statusline component](#statusline)
@@ -91,7 +89,7 @@ require("grapple").setup({
 
     ---User-defined scopes or overrides
     ---For more information, please see the Scopes section
-    ---@type grapple.scope_definition
+    ---@type grapple.scope_definition[]
     scopes = {},
 
     ---User-defined tag title function for Grapple windows
@@ -426,14 +424,14 @@ Popup windows are made available to enable easy management of tags and scopes. T
 
 <img width="1038" alt="Screenshot 2022-12-15 at 09 05 07" src="https://user-images.githubusercontent.com/2467016/207909857-98e7bc5d-8b48-4650-acb9-5993dde87a0f.png">
 
-### Tag Window
+### Tags Window
 
 Open a floating window containing all the tags for a given scope. The floating window can be closed with either `q` or `<esc>`. Several actions are available by default:
 
 - **Selection** (`<cr>`): open the tag under the cursor
 - **Deletion**: delete a line to delete the tag
 - **Reordering**: move a line to move a tag
-- **Quickfix** (`<c-q>`): send all tags to the quickfix list [`:h quickfix`](https://neovim.io/doc/user/quickfix.html)
+- **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 - **Split** (`<c-v>`): open the tag under the cursor in a split
 
 ```lua
@@ -469,7 +467,7 @@ require("grapple").open_tags("global")
 
 </details>
 
-### Scope Window
+### Scopes Window
 
 Open a floating window containing all the loaded project scopes. The window can be closed with either `q` or `<esc>`. Some basic actions are available by default:
 
@@ -490,11 +488,27 @@ require("grapple").open_scopes()
 
 ## Persistent State
 
-Grapple saves all [project scopes](#project-scopes) to a common directory. The default directory is named `grapple` and and lives in Neovim's `"data"` directory (see: [`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each project scope will be saved as its own individually serialized JSON blob.
+Grapple saves all scopes to a common directory. The default directory is named `grapple` and and lives in Neovim's `"data"` directory ([`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each scope will be saved as its own individually serialized JSON blob.
 
-By default, no project scopes are loaded on startup. When `require("grapple").setup()` is called, the default scope will be loaded. Otherwise, scopes will be loaded on demand.
+By default, no scopes are loaded on startup. When `require("grapple").setup()` is called, the default scope will be loaded. Otherwise, scopes will be loaded on demand.
 
 ## Integrations
+
+### Telescope
+
+You can use telescope to search through your tagged files instead of the built in popup menu.
+
+Load the extension via
+
+```lua
+require("telescope").load_extension("grapple")
+```
+
+Then use this command to see the grapple tags for the project in a telescope window
+
+```vim
+:Telescope grapple tags
+```
 
 ### Statusline
 
@@ -533,22 +547,6 @@ require("lualine").setup({
 })
 ```
 
-### Telescope
-
-You can use telescope to search through your tagged files instead of the built in popup menu.
-
-Load the extension via
-
-```lua
-require("telescope").load_extension("grapple")
-```
-
-Then use this command to see the grapple tags for the project in a telescope window
-
-```
-:Telescope grapple tags
-```
-
 ## Grapple Types
 
 <details open>
@@ -560,15 +558,63 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 
 **Type**: `table`
 
-- **`buffer?`**: `integer` (default: `0`)
-- **`path?`**: `string` file path or URI (overrides `buffer`)
-- **`index?`**: `integer` tag insertion or deletion index (default: end of list)
-- **`name?`**: `string` tag name
-- **`scope?`**: `string` scope name (default `settings.scope`)
+- **`buffer`**: `integer` (default: `0`)
+- **`path`**: `string` file path or URI (overrides `buffer`)
+- **`index`**: `integer` tag insertion or deletion index (default: end of list)
+- **`name`**: `string` tag name
+- **`scope`**: `string` scope name (default `settings.scope`)
 
----
+### `grapple.cache.options`
+
+Options available for defining how a scope should be cached.
+
+**Type**: `table`
+
+- **`event?`**: `string` | `string[]` autocmd event ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html))
+- **`pattern?`**: `string` autocmd pattern, useful for `User` events
+- **`interval?`**: `integer` timer interval
+
+### `grapple.scope_definition`
+
+Used for defining new scopes.
+
+**Type**: `table`
+
+- **`name`**: `string` scope name
+- **`resolver`**: [`grapple.scope_resolver`](#grapplescope_resolver)
+- **`fallback?`**: `string` fallback scope name
+- **`cache?`**: [`grapple.cache.options`](#grapplecacheoptions)
+
+### `grapple.scope_resolver`
+
+Used for defining new scopes. Must return a tuple of `(id, path, err)`. If successful, an `id` must be provided with an optional absolute path `path`. If unsuccessful, `id` must be `nil` with an optional `err` explaining what when wrong.
+
+**Type**: `function`
+
+**Returns**: `string? id, string? path, string? err`
+
+### `grapple.resolved_scope`
+
+Result from observing a scope at a point in time.
+
+**Type** `class`
+
+- **`name`**: `string` scope name
+- **`id`**: `string` resolved scope ID
+- **`path`**: `string` | `nil` resolved scope path
+- **`:tags()`**: returns all tags for the given ID
 
 </details>
+
+<!-- panvimdoc-ignore-start -->
+
+### Contributors
+
+Thanks to these wonderful people, we enjoy this awesome plugin.
+
+<a href="https://github.com/nvim-lualine/lualine.nvim/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nvim-lualine/lualine.nvim" />
+</a>
 
 ## Inspiration and Thanks
 
@@ -576,3 +622,5 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 - kwarlwang's [bufjump.nvim](https://github.com/kwkarlwang/bufjump.nvim)
 - stevearc's [oil.nvim](https://github.com/stevearc/oil.nvim)
 - tjdevries [vlog.nvim](https://github.com/tjdevries/vlog.nvim)
+
+<!-- panvimdoc-ignore-end -->
