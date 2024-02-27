@@ -4,21 +4,40 @@ Settings.__index = Settings
 
 ---@class grapple.settings
 local DEFAULT_SETTINGS = {
-
+    ---Grapple save location
     ---@type string
     ---@diagnostic disable-next-line: param-type-mismatch
     save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
 
+    ---Show icons next to tags or scopes in Grapple windows
+    ---@type boolean
     icons = true,
 
+    ---Default scope to use when managing Grapple tags
     ---@type string
     scope = "git_branch",
 
+    ---@class grapple.scope_definition
+    ---@field name string
+    ---@field resolver grapple.scope_resolver
+    ---@field fallback? string name of scope to fall back on
+    ---@field cache? grapple.cache.options
+
+    ---User-defined scopes or overrides
+    ---For more information, please see the Scopes section
+    ---@type grapple.scope_definition[]
     scopes = {
         {
             name = "global",
             resolver = function()
                 return "global", vim.uv.cwd()
+            end,
+        },
+        {
+            name = "static",
+            cache = true,
+            resolver = function()
+                return "static", vim.uv.cwd()
             end,
         },
         {
@@ -55,8 +74,8 @@ local DEFAULT_SETTINGS = {
 
                 local root = vim.fn.fnamemodify(git_files[1], ":h")
 
-                local branch = vim.system({ "git", "symbolic-ref", "--short", "HEAD" }, { text = true }):wait()
-                local branch = vim.trim(string.gsub(branch.stdout, "\n", ""))
+                local result = vim.system({ "git", "symbolic-ref", "--short", "HEAD" }, { text = true }):wait()
+                local branch = vim.trim(string.gsub(result.stdout, "\n", ""))
 
                 local id = string.format("%s:%s", root, branch)
                 local path = root
@@ -81,12 +100,14 @@ local DEFAULT_SETTINGS = {
         },
     },
 
-    ---@type grapple.tag.content.title_fn
+    ---User-defined tag title function for Grapple windows
+    ---@type grapple.title_fn
     tag_title = function(scope)
         return scope.id
     end,
 
-    ---@type grapple.tag.content.hook_fn
+    ---Not user documented
+    ---@type grapple.hook_fn
     tag_hook = function(window)
         local TagAction = require("grapple.tag_action")
 
@@ -125,6 +146,7 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Refresh" })
     end,
 
+    ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts
     win_opts = {
         relative = "editor",
@@ -142,12 +164,19 @@ local DEFAULT_SETTINGS = {
 }
 
 function Settings:new()
-    return setmetatable(DEFAULT_SETTINGS, self)
+    return setmetatable(vim.deepcopy(DEFAULT_SETTINGS), self)
 end
 
+-- Update settings in-place
 ---@param opts? grapple.settings
 function Settings:update(opts)
-    self = vim.tbl_deep_extend("force", self, opts or {})
+    for k, v in pairs(opts or {}) do
+        if type(self[k]) == "table" then
+            self[k] = vim.tbl_deep_extend("force", self[k], v)
+        else
+            self[k] = v
+        end
+    end
 end
 
 return Settings
