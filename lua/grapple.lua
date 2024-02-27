@@ -29,11 +29,17 @@ function Grapple.initialize()
 
             Grapple[action](args)
         end,
-        { desc = "Grapple", nargs = "*" }
+        {
+            desc = "Grapple",
+            nargs = "*",
+            complete = function(current, command, index)
+                -- TODO: implement
+                -- "current" gives the current argument the user is writing (can be partial)
+                -- "command" gives the entire command line
+                -- "index" gives the cursor location
+            end,
+        }
     )
-
-    -- TODO: This shouldn't need to be called during initialize
-    Grapple.setup()
 end
 
 ---@param opts? grapple.settings
