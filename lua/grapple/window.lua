@@ -283,7 +283,7 @@ function Window:create_buffer_defaults(buf_id)
     vim.api.nvim_create_autocmd({ "BufWinLeave", "WinLeave" }, {
         group = self.au_id,
         buffer = buf_id,
-        callback = function(opts)
+        callback = function()
             local err = self:close()
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
