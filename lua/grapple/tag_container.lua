@@ -1,5 +1,5 @@
+local Path = require("grapple.path")
 local Tag = require("grapple.tag")
-local Util = require("grapple.util")
 
 ---@class grapple.tag.container.insert
 ---@field path string
@@ -40,12 +40,9 @@ function TagContainer:insert(opts)
         return string.format("tag already exists: %s", opts.path)
     end
 
-    local abs_path, err = Util.absolute(opts.path)
-    if not abs_path then
-        return err
-    end
+    local path = Path.absolute(opts.path)
+    local tag = Tag:new(path, opts.cursor)
 
-    local tag = Tag:new(abs_path, opts.cursor)
     table.insert(self.tags, opts.index or (#self.tags + 1), tag)
 
     return nil
@@ -153,7 +150,7 @@ end
 ---@param path string
 ---@return integer | nil index
 function TagContainer:index(path)
-    local abs_path, _ = Util.absolute(path)
+    local abs_path, _ = Path.absolute(path)
     if not abs_path then
         return nil
     end
