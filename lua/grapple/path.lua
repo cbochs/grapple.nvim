@@ -1,3 +1,5 @@
+local Util = require("grapple.util")
+
 local Path = {}
 
 -- A somewhat faithful implementation of Go's filepath packages
@@ -35,28 +37,6 @@ Path.unix = Path.macos or Path.linux
 
 Path.separator = Path.windows and "\\" or "/"
 Path.double_separator = string.format("%s%s", Path.separator, Path.separator)
-
----@param list table
----@param fn fun(acc: any, value: any, index?: integer): any
----@param init any
----@return any
-local function reduce(list, fn, init)
-    local acc = init
-    for i, v in ipairs(list) do
-        if i == 1 and not init then
-            acc = init
-        else
-            fn(acc, v, i)
-        end
-    end
-    return acc
-end
-
-local function filter_empty(list)
-    return vim.tbl_filter(function(v)
-        return v ~= ""
-    end, list)
-end
 
 function Path.is_separator(str, index)
     local char = str.sub(str, index, index)
@@ -138,8 +118,8 @@ function Path.clean(path)
 
     -- Expand upward-relative path operatives
     local dotdot = 0
-    local path_parts = reduce(
-        filter_empty(vim.split(path, Path.separator)),
+    local path_parts = Util.reduce(
+        vim.tbl_filter(Util.is_empty, vim.split(path, Path.separator)),
 
         ---@param parts string[]
         ---@param part string
@@ -285,8 +265,8 @@ function Path.relative(base, targ)
         return nil, string.format("cannot make %s relative to %s", base, targ)
     end
 
-    local base_parts = filter_empty(vim.split(base_path, Path.separator))
-    local targ_parts = filter_empty(vim.split(targ_path, Path.separator))
+    local base_parts = vim.tbl_filter(Util.is_empty, vim.split(base_path, Path.separator))
+    local targ_parts = vim.tbl_filter(Util.is_empty, vim.split(targ_path, Path.separator))
 
     local last_index = 1
     while Path.are_same(base_parts[last_index], targ_parts[last_index]) do

@@ -1,4 +1,5 @@
 local Path = require("grapple.path")
+local Util = require("grapple.util")
 
 ---@class grapple.tag.content
 ---@field entries grapple.tag.content.entry[]
@@ -251,12 +252,8 @@ end
 ---@param lines string[]
 ---@return grapple.tag.content.parsed_entry[]
 function TagContent:parse(lines)
-    local function filter_empty(line)
-        return line ~= ""
-    end
-
     ---@diagnostic disable-next-line: redefined-local
-    local lines = vim.tbl_filter(filter_empty, lines)
+    local lines = vim.tbl_filter(Util.is_empty, lines)
 
     ---@type grapple.tag.content.parsed_entry[]
     local parsed = {}
