@@ -5,6 +5,16 @@ Helpers.test_dir = vim.fs.joinpath(Helpers.root_dir, ".tests/")
 Helpers.temp_dir = vim.fs.joinpath(Helpers.test_dir, "tmp/")
 vim.fn.mkdir(Helpers.temp_dir, "p")
 
+function Helpers.tbl_join(...)
+    local joined = {}
+    for _, tbl in ipairs({ ... }) do
+        for _, v in ipairs(tbl) do
+            table.insert(joined, v)
+        end
+    end
+    return joined
+end
+
 ---@param ... string
 function Helpers.fs_path(...)
     return vim.fs.joinpath(Helpers.temp_dir, ...)
