@@ -2,7 +2,7 @@ local TagContainer = require("grapple.tag_container")
 
 ---@class grapple.tag_manager
 ---@field state grapple.state
----@field containers table<string, grapple.tag.container>
+---@field containers table<string, grapple.tag_container>
 local TagManager = {}
 TagManager.__index = TagManager
 
@@ -37,7 +37,7 @@ function TagManager:update(opts)
 end
 
 ---@param id string
----@param callback fun(container: grapple.tag.container): string?
+---@param callback fun(container: grapple.tag_container): string?
 ---@return string? error
 function TagManager:transaction(id, callback)
     local container, err = self:load(id)
@@ -66,14 +66,14 @@ function TagManager:transaction(id, callback)
 end
 
 ---@param id string
----@return grapple.tag.container | nil, string? error
+---@return grapple.tag_container | nil, string? error
 function TagManager:load(id)
     if self.containers[id] then
         return self.containers[id], nil
     end
 
     if not self.state:exists(id) then
-        local container = TagContainer:new()
+        local container = TagContainer:new(id)
         self.containers[id] = container
 
         return container, nil
@@ -118,7 +118,7 @@ function TagManager:sync(id)
 
     local err = self.state:write(id, container:into_table())
     if err then
-        return err:error()
+        return err
     end
 end
 

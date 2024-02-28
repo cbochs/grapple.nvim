@@ -136,47 +136,57 @@ function Grapple.cycle(direction, opts)
     end)
 end
 
----@param scope_name? string
-function Grapple.open_tags(scope_name)
-    local TagContent = require("grapple.tag_content")
+local function open(content)
     local Window = require("grapple.window")
+    local App = require("grapple.app")
 
-    local app = require("grapple.app").get()
-    local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
-
+    local app = App:get()
     local window = Window:new(app.settings.win_opts)
-    local content = TagContent:new(scope, app.settings.tag_hook, app.settings.tag_title)
 
     window:open()
     window:attach(content)
 
-    ---@diagnostic disable-next-line: redefined-local
     local err = window:render()
     if err then
         vim.notify(err, vim.log.levels.ERROR)
     end
 end
 
-function Grapple.open_scopes()
-    local ScopeContent = require("grapple.scope_content")
-    local Window = require("grapple.window")
+---@param scope_name? string
+function Grapple.open_tags(scope_name)
+    local App = require("grapple.app")
+    local TagContent = require("grapple.tag_content")
 
-    local app = require("grapple.app").get()
-    local window = Window:new(app.settings.win_opts)
+    local app = App.get()
+    local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    local content = TagContent:new(scope, app.settings.tag_hook, app.settings.tag_title)
+
+    open(content)
+end
+
+function Grapple.open_scopes()
+    local App = require("grapple.app")
+    local ScopeContent = require("grapple.scope_content")
+
+    local app = App.get()
     local content = ScopeContent:new(app.scope_manager, app.settings.scope_hook, app.settings.scope_title)
 
-    window:open()
-    window:attach(content)
+    open(content)
+end
 
-    ---@diagnostic disable-next-line: redefined-local
-    local err = window:render()
-    if err then
-        vim.notify(err, vim.log.levels.ERROR)
-    end
+function Grapple.open_containers()
+    local App = require("grapple.app")
+    local ContainerContent = require("grapple.container_content")
+
+    local app = App.get()
+    local content = ContainerContent:new(app.tag_manager, app.settings.container_hook, app.settings.container_title)
+
+    open(content)
 end
 
 function Grapple.initialize()
@@ -216,7 +226,7 @@ function Grapple.initialize()
             desc = "Grapple",
             nargs = "*",
             complete = function(current, command, index)
-                -- TODO: implement
+                -- TODO: implement command completion
                 -- "current" gives the current argument the user is writing (can be partial)
                 -- "command" gives the entire command line
                 -- "index" gives the cursor location

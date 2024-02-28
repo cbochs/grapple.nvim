@@ -201,8 +201,10 @@ function TagContent:parse_line(line)
         return entry
     end
 
-    -- Only parse using the scope when the path does not start with either "./" or "../"
-    if not vim.startswith(path, "../") and not vim.startswith(path, "./") then
+    -- We shouldn't try to join with the scope path if:
+    -- 1. The path starts with "~", "./", or "../"
+    -- 2. The path is absolute or a URI
+    if not Path.is_joinable(path) then
         path = Path.join(self.scope.path, path)
     end
 

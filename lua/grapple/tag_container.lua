@@ -14,13 +14,17 @@ local Tag = require("grapple.tag")
 ---@field path string
 ---@field index integer
 
----@class grapple.tag.container
+---@class grapple.tag_container
+---@field name string
 ---@field tags grapple.tag[]
 local TagContainer = {}
 TagContainer.__index = TagContainer
 
-function TagContainer:new()
+---@param name string
+---@return grapple.tag_container
+function TagContainer:new(name)
     return setmetatable({
+        name = name,
         tags = {},
     }, self)
 end
@@ -178,15 +182,16 @@ function TagContainer:into_table()
 
     ---@class grapple.tag.container.format
     return {
+        name = self.name,
         tags = vim.tbl_map(into_table, self.tags),
     }
 end
 
 -- Implements Deserialize
 ---@param tbl grapple.tag.container.format
----@return grapple.tag.container | nil, string? error
+---@return grapple.tag_container | nil, string? error
 function TagContainer.from_table(tbl)
-    local container = TagContainer:new()
+    local container = TagContainer:new(tbl.name)
 
     for _, tag_tbl in ipairs(tbl.tags) do
         local tag, err = Tag.from_table(tag_tbl)

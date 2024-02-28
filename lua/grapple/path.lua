@@ -163,6 +163,10 @@ end
 ---@param path string
 ---@return boolean
 function Path.is_absolute(path)
+    if Path.is_uri(path) then
+        return true
+    end
+
     if Path.windows then
         -- Windows is more complicated
         if Path.is_separator(path, 1) and Path.is_separator(path, 2) then
@@ -188,11 +192,19 @@ end
 ---@param path string
 ---@return string abs_path
 function Path.absolute(path)
-    if Path.is_absolute(path) then
-        return Path.clean(path)
+    -- Assume URIs are already absolute, don't clean them
+    if Path.is_uri(path) then
+        return path
     end
 
-    return Path.clean(Path.join(vim.uv.cwd(), path))
+    -- Expand "~" and environment variables before cleaning
+    local norm_path = vim.fs.normalize(path)
+
+    if Path.is_absolute(norm_path) then
+        return Path.clean(norm_path)
+    end
+
+    return Path.clean(Path.join(vim.uv.cwd(), norm_path))
 end
 
 function Path.is_local(path)
@@ -231,6 +243,11 @@ end
 ---@param targ string
 ---@return string | nil rel_path, string? error
 function Path.relative(base, targ)
+    -- Assume URIs cannot be made relative
+    if Path.is_uri(targ) then
+        return targ, nil
+    end
+
     local base_path = Path.clean(base)
     local targ_path = Path.clean(targ)
 
@@ -307,12 +324,29 @@ function Path.join(...)
 end
 
 ---Not from the Go filepath package
----A VERY simple check for whether a given file path should be considered to be a URI
+---Simple check to see if a path is a URI
 ---@param path string
 ---@return boolean
 function Path.is_uri(path)
-    local scheme, _ = string.match(path, "(.*)://(.*)")
-    return scheme ~= nil
+    local index = string.find(path, ":")
+
+    -- 1. If there is no index, it is not a URI
+    -- 2. If there is an index, check that it is not a Windows volume "C:"
+    return index and index > 2 or false
+end
+
+---Not from the Go filepath package
+---Check to see if a path can be the tail end of a join
+---1. The path is relative to known directory (i.e. CWD or HOME)
+---2. The path is absolute or is a URI
+---@param path string
+---@return boolean
+function Path.is_joinable(path)
+    return vim.startswith(path, "./")
+        or vim.startswith(path, "../")
+        or vim.startswith(path, "~")
+        or Path.is_uri(path)
+        or Path.is_absolute(path)
 end
 
 ---Not from the Go filepath package

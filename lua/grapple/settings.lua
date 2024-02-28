@@ -181,12 +181,22 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Change scope" })
     end,
 
+    ---User-defined container title function for Grapple windows
+    ---@type fun(): string?
+    container_title = function()
+        return "Containers"
+    end,
+
+    ---Not user documented
+    ---@type grapple.hook_fn
+    container_hook = function(window) end,
+
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts
     win_opts = {
         relative = "editor",
         width = 0.5,
-        height = 10,
+        height = 0.5,
         row = 0.5,
         col = 0.5,
         border = "single",

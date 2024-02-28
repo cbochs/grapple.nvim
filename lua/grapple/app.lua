@@ -85,7 +85,7 @@ function App:current_scope()
 end
 
 ---@param scope_name? string
----@param callback fun(container: grapple.tag.container): string?
+---@param callback fun(container: grapple.tag_container): string?
 function App:enter(scope_name, callback)
     local scope, err = self.scope_manager:get_resolved(scope_name or self.settings.scope)
     if not scope then

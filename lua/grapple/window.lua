@@ -1,7 +1,7 @@
 local Util = require("grapple.util")
 
 ---@class grapple.window
----@field content grapple.tag_content | grapple.scope_content
+---@field content grapple.tag_content | grapple.scope_content | grapple.container_content
 ---@field entries grapple.window.entry[]
 ---@field ns_id integer
 ---@field au_id integer
@@ -151,7 +151,7 @@ function Window:close()
     self.entries = nil
 end
 
----@param content grapple.tag_content | grapple.scope_content
+---@param content grapple.tag_content | grapple.scope_content | grapple.container_content
 ---@return string? error
 function Window:attach(content)
     if self:has_content() then

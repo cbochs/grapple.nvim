@@ -20,7 +20,7 @@ function ResolvedScope:new(name, id, path, tag_manager)
     }, self)
 end
 
----@param callback fun(container: grapple.tag.container): string?
+---@param callback fun(container: grapple.tag_container): string?
 ---@return string? error
 function ResolvedScope:enter(callback)
     return self.tag_manager:transaction(self.id, callback)
