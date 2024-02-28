@@ -353,6 +353,11 @@ end
 ---@param path string
 ---@return string short_path, string? error
 function Path.short(path)
+    -- Assume URIs are already as short as they can be
+    if Path.is_uri(path) then
+        return path
+    end
+
     local abs_path = Path.absolute(path)
 
     ---@type string
