@@ -131,6 +131,24 @@ local DEFAULT_SETTINGS = {
             end
         end, { desc = "Select" })
 
+        -- Select (horizontal split)
+        window:map("n", "-", function()
+            local cursor = window:cursor()
+            local err = window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.split })
+            if err then
+                vim.notify(err, vim.log.levels.ERROR)
+            end
+        end, { desc = "Select (split)" })
+
+        -- Select (vertical split)
+        window:map("n", "|", function()
+            local cursor = window:cursor()
+            local err = window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
+            if err then
+                vim.notify(err, vim.log.levels.ERROR)
+            end
+        end, { desc = "Select (vsplit)" })
+
         -- Quick select
         for i = 1, 9 do
             window:map("n", string.format("%s", i), function()

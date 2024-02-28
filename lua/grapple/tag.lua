@@ -22,15 +22,13 @@ function Tag:update()
     return true, nil
 end
 
+---@param command? function
 ---@return string? error
-function Tag:select()
-    local current_name = vim.api.nvim_buf_get_name(0)
-    if self.path == current_name then
-        return
-    end
-
+function Tag:select(command)
     local short_path = Path.short(self.path)
-    vim.cmd.edit(short_path)
+
+    command = command or vim.cmd.edit
+    command(short_path)
 
     -- If the cursor has already been set, update instead
     local current_cursor = vim.api.nvim_win_get_cursor(0)

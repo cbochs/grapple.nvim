@@ -13,6 +13,7 @@ local TagActions = {}
 ---User-provided information
 ---@field path? string
 ---@field index? integer
+---@field command? function
 
 ---@param opts grapple.action.tag_options
 ---@return string? error
@@ -26,7 +27,7 @@ function TagActions.select(opts)
         end
 
         ---@diagnostic disable-next-line: redefined-local
-        local err = tag:select()
+        local err = tag:select(opts.command)
         if err then
             return err
         end
