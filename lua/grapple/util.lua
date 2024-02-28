@@ -16,12 +16,16 @@ function Util.reduce(list, fn, init)
     return acc
 end
 
-function Util.is_empty(entry)
-    return entry ~= ""
+function Util.is_empty(value)
+    return value ~= ""
 end
 
-function Util.is_nil(entry)
-    return entry ~= nil
+function Util.is_nil(value)
+    return value ~= nil
+end
+
+function Util.trim(value)
+    return vim.trim(value)
 end
 
 return Util

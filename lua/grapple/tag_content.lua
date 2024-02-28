@@ -252,8 +252,9 @@ end
 ---@param lines string[]
 ---@return grapple.tag.content.parsed_entry[]
 function TagContent:parse(lines)
-    ---@diagnostic disable-next-line: redefined-local
-    local lines = vim.tbl_filter(Util.is_empty, lines)
+    -- Clean up lines before attempting to parse
+    lines = vim.tbl_filter(Util.is_empty, lines)
+    lines = vim.tbl_map(Util.trim, lines)
 
     ---@type grapple.tag.content.parsed_entry[]
     local parsed = {}
