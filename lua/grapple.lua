@@ -198,7 +198,7 @@ function Grapple.initialize()
         callback = function(opts)
             local app = require("grapple.app").get()
             local buf_name = vim.api.nvim_buf_get_name(opts.buf)
-            app.tag_manager:update({ path = buf_name })
+            app.tag_manager:update_all({ path = buf_name })
         end,
     })
 

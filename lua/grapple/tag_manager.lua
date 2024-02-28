@@ -17,7 +17,7 @@ end
 
 ---@param opts grapple.tag.container.get
 ---@return boolean success, string[] errors
-function TagManager:update(opts)
+function TagManager:update_all(opts)
     local errors = {}
 
     for _, id in ipairs(vim.tbl_keys(self.containers)) do
