@@ -49,63 +49,41 @@ function Grapple.setup(opts)
     app:load_current_scope()
 end
 
----@param opts? { buffer?: integer, path?: string, index?: integer }
+---@class grapple.options
+---@field buffer? integer
+---@field path? string
+---@field name? string
+---@field index? integer
+---@field scope? string
+
+---@param opts? grapple.options
 function Grapple.tag(opts)
     opts = opts or {}
 
     local app = require("grapple.app").get()
-    local scope, err = app:current_scope()
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(function(container)
+    app:enter(opts.scope, function(container)
         local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
         return container:insert({ path = path, index = opts.index })
     end)
-
-    if err then
-        vim.notify(err, vim.log.levels.WARN)
-    end
 end
 
----@param opts? { buffer?: integer, path?: string, index?: integer }
+---@param opts? grapple.options
 function Grapple.untag(opts)
     opts = opts or {}
 
     local app = require("grapple.app").get()
-    local scope, err = app:current_scope()
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(function(container)
+    app:enter(opts.scope, function(container)
         local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
         return container:remove({ path = path, index = opts.index })
     end)
-
-    if err then
-        vim.notify(err, vim.log.levels.WARN)
-    end
 end
 
----@param opts? { buffer?: integer, path?: string }
+---@param opts? grapple.options
 function Grapple.toggle(opts)
     opts = opts or {}
 
     local app = require("grapple.app").get()
-    local scope, err = app:current_scope()
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(function(container)
+    app:enter(opts.scope, function(container)
         local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
         if container:has(path) then
             return container:remove({ path = path })
@@ -113,17 +91,13 @@ function Grapple.toggle(opts)
             return container:insert({ path = path })
         end
     end)
-
-    if err then
-        vim.notify(err, vim.log.levels.WARN)
-    end
 end
 
----@param opts? { buffer?: integer, path?: string, index?: integer }
+---@param opts? grapple.options
 function Grapple.select(opts)
-    opts = opts or {}
-
     local TagAction = require("grapple.tag_action")
+
+    opts = opts or {}
 
     local app = require("grapple.app").get()
     local scope, err = app:current_scope()
@@ -141,25 +115,22 @@ function Grapple.select(opts)
     end
 end
 
-function Grapple.cycle_forward()
-    Grapple.cycle("forward")
+---@param opts? { scope?: string }
+function Grapple.cycle_forward(opts)
+    Grapple.cycle({ direction = "forward", scope = opts and opts.scope })
 end
 
-function Grapple.cycle_backward()
-    Grapple.cycle("backward")
+---@param opts? { scope?: string }
+function Grapple.cycle_backward(opts)
+    Grapple.cycle({ direction = "backward", scope = opts and opts.scope })
 end
 
----@param direction? "forward" | "backward"
-function Grapple.cycle(direction)
+---@param opts? { direction?: "forward" | "backward", scope?: string }
+function Grapple.cycle(opts)
+    opts = opts or {}
+
     local app = require("grapple.app").get()
-    local scope, err = app:current_scope()
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(function(container)
+    app:enter(opts.scope, function(container)
         if container:is_empty() then
             return
         end
@@ -170,6 +141,7 @@ function Grapple.cycle(direction)
         -- 1. Change to 0-based indexing
         -- 2. Perform index % container length, being careful of negative values
         -- 3. Change back to 1-based indexing
+        local direction = opts.direction or "forward"
         local index = (container:index(path) or 1) - 1
         local next_direction = direction == "forward" and 1 or -1
         local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
@@ -186,18 +158,17 @@ function Grapple.cycle(direction)
             return err
         end
     end)
-
-    if err then
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
 end
 
-function Grapple.open_tags()
+---@param opts? { scope?: string }
+function Grapple.open_tags(opts)
     local TagContent = require("grapple.tag_content")
     local Window = require("grapple.window")
 
+    opts = opts or {}
+
     local app = require("grapple.app").get()
-    local scope, err = app:current_scope()
+    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
