@@ -497,10 +497,12 @@ function Window:perform(action, opts)
     end
 end
 
----Safety: used only inside a callback hook when a window is open
----@return integer[]
-function Window:cursor()
-    return vim.api.nvim_win_get_cursor(self.win_id)
+---Safety: used only when a buffer is available
+---@return grapple.window.parsed_entry
+function Window:current_entry()
+    local current_line = self:current_line()
+    local entry = self.content:parse_line(current_line)
+    return entry
 end
 
 ---Safety: used only when a buffer is available
@@ -512,6 +514,12 @@ end
 ---Safety: used only when a buffer is available
 function Window:lines()
     return vim.api.nvim_buf_get_lines(self.buf_id, 0, -1, true)
+end
+
+---Safety: used only inside a callback hook when a window is open
+---@return integer[]
+function Window:cursor()
+    return vim.api.nvim_win_get_cursor(self.win_id)
 end
 
 return Window

@@ -53,7 +53,7 @@ end
 
 ---@param opts? grapple.options
 function Grapple.select(opts)
-    local TagAction = require("grapple.tag_action")
+    local TagAction = require("grapple.tag_actions")
 
     opts = opts or {}
 

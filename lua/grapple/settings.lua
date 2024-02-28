@@ -118,12 +118,12 @@ local DEFAULT_SETTINGS = {
     ---Not user documented
     ---@type grapple.hook_fn
     tag_hook = function(window)
-        local TagAction = require("grapple.tag_action")
+        local TagActions = require("grapple.tag_actions")
 
         -- Select
         window:map("n", "<cr>", function()
             local cursor = window:cursor()
-            local err = window:perform(TagAction.select, { index = cursor[1] })
+            local err = window:perform(TagActions.select, { index = cursor[1] })
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
             end
@@ -132,7 +132,7 @@ local DEFAULT_SETTINGS = {
         -- Quick select
         for i = 1, 9 do
             window:map("n", string.format("%s", i), function()
-                local err = window:perform(TagAction.select, { index = i })
+                local err = window:perform(TagActions.select, { index = i })
                 if err then
                     vim.notify(err, vim.log.levels.ERROR)
                 end
@@ -141,7 +141,7 @@ local DEFAULT_SETTINGS = {
 
         -- Quickfix list
         window:map("n", "<c-q>", function()
-            local err = window:perform(TagAction.quickfix)
+            local err = window:perform(TagActions.quickfix)
             if err then
                 vim.notify(err, vim.log.levels.ERROR)
             end
@@ -163,7 +163,21 @@ local DEFAULT_SETTINGS = {
 
     ---Not user documented
     ---@type grapple.hook_fn
-    scope_hook = function(window) end,
+    scope_hook = function(window)
+        local ScopeActions = require("grapple.scope_actions")
+
+        window:map("n", "<cr>", function()
+            local entry = window:current_entry()
+            local name = entry.data.name
+
+            local err = window:perform(ScopeActions.select, { name = entry.data.name })
+            if err then
+                return vim.notify(err, vim.log.levels.ERROR)
+            end
+
+            vim.notify(string.format("Changed scope: %s", name))
+        end, { desc = "Change scope" })
+    end,
 
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts

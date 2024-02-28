@@ -1,16 +1,26 @@
 local Path = require("grapple.path")
 
-local TagAction = {}
+local TagActions = {}
 
----@alias grapple.action fun(scope: grapple.resolved_scope, opts?: table): string?
 ---@alias grapple.action.options table
+---@alias grapple.action fun(opts?: table): string?
 
----@param scope grapple.resolved_scope
----@param opts grapple.tag.container.get
+---@class grapple.action.tag_options
+---
+---Provided by TagContent
+---@field scope grapple.resolved_scope
+---
+---User-provided information
+---@field path? string
+---@field index? integer
+
+---@param opts grapple.action.tag_options
 ---@return string? error
-function TagAction.select(scope, opts)
+function TagActions.select(opts)
+    local scope = opts.scope
+
     local err = scope:enter(function(container)
-        local tag, err = container:get(opts)
+        local tag, err = container:get({ path = opts.path, index = opts.index })
         if not tag then
             return err
         end
@@ -28,11 +38,11 @@ function TagAction.select(scope, opts)
     return nil
 end
 
----@param scope grapple.resolved_scope
----@param opts? table not used
+---@param opts grapple.action.tag_options
 ---@return string? error
----@diagnostic disable-next-line: unused-local
-function TagAction.quickfix(scope, opts)
+function TagActions.quickfix(opts)
+    local scope = opts.scope
+
     local tags, err = scope:tags()
     if not tags then
         return err
@@ -59,4 +69,4 @@ function TagAction.quickfix(scope, opts)
     return nil
 end
 
-return TagAction
+return TagActions

@@ -299,7 +299,11 @@ end
 ---@param opts? grapple.action.options
 ---@return string? error
 function TagContent:perform(action, opts)
-    return action(self.scope, opts)
+    opts = vim.tbl_extend("force", opts, {
+        scope = self.scope,
+    })
+
+    return action(opts)
 end
 
 return TagContent
