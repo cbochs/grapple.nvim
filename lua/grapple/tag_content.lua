@@ -1,8 +1,6 @@
 local Path = require("grapple.path")
-local Util = require("grapple.util")
 
 ---@class grapple.tag.content
----@field entries grapple.tag.content.entry[]
 ---@field scope grapple.resolved_scope
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
@@ -18,7 +16,6 @@ TagContent.__index = TagContent
 ---@return grapple.tag.content
 function TagContent:new(scope, hook_fn, title_fn)
     return setmetatable({
-        entries = {},
         scope = scope,
         hook_fn = hook_fn,
         title_fn = title_fn,
@@ -39,6 +36,16 @@ function TagContent:title()
     return self.title_fn(self.scope)
 end
 
+---@return grapple.window.entity[] | nil, string? error
+function TagContent:entities()
+    local tags, err = self.scope:tags()
+    if not tags then
+        return nil, err
+    end
+
+    return tags, nil
+end
+
 ---@param window grapple.window
 ---@return string? error
 function TagContent:attach(window)
@@ -50,12 +57,20 @@ function TagContent:attach(window)
     return nil
 end
 
----@param buf_id integer
+---@param window grapple.window
 ---@return string? error
-function TagContent:detach(buf_id)
-    local err = self:sync(buf_id)
+---@diagnostic disable-next-line: unused-local
+function TagContent:detach(window) end
+
+---@param original grapple.window.entry
+---@param parsed grapple.window.entry
+---@return string? error
+function TagContent:sync(original, parsed)
+    local changes = self:diff(original, parsed)
+
+    local err = self:apply_changes(changes)
     if err then
-        return err
+        return string.format("failed to apply changes: %s", err)
     end
 
     return nil
@@ -63,8 +78,8 @@ end
 
 ---@param tag grapple.tag
 ---@param index integer
----@return grapple.tag.content.entry
-function TagContent:update_entry(tag, index)
+---@return grapple.window.entry
+function TagContent:create_entry(tag, index)
     ---@param name string
     ---@return string? icon, string? hl_group
     local function get_icon(name)
@@ -85,42 +100,51 @@ function TagContent:update_entry(tag, index)
         return icon, hl
     end
 
+    -- A string representation of the index
     local id = string.format("/%03d", index)
-    local name = vim.fn.fnamemodify(tag.path, ":p")
+
+    -- TODO: allow different line rendering options in settings
     local rel_path = Path.relative(self.scope.path, tag.path)
 
-    local text, min_col, icon_highlight
+    local line, min_col, icon_highlight
     local use_icons = require("grapple.app").get().settings.icons
     if use_icons then
-        ---@diagnostic disable-next-line: param-type-mismatch
+        ---@type string
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        local name = vim.fn.fnamemodify(tag.path, ":p")
+
         local icon, icon_group = get_icon(name)
 
         -- In compliance with "grapple" syntax
-        text = string.format("%s %s  %s", id, icon, rel_path)
-        min_col = string.find(text, "%s%s") + 1 -- width of id and icon
+        line = string.format("%s %s  %s", id, icon, rel_path)
+        min_col = assert(string.find(line, "%s%s")) + 1 -- width of id and icon
 
         if icon_group then
             ---@type grapple.vim.highlight
             icon_highlight = {
                 hl_group = icon_group,
                 line = index - 1,
-                col_start = assert(string.find(text, "%s")),
-                col_end = assert(string.find(text, "%s%s")),
+                col_start = assert(string.find(line, "%s")),
+                col_end = assert(string.find(line, "%s%s")),
             }
         end
     else
         -- In compliance with "grapple" syntax
-        text = string.format("%s %s", id, rel_path)
-        min_col = string.find(text, "%s") -- width of id
+        line = string.format("%s %s", id, rel_path)
+        min_col = assert(string.find(line, "%s")) -- width of id
     end
 
-    ---@class grapple.tag.content.entry
+    ---@type grapple.window.entry
     local entry = {
-        tag = tag,
+        ---@class grapple.tag.content.data
+        data = {
+            path = tag.path,
+            cursor = tag.cursor,
+        },
 
-        id = id,
-        path = tag.path,
-        line = text,
+        line = line,
+        index = index,
+
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]
@@ -140,153 +164,60 @@ function TagContent:update_entry(tag, index)
     return entry
 end
 
----@return string? error
-function TagContent:update()
-    local tags, err = self.scope:tags()
-    if not tags then
-        return err
-    end
-
-    self.entries = {}
-    for i, tag in ipairs(tags) do
-        local entry = self:update_entry(tag, i)
-        table.insert(self.entries, entry)
-    end
-end
-
----@param buf_id integer
----@param ns_id integer
-function TagContent:render(buf_id, ns_id)
-    local function lines(entry)
-        return entry.line
-    end
-
-    local function marks(entry)
-        return entry.mark
-    end
-
-    local function highlights(entry)
-        return entry.highlights
-    end
-
-    vim.api.nvim_buf_set_lines(buf_id, 0, -1, true, vim.tbl_map(lines, self.entries))
-
-    for _, mark in ipairs(vim.tbl_map(marks, self.entries)) do
-        vim.api.nvim_buf_set_extmark(buf_id, ns_id, mark.line, mark.col, mark.opts)
-    end
-
-    for _, entry_hl in ipairs(vim.tbl_map(highlights, self.entries)) do
-        for _, hl in ipairs(entry_hl) do
-            vim.api.nvim_buf_add_highlight(buf_id, ns_id, hl.hl_group, hl.line, hl.col_start, hl.col_end)
-        end
-    end
-end
-
----@param buf_id integer
----@return string? error
-function TagContent:sync(buf_id)
-    local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
-
-    local parsed = self:parse(lines)
-    local changes = self:diff(self.entries, parsed)
-
-    local err = self:apply_changes(changes)
-    if err then
-        return string.format("failed to apply changes: %s", err)
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self:update()
-    if err then
-        return err
-    end
-
-    return nil
-end
-
----A strict optional subset of grapple.tag.content.entry
----@class grapple.tag.content.parsed_entry
----@field id integer | nil
----@field path string | nil
-
 ---@param line string
----@return grapple.tag.content.parsed_entry
+---@return grapple.window.parsed_entry
 function TagContent:parse_line(line)
-    ---@type grapple.tag.content.parsed_entry
-    local entry = {
-        id = nil,
-        path = nil,
-        line = line,
-    }
-
+    local id, index, path
     local use_icons = require("grapple.app").get().settings.icons
     if use_icons then
-        entry.id, _, entry.path = string.match(line, "^/(%d+) (%S+)  (%S*)")
+        id, _, path = string.match(line, "^/(%d+) (%S+)  (%S*)")
     else
-        entry.id, entry.path = string.match(line, "^/(%d+) (%S*)")
+        id, path = string.match(line, "^/(%d+) (%S*)")
     end
 
-    if entry.id then
-        entry.id = tonumber(entry.id)
+    if id then
+        index = assert(tonumber(id))
+        path = path
     else
         -- Parse as a new entry when an ID is not present
-        entry.path = line
+        index = nil
+        path = line
     end
 
     -- Remove whitespace around path before parsing
-    entry.path = vim.trim(entry.path)
+    path = vim.trim(path)
 
     -- Don't parse an empty path or line
-    if entry.path == "" then
-        entry.path = nil
+    if path == "" then
+        ---@type grapple.window.parsed_entry
+        local entry = {
+            data = {
+                path = nil,
+            },
+            line = line,
+            index = index,
+        }
+
         return entry
     end
 
     -- Only parse using the scope when the path does not start with either "./" or "../"
-    if not vim.startswith(entry.path, "../") and not vim.startswith(entry.path, "./") then
-        entry.path = Path.join(self.scope.path, entry.path)
+    if not vim.startswith(path, "../") and not vim.startswith(path, "./") then
+        path = Path.join(self.scope.path, path)
     end
 
-    entry.path = Path.absolute(entry.path)
+    path = Path.absolute(path)
+
+    ---@type grapple.window.parsed_entry
+    local entry = {
+        data = {
+            path = path,
+        },
+        line = line,
+        index = index,
+    }
 
     return entry
-end
-
----@param lines string[]
----@return grapple.tag.content.parsed_entry[]
-function TagContent:parse(lines)
-    ---@diagnostic disable: redefined-local
-    lines = vim.tbl_filter(Util.is_empty, lines)
-
-    ---@type grapple.tag.content.parsed_entry[]
-    local parsed = {}
-
-    for _, line in ipairs(lines) do
-        local entry = self:parse_line(line)
-        table.insert(parsed, entry)
-    end
-
-    return parsed
-end
-
----@param line string
----@return integer col
-function TagContent:minimum_column(line)
-    local parsed = self:parse_line(line)
-    if not parsed then
-        return 0
-    end
-
-    if not parsed.id then
-        return 0
-    end
-
-    local entry = self.entries[parsed.id]
-    if not entry then
-        error("id should be the index of a valid entry")
-    end
-
-    return entry.min_col
 end
 
 ---@class grapple.tag.content.change
@@ -294,8 +225,8 @@ end
 ---@field priority integer
 ---@field opts grapple.tag.container.insert | grapple.tag.container.move | grapple.tag.container.get
 
----@param original grapple.tag.content.entry[]
----@param modified grapple.tag.content.parsed_entry[]
+---@param original grapple.window.entry[]
+---@param modified grapple.window.parsed_entry[]
 ---@return grapple.tag.content.change[]
 function TagContent:diff(original, modified)
     ---@type grapple.tag.content.change[]
@@ -306,31 +237,36 @@ function TagContent:diff(original, modified)
     -- differences and guarantees that the content and container tags are
     -- the same. Could be improved if performance becomes a problem
 
-    ---@param entry grapple.tag.content.parsed_entry
-    local function filter_empty(entry)
-        return entry.path
-    end
+    for i, entry in ipairs(modified) do
+        ---@type grapple.tag.content.data
+        local data = entry.data
 
-    ---@type table<string, integer>
-    local original_lookup = {}
+        if not data.path then
+            goto continue
+        end
 
-    for i, entry in ipairs(original) do
-        original_lookup[entry.path] = i
-    end
+        local cursor
+        if entry.index then
+            local original_entry = original[entry.index]
 
-    for i, entry in ipairs(vim.tbl_filter(filter_empty, modified)) do
-        local path = entry.path
-        local index = original_lookup[path]
-        local original_entry = self.entries[index]
+            ---@type grapple.tag.content.data
+            local original_data = original_entry.data
+
+            if original_data.path == data.path then
+                cursor = original_data.cursor
+            end
+        end
 
         table.insert(changes, {
             action = "insert",
             opts = {
-                path = entry.path,
-                cursor = original_entry and original_entry.tag.cursor,
+                path = entry.data.path,
+                cursor = cursor,
                 index = i,
             },
         })
+
+        ::continue::
     end
 
     return changes

@@ -1,3 +1,5 @@
+local Util = require("grapple.util")
+
 ---@class grapple.window
 ---@field content grapple.tag.content
 ---@field entries grapple.window.entry[]
@@ -6,7 +8,6 @@
 ---@field buf_id integer
 ---@field win_id integer
 ---@field win_opts grapple.vim.win_opts
----@field rendered boolean
 local Window = {}
 Window.__index = Window
 
@@ -22,13 +23,12 @@ local WINDOW_GROUP = vim.api.nvim_create_augroup("GrappleWindow", { clear = true
 function Window:new(win_opts)
     return setmetatable({
         content = nil,
-        entries = {},
+        entries = nil,
         ns_id = WINDOW_NS,
         au_id = WINDOW_GROUP,
         buf_id = nil,
         win_id = nil,
         win_opts = win_opts or {},
-        rendered = false,
     }, self)
 end
 
@@ -100,7 +100,7 @@ end
 
 ---@return boolean
 function Window:is_rendered()
-    return self:is_open() and self:has_content() and self.rendered
+    return self.entries ~= nil
 end
 
 function Window:open()
@@ -126,12 +126,9 @@ function Window:close()
         return
     end
 
-    if self:is_rendered() then
-        self.rendered = false
-        local err = self.content:sync(self.buf_id)
-        if err then
-            return err
-        end
+    local err = self:sync()
+    if err then
+        return err
     end
 
     if vim.api.nvim_win_is_valid(self.win_id) then
@@ -139,6 +136,8 @@ function Window:close()
         self.win_id = nil
         self.buf_id = nil
     end
+
+    return nil
 end
 
 ---@param content grapple.tag.content
@@ -152,20 +151,99 @@ function Window:attach(content)
     end
 
     self.content = content
-    self.rendered = false
+    self.entries = nil
 end
 
 ---@return string? error
 function Window:detach()
-    if self:is_rendered() then
-        local err = self.content:detach(self.buf_id)
-        if err then
-            return err
-        end
+    if not self:has_content() then
+        return
+    end
+
+    local err = self.content:detach(self)
+    if err then
+        return err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self:sync()
+    if err then
+        return err
     end
 
     self.content = nil
-    self.rendered = false
+    self.entries = nil
+end
+
+---@return string? error
+function Window:sync()
+    if not self:is_rendered() then
+        return
+    end
+
+    local parsed_entries, err = self:parse_lines()
+    if not parsed_entries then
+        return err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.content:sync(self.entries, parsed_entries)
+    if err then
+        return err
+    end
+
+    return nil
+end
+
+---@alias grapple.window.entity any
+
+---@class grapple.window.entry
+---@field data table
+---@field line string
+---@field index integer
+---@field min_col integer
+---@field highlights grapple.vim.highlight[]
+---@field mark grapple.vim.extmark | nil
+
+---@class grapple.window.parsed_entry
+---@field data any
+---@field line string
+---@field index? integer
+---@field min_col? integer
+---@field highlights? grapple.vim.highlight[]
+---@field mark? grapple.vim.extmark | nil
+
+---@return grapple.window.parsed_entry[] | nil, string? error
+function Window:parse_lines()
+    if not self:is_rendered() then
+        return nil, "window is not rendered"
+    end
+
+    ---@diagnostic disable: redefined-local
+    local lines = vim.tbl_filter(Util.is_empty, self:lines())
+
+    ---@type grapple.window.parsed_entry[]
+    local parsed_entries = {}
+
+    for _, line in ipairs(lines) do
+        local entry = self.content:parse_line(line)
+        table.insert(parsed_entries, entry)
+    end
+
+    return parsed_entries, nil
+end
+
+---@param line string
+---@return integer min_col
+function Window:minimum_column(line)
+    local parsed_entry = self.content:parse_line(line)
+
+    local index = parsed_entry.index
+    if not index then
+        return 0
+    end
+
+    return self.entries[index].min_col
 end
 
 ---@return string? error
@@ -174,7 +252,7 @@ function Window:refresh()
         return "window is not rendered"
     end
 
-    local err = self.content:sync(self.buf_id)
+    local err = self:sync()
     if err then
         return err
     end
@@ -184,6 +262,27 @@ function Window:refresh()
     if err then
         return err
     end
+end
+
+---Convenience function for getting the line for an entry
+---@param entry grapple.window.entry
+---@return string line
+local function to_line(entry)
+    return entry.line
+end
+
+---Convenience function for getting the highlights for an entry
+---@param entry grapple.window.entry
+---@return grapple.vim.highlight[]
+local function to_highlights(entry)
+    return entry.highlights
+end
+
+---Convenience function for getting the extmark for an entry
+---@param entry grapple.window.entry
+---@return grapple.vim.extmark?
+local function to_mark(entry)
+    return entry.mark
 end
 
 ---@return string? error
@@ -199,9 +298,9 @@ function Window:render()
     -- Store cursor location to reposition later
     local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
-    -- Prevent "BufWinLeave" from closing the window
+    -- Prevent "BufLeave" from closing the window
     vim.api.nvim_clear_autocmds({
-        event = { "BufUnload", "BufWinLeave" },
+        event = { "BufUnload", "BufLeave" },
         group = self.au_id,
         buffer = self.buf_id,
     })
@@ -214,23 +313,41 @@ function Window:render()
     local win_opts = self:window_options()
     vim.api.nvim_win_set_config(self.win_id, win_opts)
 
-    -- Safety: we are guaranteed to have content by this point
-    local err = self.content:update()
-    if err then
+    -- Update window entries
+    local entities, err = self.content:entities()
+    if not entities then
         return err
     end
 
+    self.entries = {}
+
+    for i, entity in ipairs(entities) do
+        local entry = self.content:create_entry(entity, i)
+        table.insert(self.entries, entry)
+    end
+
+    -- Render entries to the buffer
+    vim.api.nvim_buf_set_lines(self.buf_id, 0, -1, true, vim.tbl_map(to_line, self.entries))
+
+    for _, entry_hl in ipairs(vim.tbl_map(to_highlights, self.entries)) do
+        for _, hl in ipairs(entry_hl) do
+            vim.api.nvim_buf_add_highlight(self.buf_id, self.ns_id, hl.hl_group, hl.line, hl.col_start, hl.col_end)
+        end
+    end
+
+    for _, mark in ipairs(vim.tbl_map(to_mark, self.entries)) do
+        vim.api.nvim_buf_set_extmark(self.buf_id, self.ns_id, mark.line, mark.col, mark.opts)
+    end
+
+    -- Attach the content to the rendered buffer
     ---@diagnostic disable-next-line: redefined-local
     local err = self.content:attach(self)
     if err then
         return err
     end
 
-    ---@diagnostic disable-next-line: redefined-local
-    self.content:render(self.buf_id, self.ns_id)
-
-    -- Prevent undo after content has been rendered. Set undolevels to -1 before
-    -- rendering and then set back to its global default afterwards
+    -- Prevent undo after content has been rendered. Set undolevels to -1 when
+    -- creating the buffer and then set back to its global default afterwards
     -- See :h clear-undo
     local undolevels = vim.api.nvim_get_option_value("undolevels", { scope = "global" })
     vim.api.nvim_set_option_value("undolevels", undolevels, { buf = self.buf_id })
@@ -240,10 +357,9 @@ function Window:render()
     if not ok then
         vim.api.nvim_win_set_cursor(self.win_id, { 1, 0 })
     end
-
-    self.rendered = true
 end
 
+---@return integer buf_id
 function Window:create_buffer()
     local buf_id = vim.api.nvim_create_buf(false, true)
 
@@ -264,9 +380,10 @@ function Window:create_buffer_defaults(buf_id)
             return
         end
 
+        local line = self:current_line()
+        local expected_column = self:minimum_column(line)
         local cursor = vim.api.nvim_win_get_cursor(self.win_id)
-        local line = vim.api.nvim_get_current_line()
-        local expected_column = self.content:minimum_column(line)
+
         if cursor[2] < expected_column then
             vim.api.nvim_win_set_cursor(self.win_id, { cursor[1], expected_column })
         end
@@ -284,7 +401,7 @@ function Window:create_buffer_defaults(buf_id)
         callback = vim.schedule_wrap(constrain_cursor),
     })
 
-    vim.api.nvim_create_autocmd({ "BufWinLeave", "WinLeave" }, {
+    vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave" }, {
         group = self.au_id,
         buffer = buf_id,
         callback = function()
@@ -295,7 +412,7 @@ function Window:create_buffer_defaults(buf_id)
 
             -- Only run once
             vim.api.nvim_clear_autocmds({
-                event = { "BufWinLeave", "WinLeave" },
+                event = { "BufLeave", "WinLeave" },
                 group = self.au_id,
                 buffer = self.buf_id,
             })
@@ -370,8 +487,15 @@ function Window:cursor()
     return vim.api.nvim_win_get_cursor(self.win_id)
 end
 
+---Safety: used only when a buffer is available
+---@return string
 function Window:current_line()
     return vim.api.nvim_get_current_line()
+end
+
+---Safety: used only when a buffer is available
+function Window:lines()
+    return vim.api.nvim_buf_get_lines(self.buf_id, 0, -1, true)
 end
 
 return Window
