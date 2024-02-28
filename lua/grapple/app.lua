@@ -48,6 +48,16 @@ end
 function App:update(opts)
     self.settings:update(opts)
 
+    -- Define default scopes, if not already defined
+    for _, scope_definition in ipairs(self.settings.default_scopes) do
+        self.scope_manager:define(scope_definition.name, scope_definition.resolver, {
+            force = false,
+            fallback = scope_definition.fallback,
+            cache = scope_definition.cache,
+        })
+    end
+
+    -- Define user scopes, force recreation
     for _, scope_definition in ipairs(self.settings.scopes) do
         self.scope_manager:define(scope_definition.name, scope_definition.resolver, {
             force = true,
@@ -70,6 +80,22 @@ end
 ---@return grapple.resolved_scope | nil, string? error
 function App:current_scope()
     return self.scope_manager:get_resolved(self.settings.scope)
+end
+
+---@param scope_name? string
+---@param callback fun(container: grapple.tag.container): string?
+function App:enter(scope_name, callback)
+    local scope, err = self.scope_manager:get_resolved(scope_name or self.settings.scope)
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = scope:enter(callback)
+    if err then
+        vim.notify(err, vim.log.levels.WARN)
+    end
 end
 
 return App

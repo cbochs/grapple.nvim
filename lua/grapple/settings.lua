@@ -1,6 +1,5 @@
 ---@class grapple.settings
 local Settings = {}
-Settings.__index = Settings
 
 ---@class grapple.settings
 local DEFAULT_SETTINGS = {
@@ -26,7 +25,11 @@ local DEFAULT_SETTINGS = {
     ---User-defined scopes or overrides
     ---For more information, please see the Scopes section
     ---@type grapple.scope_definition[]
-    scopes = {
+    scopes = {},
+
+    ---Default scopes provided by Grapple
+    ---@type grapple.scope_definition[]
+    default_scopes = {
         {
             name = "global",
             resolver = function()
@@ -35,7 +38,6 @@ local DEFAULT_SETTINGS = {
         },
         {
             name = "static",
-            cache = true,
             resolver = function()
                 return "static", vim.uv.cwd()
             end,
@@ -163,20 +165,20 @@ local DEFAULT_SETTINGS = {
     },
 }
 
+Settings.__index = function(tbl, key)
+    return Settings[key] or tbl.inner[key]
+end
+
 function Settings:new()
-    return setmetatable(vim.deepcopy(DEFAULT_SETTINGS), self)
+    return setmetatable({
+        inner = vim.deepcopy(DEFAULT_SETTINGS),
+    }, self)
 end
 
 -- Update settings in-place
 ---@param opts? grapple.settings
 function Settings:update(opts)
-    for k, v in pairs(opts or {}) do
-        if type(self[k]) == "table" then
-            self[k] = vim.tbl_deep_extend("force", self[k], v)
-        else
-            self[k] = v
-        end
-    end
+    self.inner = vim.tbl_deep_extend("force", self.inner, opts or {})
 end
 
 return Settings
