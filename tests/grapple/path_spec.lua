@@ -110,8 +110,6 @@ describe("Path", function()
                 assert.same(expected, Path.clean(path))
             end)
         end
-
-        -- TODO: Windows tests (convert clean_tests to forward slash)
     end)
 
     describe(".is_absolute", function()
@@ -175,8 +173,6 @@ describe("Path", function()
                 assert.same(expected, Path.is_absolute(path))
             end)
         end
-
-        -- TODO: Windows tests (convert clean_tests to forward slash)
     end)
 
     describe(".absolute", function()
