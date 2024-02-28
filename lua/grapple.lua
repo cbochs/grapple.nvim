@@ -53,12 +53,12 @@ end
 
 ---@param opts? grapple.options
 function Grapple.select(opts)
-    local TagAction = require("grapple.tag_actions")
+    local TagActions = require("grapple.tag_actions")
 
     opts = opts or {}
 
     local app = require("grapple.app").get()
-    local scope, err = app:current_scope()
+    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
@@ -67,7 +67,25 @@ function Grapple.select(opts)
     local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = TagAction.select(scope, { path = path, index = opts.index })
+    local err = TagActions.select({ scope = scope, path = path, index = opts.index })
+    if err then
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+end
+
+---@param scope_name? string
+function Grapple.quickfix(scope_name)
+    local TagActions = require("grapple.tag_actions")
+
+    local app = require("grapple.app").get()
+    local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = TagActions.quickfix({ scope = scope })
     if err then
         return vim.notify(err, vim.log.levels.ERROR)
     end
@@ -100,7 +118,7 @@ function Grapple.cycle(direction, opts)
         -- 1. Change to 0-based indexing
         -- 2. Perform index % container length, being careful of negative values
         -- 3. Change back to 1-based indexing
-        local index = container:find({ path = path, index = opts.index }) or 1
+        local index = (container:find({ path = path, index = opts.index }) or 1) - 1
         local next_direction = direction == "forward" and 1 or -1
         local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
 
