@@ -1,7 +1,7 @@
 local Util = require("grapple.util")
 
 ---@class grapple.window
----@field content grapple.tag.content
+---@field content grapple.tag_content | grapple.scope_content
 ---@field entries grapple.window.entry[]
 ---@field ns_id integer
 ---@field au_id integer
@@ -10,6 +10,9 @@ local Util = require("grapple.util")
 ---@field win_opts grapple.vim.win_opts
 local Window = {}
 Window.__index = Window
+
+---@alias grapple.hook_fn fun(window: grapple.window): string? error
+---@alias grapple.title_fn fun(...: any): string?
 
 -- Create global namespace for Grapple windows
 local WINDOW_NS = vim.api.nvim_create_namespace("grapple")
@@ -150,7 +153,7 @@ function Window:close()
     self.entries = nil
 end
 
----@param content grapple.tag.content
+---@param content grapple.tag_content | grapple.scope_content
 ---@return string? error
 function Window:attach(content)
     if self:has_content() then
@@ -337,7 +340,9 @@ function Window:render()
     end
 
     -- Render entries to the buffer
+    vim.api.nvim_set_option_value("modifiable", true, { buf = self.buf_id })
     vim.api.nvim_buf_set_lines(self.buf_id, 0, -1, true, vim.tbl_map(to_line, self.entries))
+    vim.api.nvim_set_option_value("modifiable", self.content:modifiable(), { buf = self.buf_id })
 
     for _, entry_hl in ipairs(vim.tbl_map(to_highlights, self.entries)) do
         for _, hl in ipairs(entry_hl) do
@@ -376,6 +381,7 @@ function Window:create_buffer()
     vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf_id })
     vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf_id })
     vim.api.nvim_set_option_value("filetype", "grapple", { buf = buf_id })
+    vim.api.nvim_set_option_value("modifiable", false, { buf = buf_id })
     vim.api.nvim_set_option_value("syntax", "grapple", { buf = buf_id })
     vim.api.nvim_set_option_value("undolevels", -1, { buf = buf_id })
 

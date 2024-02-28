@@ -18,9 +18,10 @@ local DEFAULT_SETTINGS = {
 
     ---@class grapple.scope_definition
     ---@field name string
-    ---@field resolver grapple.scope_resolver
+    ---@field desc? string
     ---@field fallback? string name of scope to fall back on
     ---@field cache? grapple.cache.options
+    ---@field resolver grapple.scope_resolver
 
     ---User-defined scopes or overrides
     ---For more information, please see the Scopes section
@@ -32,18 +33,21 @@ local DEFAULT_SETTINGS = {
     default_scopes = {
         {
             name = "global",
+            desc = "Global scope",
             resolver = function()
                 return "global", vim.uv.cwd()
             end,
         },
         {
             name = "static",
+            desc = "Starting working directory",
             resolver = function()
                 return "static", vim.uv.cwd()
             end,
         },
         {
             name = "cwd",
+            desc = "Current working directory",
             cache = { event = "DirChanged" },
             resolver = function()
                 return vim.uv.cwd(), vim.uv.cwd()
@@ -51,6 +55,7 @@ local DEFAULT_SETTINGS = {
         },
         {
             name = "git",
+            desc = "Git root directory",
             fallback = "cwd",
             cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
@@ -66,6 +71,7 @@ local DEFAULT_SETTINGS = {
         },
         {
             name = "git_branch",
+            desc = "Git root directory and branch",
             fallback = "git",
             cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
@@ -87,6 +93,7 @@ local DEFAULT_SETTINGS = {
         },
         {
             name = "lsp",
+            desc = "LSP root directory",
             fallback = "git",
             cache = { event = { "LspAttach", "LspDetach" } },
             resolver = function()
@@ -103,7 +110,7 @@ local DEFAULT_SETTINGS = {
     },
 
     ---User-defined tag title function for Grapple windows
-    ---@type grapple.title_fn
+    ---@type fun(scope: grapple.resolved_scope): string?
     tag_title = function(scope)
         return scope.id
     end,
@@ -147,6 +154,16 @@ local DEFAULT_SETTINGS = {
             end
         end, { desc = "Refresh" })
     end,
+
+    ---User-defined scope title function for Grapple windows
+    ---@type fun(): string?
+    scope_title = function()
+        return "Scopes"
+    end,
+
+    ---Not user documented
+    ---@type grapple.hook_fn
+    scope_hook = function(window) end,
 
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts

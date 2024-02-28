@@ -1,15 +1,15 @@
 local Scope = require("grapple.scope")
 
----@class grapple.scope.manager
----@field tag_manager grapple.tag.manager
+---@class grapple.scope_manager
+---@field tag_manager grapple.tag_manager
 ---@field cache grapple.cache
 ---@field scopes table<string, grapple.scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
----@param tag_manager grapple.tag.manager
+---@param tag_manager grapple.tag_manager
 ---@param cache grapple.cache
----@return grapple.scope.manager
+---@return grapple.scope_manager
 function ScopeManager:new(tag_manager, cache)
     return setmetatable({
         tag_manager = tag_manager,
@@ -58,20 +58,20 @@ end
 
 ---@param name string
 ---@param resolver grapple.scope_resolver
----@param opts? { force?: boolean, fallback?: string, cache?: grapple.cache.options }
----@return grapple.scope | nil, string? error
+---@param opts? { force?: boolean, desc?: string, fallback?: string, cache?: grapple.cache.options }
+---@return string? error
 function ScopeManager:define(name, resolver, opts)
     opts = opts or {}
 
     if self:exists(name) and not opts.force then
-        return nil, string.format("scope already exists: %s", name)
+        return string.format("scope already exists: %s", name)
     end
 
     local fallback, err
     if opts.fallback then
         fallback, err = self:get(opts.fallback)
         if not fallback then
-            return nil, err
+            return err
         end
     end
 
@@ -79,10 +79,14 @@ function ScopeManager:define(name, resolver, opts)
         self.cache:open(name, opts.cache)
     end
 
-    local scope = Scope:new(name, resolver, fallback)
+    local scope = Scope:new(name, resolver, {
+        desc = opts.desc,
+        fallback = fallback,
+    })
+
     self.scopes[name] = scope
 
-    return scope, nil
+    return nil
 end
 
 return ScopeManager

@@ -1,7 +1,7 @@
 ---@class grapple.app
 ---@field settings grapple.settings
----@field scope_manager grapple.scope.manager
----@field tag_manager grapple.tag.manager
+---@field scope_manager grapple.scope_manager
+---@field tag_manager grapple.tag_manager
 local App = {}
 App.__index = App
 
@@ -52,6 +52,7 @@ function App:update(opts)
     for _, scope_definition in ipairs(self.settings.default_scopes) do
         self.scope_manager:define(scope_definition.name, scope_definition.resolver, {
             force = false,
+            desc = scope_definition.desc,
             fallback = scope_definition.fallback,
             cache = scope_definition.cache,
         })
@@ -61,6 +62,7 @@ function App:update(opts)
     for _, scope_definition in ipairs(self.settings.scopes) do
         self.scope_manager:define(scope_definition.name, scope_definition.resolver, {
             force = true,
+            desc = scope_definition.desc,
             fallback = scope_definition.fallback,
             cache = scope_definition.cache,
         })

@@ -2,14 +2,14 @@
 ---@field name string scope name
 ---@field id string uniquely identifies a scope
 ---@field path string an absolute path
----@field tag_manager grapple.tag.manager
+---@field tag_manager grapple.tag_manager
 local ResolvedScope = {}
 ResolvedScope.__index = ResolvedScope
 
 ---@param name string
 ---@param id string
 ---@param path string | nil
----@param tag_manager grapple.tag.manager
+---@param tag_manager grapple.tag_manager
 ---@return grapple.resolved_scope
 function ResolvedScope:new(name, id, path, tag_manager)
     return setmetatable({

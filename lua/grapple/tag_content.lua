@@ -1,25 +1,27 @@
 local Path = require("grapple.path")
 
----@class grapple.tag.content
+---@class grapple.tag_content
 ---@field scope grapple.resolved_scope
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
 local TagContent = {}
 TagContent.__index = TagContent
 
----@alias grapple.hook_fn fun(window: grapple.window): string?
----@alias grapple.title_fn fun(scope: grapple.resolved_scope): string
-
 ---@param scope grapple.resolved_scope
----@param hook_fn grapple.hook_fn
+---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
----@return grapple.tag.content
+---@return grapple.tag_content
 function TagContent:new(scope, hook_fn, title_fn)
     return setmetatable({
         scope = scope,
         hook_fn = hook_fn,
         title_fn = title_fn,
     }, self)
+end
+
+---@return boolean
+function TagContent:modifiable()
+    return true
 end
 
 ---@return string | nil title
@@ -31,19 +33,13 @@ function TagContent:title()
     return self.title_fn(self.scope)
 end
 
----@return grapple.window.entity[] | nil, string? error
-function TagContent:entities()
-    local tags, err = self.scope:tags()
-    if not tags then
-        return nil, err
-    end
-
-    return tags, nil
-end
-
 ---@param window grapple.window
 ---@return string? error
 function TagContent:attach(window)
+    if not self.hook_fn then
+        return
+    end
+
     local err = self.hook_fn(window)
     if err then
         return err
@@ -69,6 +65,16 @@ function TagContent:sync(original, parsed)
     end
 
     return nil
+end
+
+---@return grapple.window.entity[] | nil, string? error
+function TagContent:entities()
+    local tags, err = self.scope:tags()
+    if not tags then
+        return nil, err
+    end
+
+    return tags, nil
 end
 
 ---@param tag grapple.tag
@@ -139,7 +145,6 @@ function TagContent:create_entry(tag, index)
 
         line = line,
         index = index,
-
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]

@@ -118,15 +118,13 @@ function Grapple.cycle(direction, opts)
     end)
 end
 
----@param opts? { scope?: string }
-function Grapple.open_tags(opts)
+---@param scope_name? string
+function Grapple.open_tags(scope_name)
     local TagContent = require("grapple.tag_content")
     local Window = require("grapple.window")
 
-    opts = opts or {}
-
     local app = require("grapple.app").get()
-    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+    local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
@@ -145,7 +143,23 @@ function Grapple.open_tags(opts)
     end
 end
 
-function Grapple.open_scopes() end
+function Grapple.open_scopes()
+    local ScopeContent = require("grapple.scope_content")
+    local Window = require("grapple.window")
+
+    local app = require("grapple.app").get()
+    local window = Window:new(app.settings.win_opts)
+    local content = ScopeContent:new(app.scope_manager, app.settings.scope_hook, app.settings.scope_title)
+
+    window:open()
+    window:attach(content)
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = window:render()
+    if err then
+        vim.notify(err, vim.log.levels.ERROR)
+    end
+end
 
 function Grapple.initialize()
     vim.api.nvim_create_augroup("Grapple", { clear = true })

@@ -2,27 +2,30 @@ local ResolvedScope = require("grapple.resolved_scope")
 
 ---@class grapple.scope
 ---@field name string
+---@field desc string
 ---@field resolver grapple.scope_resolver
 ---@field fallback grapple.scope | nil
 local Scope = {}
 Scope.__index = Scope
 
----A resolving function which returns a tuple of (id, path?, error?)
 ---@alias grapple.scope_resolver fun(): string?, string?, string?
 
 ---@param name string
 ---@param resolver grapple.scope_resolver
----@param fallback? grapple.scope
+---@param opts? { desc?: string, fallback?: grapple.scope }
 ---@return grapple.scope
-function Scope:new(name, resolver, fallback)
+function Scope:new(name, resolver, opts)
+    opts = opts or {}
+
     return setmetatable({
         name = name,
+        desc = opts.desc,
         resolver = resolver,
-        fallback = fallback,
+        fallback = opts.fallback,
     }, self)
 end
 
----@param tag_manager grapple.tag.manager
+---@param tag_manager grapple.tag_manager
 ---@return grapple.resolved_scope | nil, string? error
 function Scope:resolve(tag_manager)
     local id, path, err = self.resolver()
