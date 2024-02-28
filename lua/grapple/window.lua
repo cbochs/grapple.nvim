@@ -36,8 +36,10 @@ function Window:new(win_opts)
 end
 
 ---Create a valid nvim api window configuration
----@return grapple.vim.win_opts win_opts
+---@return vim.api.keyset.win_config win_opts
 function Window:window_options()
+    ---@type vim.api.keyset.win_config
+    ---@diagnostic disable-next-line: assign-type-mismatch
     local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
 
     -- Window title
@@ -69,24 +71,20 @@ function Window:window_options()
 
     -- Window size
     if opts.width and opts.width < 1 then
-        opts.width = math.floor(vim.o.columns * opts.width)
-        assert(opts.width >= 1)
+        opts.width = math.max(1, math.floor(vim.o.columns * opts.width))
     end
 
     if opts.height and opts.height < 1 then
-        opts.height = math.floor(vim.o.lines * opts.height)
-        assert(opts.height >= 1)
+        opts.height = math.max(1, math.floor(vim.o.lines * opts.height))
     end
 
     -- Window position
     if opts.row and opts.row < 1 then
-        opts.row = math.floor((vim.o.lines - opts.height) * opts.row - 1)
-        assert(opts.row >= 0)
+        opts.row = math.max(0, math.floor((vim.o.lines - opts.height) * opts.row - 1))
     end
 
     if opts.col and opts.col < 1 then
-        opts.col = math.floor((vim.o.columns - opts.width) * opts.col - 1)
-        assert(opts.col >= 0)
+        opts.col = math.max(0, math.floor((vim.o.columns - opts.width) * opts.col - 1))
     end
 
     return opts
