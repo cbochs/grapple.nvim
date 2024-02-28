@@ -26,13 +26,13 @@ function App:new()
     local Cache = require("grapple.cache")
     local ScopeManager = require("grapple.scope_manager")
     local Settings = require("grapple.settings")
-    local StateManager = require("grapple.state_manager")
+    local State = require("grapple.state")
     local TagManager = require("grapple.tag_manager")
 
     local settings = Settings:new()
 
-    local state_manager = StateManager:new(settings.save_path)
-    local tag_manager = TagManager:new(state_manager)
+    local state = State:new(settings.save_path)
+    local tag_manager = TagManager:new(state)
 
     local cache = Cache:new()
     local scope_manager = ScopeManager:new(tag_manager, cache)

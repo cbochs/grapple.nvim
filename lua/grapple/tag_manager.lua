@@ -1,12 +1,12 @@
 local TagContainer = require("grapple.tag_container")
 
 ---@class grapple.tag.manager
----@field state grapple.state.manager
+---@field state grapple.state
 ---@field containers table<string, grapple.tag.container>
 local TagManager = {}
 TagManager.__index = TagManager
 
----@param state grapple.state.manager
+---@param state grapple.state
 ---@return grapple.tag.manager
 function TagManager:new(state)
     return setmetatable({

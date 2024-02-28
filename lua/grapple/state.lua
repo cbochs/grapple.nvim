@@ -1,4 +1,4 @@
----@class grapple.state.manager
+---@class grapple.state
 ---@field save_dir string
 local StateManager = {}
 StateManager.__index = StateManager
@@ -27,7 +27,7 @@ local function path_decode(encoded_string)
 end
 
 ---@param save_dir string
----@return grapple.state.manager
+---@return grapple.state
 function StateManager:new(save_dir)
     return setmetatable({
         save_dir = vim.fs.normalize(save_dir),
