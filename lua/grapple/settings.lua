@@ -1,6 +1,8 @@
 ---@class grapple.settings
 local Settings = {}
 
+local INITIAL_CWD = vim.uv.cwd()
+
 ---@class grapple.settings
 local DEFAULT_SETTINGS = {
     ---Grapple save location
@@ -42,7 +44,7 @@ local DEFAULT_SETTINGS = {
             name = "static",
             desc = "Starting working directory",
             resolver = function()
-                return "static", vim.uv.cwd()
+                return "static", INITIAL_CWD
             end,
         },
         {
