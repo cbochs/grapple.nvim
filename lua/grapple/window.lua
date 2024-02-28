@@ -37,28 +37,34 @@ end
 function Window:window_options()
     local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
 
-    -- window title
-    if opts.title then
-        if opts.title == "{{ title }}" and self:has_content() then
+    -- Window title
+    if opts.title and opts.title == "{{ title }}" then
+        if self:has_content() then
             local title = self.content:title()
             if title then
                 opts.title = title
             else
                 opts.title = nil
             end
+        else
+            opts.title = nil
         end
+    end
+
+    if opts.title and opts.title_padding then
+        opts.title = string.format("%s%s%s", opts.title_padding, opts.title, opts.title_padding)
     end
 
     if not opts.title then
         opts.title_pos = nil
     end
 
-    if opts.title and opts.title_padding then
-        opts.title = string.format("%s%s%s", opts.title_padding, opts.title, opts.title_padding)
+    -- Remove custom fields
+    if opts.title_padding then
         opts.title_padding = nil
     end
 
-    -- window size
+    -- Window size
     if opts.width and opts.width < 1 then
         opts.width = math.floor(vim.o.columns * opts.width)
         assert(opts.width >= 1)
@@ -69,7 +75,7 @@ function Window:window_options()
         assert(opts.height >= 1)
     end
 
-    -- window position
+    -- Window position
     if opts.row and opts.row < 1 then
         opts.row = math.floor((vim.o.lines - opts.height) * opts.row - 1)
         assert(opts.row >= 0)
