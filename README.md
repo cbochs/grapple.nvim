@@ -22,7 +22,7 @@ Grapple is a plugin that aims to provide immediate navigation to important files
 ## Quickstart
 
 - [Install](#installation) Grapple.nvim using your preferred package manager
-- Add a keybind to `tag`, `untag`, or `toggle` a tag. For example,
+- Add a keybind to `tag`, `untag`, or `toggle` a path. For example,
 
 ```lua
 vim.keymap.set("n", "<leader>m", "<cmd>Grapple toggle<cr>")
@@ -109,8 +109,10 @@ require("grapple").setup({
         border = "single",
         focusable = false,
         style = "minimal",
-        title = "Grapple",
         title_pos = "center",
+
+        -- Custom: "{{ title }}" will use the tag_title or scope_title
+        title = "{{ title }}",
 
         -- Custom: adds padding around window title
         title_padding = " ",
@@ -132,18 +134,16 @@ In general, the Grapple API is as follows:
 **Lua**: `require("grapple").{method}(opts)`
 **Command**: `:Grapple [method] [opts...]`
 
-Where `opts` in the user command are `key=value` pairs.
-
-For example,
+Where `opts` in the user command is a list of `value` arguments `key=value` keyword arguments. For example,
 
 ```vim
-:Grapple tag buffer=0
+:Grapple cycle forward scope=cwd
 ```
 
 Has the equivalent form
 
 ```lua
-require("grapple").tag({ buffer = 0 })
+require("grapple").cycle("forward", { scope = "cwd" })
 ```
 
 #### `grapple#tag`
@@ -232,7 +232,7 @@ Select a Grapple tag.
 
 **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
 
-**Note**: Tag is selected based on one of (in order): `path`, `buffer`, `name`, `index`
+**Note**: Tag is selected based on one of (in order): `index`, `name`, `path`, `buffer`
 
 <details>
 <summary><b>Examples</b></summary>
@@ -252,6 +252,8 @@ require("grapple").select({ index = 3 })
 
 **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
 
+**Note**: Tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
+
 <details>
 <summary><b>Examples</b></summary>
 
@@ -269,15 +271,18 @@ require("grapple").exists({ scope = "global" })
 
 Cycle through and select from the available tagged files in a scoped tag list.
 
-**Command**: `:Grapple cycle {direction}`
+**Command**: `:Grapple cycle {direction} [opts...]`
 
 **API**:
 
-- `require("grapple").cycle(direction)`
-- `require("grapple").cycle_backward()`
-- `require("grapple").cycle_forward()`
+- `require("grapple").cycle(direction, opts)`
+- `require("grapple").cycle_backward(opts)`
+- `require("grapple").cycle_forward(opts)`
 
 **`direction`**: `"backward"` | `"forward"`
+**`opts?`**: [`grapple.options`](#grappleoptions) (one of)
+
+**Note**: Starting tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
 
 <details>
 <summary><b>Examples</b></summary>
@@ -371,7 +376,7 @@ require("grapple.scope").invalidate(my_resolver)
 
 A **tag** is a persistent tag on a path or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks ([`:h mark`](https://neovim.io/doc/user/motion.html#mark-motions)).
 
-Once a tag has been added to [scope](#scopes) for a path or buffer, it may be selected by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
+Once a tag has been added to a [scope](#scopes), it may be selected by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
 
 ## Scopes
 
@@ -434,15 +439,10 @@ Open a floating window containing all the tags for a given scope. The floating w
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 - **Split** (`<c-v>`): open the tag under the cursor in a split
 
-```lua
--- Set the title to "Grapple"
-require("grapple").setup({
-    tag_title = function(scope)
-        return "Grapple"
-    end
-})
+Note, the title used by the tags window may be adjusted in the [settings](#settings).
 
--- Set the title to the git root directory, with "~" substituted for $HOME
+```lua
+-- Set title relative to the users home directory
 require("grapple").setup({
     tag_title = function(scope)
         return vim.fn.fnamemodify(scope.path, ":~")
@@ -560,8 +560,8 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 
 - **`buffer`**: `integer` (default: `0`)
 - **`path`**: `string` file path or URI (overrides `buffer`)
-- **`index`**: `integer` tag insertion or deletion index (default: end of list)
 - **`name`**: `string` tag name
+- **`index`**: `integer` tag insertion or deletion index (default: end of list)
 - **`scope`**: `string` scope name (default `settings.scope`)
 
 ### `grapple.cache.options`
@@ -612,8 +612,8 @@ Result from observing a scope at a point in time.
 
 Thanks to these wonderful people, we enjoy this awesome plugin.
 
-<a href="https://github.com/nvim-lualine/lualine.nvim/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nvim-lualine/lualine.nvim" />
+<a href="https://github.com/cbochs/grapple.nvim/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=cbochs/grapple.nvim" />
 </a>
 
 ## Inspiration and Thanks

@@ -1,5 +1,6 @@
 ---@class grapple.window
 ---@field content grapple.tag.content
+---@field entries grapple.window.entry[]
 ---@field ns_id integer
 ---@field au_id integer
 ---@field buf_id integer
@@ -21,6 +22,7 @@ local WINDOW_GROUP = vim.api.nvim_create_augroup("GrappleWindow", { clear = true
 function Window:new(win_opts)
     return setmetatable({
         content = nil,
+        entries = {},
         ns_id = WINDOW_NS,
         au_id = WINDOW_GROUP,
         buf_id = nil,
@@ -32,14 +34,18 @@ end
 
 ---Create a valid nvim api window configuration
 ---@return grapple.vim.win_opts win_opts
-function Window:canonicalize()
+function Window:window_options()
     local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
 
     -- window title
-    if self:has_content() then
-        local title = self.content:title()
-        if title then
-            opts.title = title
+    if opts.title then
+        if opts.title == "{{ title }}" and self:has_content() then
+            local title = self.content:title()
+            if title then
+                opts.title = title
+            else
+                opts.title = nil
+            end
         end
     end
 
@@ -106,9 +112,10 @@ function Window:open()
     self.buf_id = self:create_buffer()
 
     -- Create window
-    local win_opts = self:canonicalize()
-
+    local win_opts = self:window_options()
     self.win_id = vim.api.nvim_open_win(self.buf_id, true, win_opts)
+
+    -- Setup window to conceal line IDs
     vim.api.nvim_set_option_value("concealcursor", "nvic", { win = self.win_id })
     vim.api.nvim_set_option_value("conceallevel", 3, { win = self.win_id })
 end
@@ -119,21 +126,18 @@ function Window:close()
         return
     end
 
-    -- Defer closing window
-    vim.schedule(function()
-        if vim.api.nvim_win_is_valid(self.win_id) then
-            vim.api.nvim_win_close(self.win_id, true)
-            self.win_id = nil
-            self.buf_id = nil
-        end
-    end)
-
     if self:is_rendered() then
         self.rendered = false
         local err = self.content:sync(self.buf_id)
         if err then
             return err
         end
+    end
+
+    if vim.api.nvim_win_is_valid(self.win_id) then
+        vim.api.nvim_win_close(self.win_id, true)
+        self.win_id = nil
+        self.buf_id = nil
     end
 end
 
@@ -207,7 +211,7 @@ function Window:render()
     vim.api.nvim_win_set_buf(self.win_id, self.buf_id)
 
     -- Update window options
-    local win_opts = self:canonicalize()
+    local win_opts = self:window_options()
     vim.api.nvim_win_set_config(self.win_id, win_opts)
 
     -- Safety: we are guaranteed to have content by this point
@@ -302,7 +306,7 @@ function Window:create_buffer_defaults(buf_id)
         group = self.au_id,
         buffer = buf_id,
         callback = function()
-            local win_opts = self:canonicalize()
+            local win_opts = self:window_options()
             vim.api.nvim_win_set_config(self.win_id, win_opts)
         end,
     })

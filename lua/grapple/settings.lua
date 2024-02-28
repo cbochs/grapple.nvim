@@ -159,8 +159,12 @@ local DEFAULT_SETTINGS = {
         border = "single",
         focusable = false,
         style = "minimal",
-        title = "Grapple",
         title_pos = "center",
+
+        -- Custom: "{{ title }}" will use the tag_title or scope_title
+        title = "{{ title }}",
+
+        -- Custom: adds padding around window title
         title_padding = " ",
     },
 }
