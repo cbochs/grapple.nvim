@@ -61,7 +61,16 @@ function ScopeContent:sync(original, parsed) end
 
 ---@return grapple.window.entity[] | nil, string? error
 function ScopeContent:entities()
-    return vim.tbl_values(self.scope_manager.scopes), nil
+    ---@param scope_a grapple.scope
+    ---@param scope_b grapple.scope
+    local function by_name(scope_a, scope_b)
+        return string.lower(scope_a.name) < string.lower(scope_b.name)
+    end
+
+    local scopes = vim.tbl_values(self.scope_manager.scopes)
+    table.sort(scopes, by_name)
+
+    return scopes, nil
 end
 
 ---@param scope grapple.scope
