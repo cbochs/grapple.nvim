@@ -1,47 +1,5 @@
 local Grapple = {}
 
-function Grapple.initialize()
-    vim.api.nvim_create_augroup("Grapple", { clear = true })
-    vim.api.nvim_create_autocmd({ "BufWinLeave", "QuitPre" }, {
-        pattern = "?*", -- non-empty file
-        group = "Grapple",
-        callback = function(opts)
-            local app = require("grapple.app").get()
-            local buf_name = vim.api.nvim_buf_get_name(opts.buf)
-            app.tag_manager:update({ path = buf_name })
-        end,
-    })
-
-    vim.api.nvim_create_user_command(
-        "Grapple",
-
-        ---@param opts grapple.vim.user_command
-        function(opts)
-            local Util = require("grapple.util")
-
-            local action = opts.fargs[1]
-
-            local args = Util.reduce({ unpack(opts.fargs, 2) }, function(args, arg)
-                local key, value = string.match(arg, "^(.*)=(.*)$")
-                args[key] = tonumber(value) or value
-                return args
-            end, {})
-
-            Grapple[action](args)
-        end,
-        {
-            desc = "Grapple",
-            nargs = "*",
-            complete = function(current, command, index)
-                -- TODO: implement
-                -- "current" gives the current argument the user is writing (can be partial)
-                -- "command" gives the entire command line
-                -- "index" gives the cursor location
-            end,
-        }
-    )
-end
-
 ---@param opts? grapple.settings
 function Grapple.setup(opts)
     local app = require("grapple.app").get()
@@ -115,18 +73,19 @@ function Grapple.select(opts)
     end
 end
 
----@param opts? { scope?: string }
+---@param opts? grapple.options
 function Grapple.cycle_forward(opts)
-    Grapple.cycle({ direction = "forward", scope = opts and opts.scope })
+    Grapple.cycle("forward", opts)
 end
 
----@param opts? { scope?: string }
+---@param opts? grapple.options
 function Grapple.cycle_backward(opts)
-    Grapple.cycle({ direction = "backward", scope = opts and opts.scope })
+    Grapple.cycle("backward", opts)
 end
 
----@param opts? { direction?: "forward" | "backward", scope?: string }
-function Grapple.cycle(opts)
+---@param direction "forward" | "backward"
+---@param opts? grapple.options
+function Grapple.cycle(direction, opts)
     opts = opts or {}
 
     local app = require("grapple.app").get()
@@ -135,14 +94,13 @@ function Grapple.cycle(opts)
             return
         end
 
-        local path = vim.api.nvim_buf_get_name(0)
+        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
 
         -- Fancy maths to get the next index for a given direction
         -- 1. Change to 0-based indexing
         -- 2. Perform index % container length, being careful of negative values
         -- 3. Change back to 1-based indexing
-        local direction = opts.direction or "forward"
-        local index = (container:index(path) or 1) - 1
+        local index = container:find({ path = path, index = opts.index }) or 1
         local next_direction = direction == "forward" and 1 or -1
         local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
 
@@ -188,5 +146,51 @@ function Grapple.open_tags(opts)
 end
 
 function Grapple.open_scopes() end
+
+function Grapple.initialize()
+    vim.api.nvim_create_augroup("Grapple", { clear = true })
+
+    vim.api.nvim_create_autocmd({ "BufWinLeave", "QuitPre" }, {
+        pattern = "?*", -- non-empty file
+        group = "Grapple",
+        callback = function(opts)
+            local app = require("grapple.app").get()
+            local buf_name = vim.api.nvim_buf_get_name(opts.buf)
+            app.tag_manager:update({ path = buf_name })
+        end,
+    })
+
+    vim.api.nvim_create_user_command(
+        "Grapple",
+
+        ---@param opts grapple.vim.user_command
+        function(opts)
+            local action = opts.fargs[1]
+            local args = {}
+            local kwargs = {}
+
+            for _, arg in ipairs({ unpack(opts.fargs, 2) }) do
+                local key, value = string.match(arg, "^(.*)=(.*)$")
+                if not key then
+                    table.insert(args, tonumber(arg) or arg)
+                else
+                    kwargs[key] = tonumber(value) or value
+                end
+            end
+
+            Grapple[action](unpack(args), unpack(kwargs))
+        end,
+        {
+            desc = "Grapple",
+            nargs = "*",
+            complete = function(current, command, index)
+                -- TODO: implement
+                -- "current" gives the current argument the user is writing (can be partial)
+                -- "command" gives the entire command line
+                -- "index" gives the cursor location
+            end,
+        }
+    )
+end
 
 return Grapple
