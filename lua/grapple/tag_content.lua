@@ -221,9 +221,9 @@ function TagContent:parse_line(line)
 
     local use_icons = require("grapple.app").get().settings.icons
     if use_icons then
-        entry.id, _, entry.path = string.match(line, "^/(%d+) (.+)  (.*)$")
+        entry.id, _, entry.path = string.match(line, "^/(%d+) (%S+)  (%S*)")
     else
-        entry.id, entry.path = string.match(line, "^/(%d+) (.*)$")
+        entry.id, entry.path = string.match(line, "^/(%d+) (%S*)")
     end
 
     if entry.id then
@@ -232,6 +232,9 @@ function TagContent:parse_line(line)
         -- Parse as a new entry when an ID is not present
         entry.path = line
     end
+
+    -- Remove whitespace around path before parsing
+    entry.path = vim.trim(entry.path)
 
     -- Don't parse an empty path or line
     if entry.path == "" then
@@ -252,9 +255,8 @@ end
 ---@param lines string[]
 ---@return grapple.tag.content.parsed_entry[]
 function TagContent:parse(lines)
-    -- Clean up lines before attempting to parse
+    ---@diagnostic disable: redefined-local
     lines = vim.tbl_filter(Util.is_empty, lines)
-    lines = vim.tbl_map(Util.trim, lines)
 
     ---@type grapple.tag.content.parsed_entry[]
     local parsed = {}
