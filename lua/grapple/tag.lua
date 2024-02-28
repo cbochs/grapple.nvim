@@ -24,6 +24,11 @@ end
 
 ---@return string? error
 function Tag:select()
+    local current_name = vim.api.nvim_buf_get_name(0)
+    if self.path == current_name then
+        return
+    end
+
     local short_path = Path.short(self.path)
     vim.cmd.edit(short_path)
 
