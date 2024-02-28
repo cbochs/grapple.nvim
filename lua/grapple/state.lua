@@ -1,7 +1,9 @@
+local Path = require("grapple.path")
+
 ---@class grapple.state
 ---@field save_dir string
-local StateManager = {}
-StateManager.__index = StateManager
+local State = {}
+State.__index = State
 
 ---Reference: https://github.com/golgote/neturl/blob/master/lib/net/url.lua
 ---
@@ -28,18 +30,18 @@ end
 
 ---@param save_dir string
 ---@return grapple.state
-function StateManager:new(save_dir)
+function State:new(save_dir)
     return setmetatable({
-        save_dir = vim.fs.normalize(save_dir),
+        save_dir = save_dir,
     }, self)
 end
 
-function StateManager:save_path(name)
+function State:save_path(name)
     return vim.fs.joinpath(self.save_dir, string.format("%s.json", path_encode(name)))
 end
 
 ---@return string? error
-function StateManager:ensure_created()
+function State:ensure_created()
     local exists, err = vim.uv.fs_access(self.save_dir, "RW")
     if err then
         return err
@@ -54,21 +56,14 @@ end
 
 ---@param name string
 ---@return boolean exists
-function StateManager:exists(name)
+function State:exists(name)
     local path = self:save_path(name)
 
-    local permission, err = vim.uv.fs_access(path, "RW")
-    if err then
-        return false
-    end
-
-    assert(type(permission) == "boolean", string.format("could not determine access: %s", path))
-
-    return permission
+    return Path.exists(path)
 end
 
 ---@return string? error, string? error_kind
-function StateManager:remove(name)
+function State:remove(name)
     local path = self:save_path(name)
     local _, err = vim.uv.fs_unlink(path)
     if err then
@@ -78,7 +73,7 @@ end
 
 ---@param name string
 ---@return any decoded, string? error, string? error_kind
-function StateManager:read(name)
+function State:read(name)
     local path = self:save_path(name)
 
     local fd, err, err_kind = vim.uv.fs_open(path, "r", 438)
@@ -115,7 +110,7 @@ end
 ---@param name string
 ---@param obj any
 ---@return string? error, string? error_kind
-function StateManager:write(name, obj)
+function State:write(name, obj)
     local path = self:save_path(name)
 
     local ok, encoded = pcall(vim.json.encode, obj)
@@ -136,4 +131,4 @@ function StateManager:write(name, obj)
     return nil
 end
 
-return StateManager
+return State
