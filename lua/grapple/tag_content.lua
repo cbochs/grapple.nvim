@@ -22,11 +22,6 @@ function TagContent:new(scope, hook_fn, title_fn)
     }, self)
 end
 
----@return string id
-function TagContent:id()
-    return self.scope.id
-end
-
 ---@return string | nil title
 function TagContent:title()
     if not self.title_fn then

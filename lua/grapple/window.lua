@@ -98,9 +98,13 @@ function Window:has_content()
     return self.content ~= nil
 end
 
+function Window:has_entries()
+    return self.entries ~= nil
+end
+
 ---@return boolean
 function Window:is_rendered()
-    return self.entries ~= nil
+    return self:is_open() and self:has_content() and self:has_entries()
 end
 
 function Window:open()
@@ -137,13 +141,13 @@ function Window:close()
         self.buf_id = nil
     end
 
-    return nil
+    self.entries = nil
 end
 
 ---@param content grapple.tag.content
 ---@return string? error
 function Window:attach(content)
-    if self:has_content() and self.content:id() ~= content:id() then
+    if self:has_content() then
         local err = self:detach()
         if err then
             return err
