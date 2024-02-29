@@ -14,6 +14,7 @@ end
 ---@field index? integer
 ---@field cursor? integer[]
 ---@field scope? string
+---@field command? function undocumented
 
 ---Extract a valid path from the provided path or buffer options.
 ---@param opts grapple.options
@@ -137,7 +138,8 @@ function Grapple.select(opts)
         end
 
         local tag = assert(container:get({ index = index }))
-        tag:select()
+
+        tag:select(opts.command)
     end)
 end
 
@@ -146,7 +148,7 @@ end
 ---@param scope_name? string
 function Grapple.quickfix(scope_name)
     local App = require("grapple.app")
-    local TagActions = require("grapple.tag_actions")
+    local Path = require("grapple.path")
 
     local app = App.get()
     local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
@@ -156,9 +158,27 @@ function Grapple.quickfix(scope_name)
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = TagActions.quickfix({ scope = scope })
-    if err then
-        return vim.notify(err, vim.log.levels.ERROR)
+    local tags, err = scope:tags()
+    if not tags then
+        return err
+    end
+
+    local quickfix_list = {}
+
+    for _, tag in ipairs(tags) do
+        ---See :h vim.fn.setqflist
+        ---@class grapple.vim.quickfix
+        table.insert(quickfix_list, {
+            filename = tag.path,
+            lnum = tag.cursor[1],
+            col = tag.cursor[2] + 1,
+            text = Path.fs_relative(scope.path, tag.path),
+        })
+    end
+
+    if #quickfix_list > 0 then
+        vim.fn.setqflist(quickfix_list, "r")
+        vim.cmd.copen()
     end
 end
 
@@ -309,14 +329,25 @@ function Grapple.define_scope(definition)
     app:define_scope(definition)
 end
 
+---Change the currently selected scope
+---@param scope string
+function Grapple.use_scope(scope)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    local scope, err = app.scope_manager:get(scope)
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    app.settings:update({ scope = scope.name })
+end
+
 ---@param scope? string
 function Grapple.clear_cache(scope)
     local App = require("grapple.app")
-
     local app = App.get()
-
-    -- TODO: This is digging a bit too far into the scope manager,
-    -- but just a too lazy right now to fix
     app.scope_manager.cache:invalidate(scope or app.settings.scope)
 end
 

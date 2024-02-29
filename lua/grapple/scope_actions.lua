@@ -8,16 +8,7 @@ local ScopeActions = {}
 ---@param opts grapple.action.scope_options
 ---@return string? error
 function ScopeActions.select(opts)
-    local app = require("grapple.app").get()
-
-    local scope, err = app.scope_manager:get(opts.name)
-    if not scope then
-        return err
-    end
-
-    app.settings:update({ scope = scope.name })
-
-    return nil
+    require("grapple").use_scope(opts.name)
 end
 
 return ScopeActions
