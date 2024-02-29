@@ -2,14 +2,14 @@
 ---@field tag_manager grapple.tag_manager
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
-local TagContainerContent = {}
-TagContainerContent.__index = TagContainerContent
+local ContainerContent = {}
+ContainerContent.__index = ContainerContent
 
 ---@param tag_manager grapple.tag_manager
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
 ---@return grapple.container_content
-function TagContainerContent:new(tag_manager, hook_fn, title_fn)
+function ContainerContent:new(tag_manager, hook_fn, title_fn)
     return setmetatable({
         tag_manager = tag_manager,
         hook_fn = hook_fn,
@@ -18,12 +18,12 @@ function TagContainerContent:new(tag_manager, hook_fn, title_fn)
 end
 
 ---@return boolean
-function TagContainerContent:modifiable()
+function ContainerContent:modifiable()
     return false
 end
 
 ---@return string | nil title
-function TagContainerContent:title()
+function ContainerContent:title()
     if not self.title_fn then
         return
     end
@@ -33,7 +33,7 @@ end
 
 ---@param window grapple.window
 ---@return string? error
-function TagContainerContent:attach(window)
+function ContainerContent:attach(window)
     if not self.hook_fn then
         return
     end
@@ -49,20 +49,20 @@ end
 ---@param window grapple.window
 ---@return string? error
 ---@diagnostic disable-next-line: unused-local
-function TagContainerContent:detach(window) end
+function ContainerContent:detach(window) end
 
 ---@param original grapple.window.entry
 ---@param parsed grapple.window.entry
 ---@return string? error
 ---@diagnostic disable-next-line: unused-local
-function TagContainerContent:sync(original, parsed) end
+function ContainerContent:sync(original, parsed) end
 
 ---@return grapple.window.entity[] | nil, string? error
-function TagContainerContent:entities()
-    ---@param id_a string
-    ---@param id_b string
-    local function by_name(id_a, id_b)
-        return string.lower(id_a) < string.lower(id_b)
+function ContainerContent:entities()
+    ---@param cont_a grapple.tag_container
+    ---@param cont_b grapple.tag_container
+    local function by_name(cont_a, cont_b)
+        return string.lower(cont_a.name) < string.lower(cont_b.name)
     end
 
     local containers = vim.tbl_values(self.tag_manager.containers)
@@ -74,7 +74,7 @@ end
 ---@param container grapple.tag_container
 ---@param index integer
 ---@return grapple.window.entry
-function TagContainerContent:create_entry(container, index)
+function ContainerContent:create_entry(container, index)
     -- A string representation of the index
     local id = string.format("/%03d", index)
 
@@ -112,7 +112,7 @@ end
 
 ---@param line string
 ---@return grapple.window.parsed_entry
-function TagContainerContent:parse_line(line)
+function ContainerContent:parse_line(line)
     local id, name = string.match(line, "^/(%d+) (%S*)")
     local index = tonumber(id)
 
@@ -132,8 +132,8 @@ end
 ---@param action grapple.action
 ---@param opts? grapple.action.options
 ---@return string? error
-function TagContainerContent:perform(action, opts)
+function ContainerContent:perform(action, opts)
     return action(opts)
 end
 
-return TagContainerContent
+return ContainerContent
