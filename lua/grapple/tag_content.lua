@@ -239,7 +239,12 @@ function TagContent:diff(original, modified)
     -- differences and guarantees that the content and container tags are
     -- the same. Could be improved if performance becomes a problem
 
-    for i, entry in ipairs(modified) do
+    ---@param entry grapple.window.parsed_entry
+    local function has_path(entry)
+        return entry.data.path
+    end
+
+    for i, entry in ipairs(vim.tbl_filter(has_path, modified)) do
         ---@type grapple.tag.content.data
         local data = entry.data
 
@@ -282,6 +287,7 @@ function TagContent:apply_changes(changes)
     return self.scope:enter(function(container)
         container:clear()
 
+        -- TODO: should probably store and return errors
         for _, change in ipairs(changes) do
             if change.action == "insert" then
                 ---@diagnostic disable-next-line: param-type-mismatch
