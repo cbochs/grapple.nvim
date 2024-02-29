@@ -104,13 +104,13 @@ end
 ---@return grapple.resolved_scope | nil, string? error
 ---@param callback fun(container: grapple.tag_container): string?
 function App:enter_with_save(scope_name, callback)
-    self:enter(scope_name, callback, { sync = false })
+    self:enter(scope_name, callback, { sync = true })
 end
 
 ---@return grapple.resolved_scope | nil, string? error
 ---@param callback fun(container: grapple.tag_container): string?
 function App:enter_without_save(scope_name, callback)
-    self:enter(scope_name, callback, { sync = true })
+    self:enter(scope_name, callback, { sync = false })
 end
 
 return App
