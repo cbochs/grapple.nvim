@@ -21,26 +21,17 @@ local TagActions = {}
 function TagActions.select(opts)
     local scope = opts.scope
 
-    local err = scope:enter(function(container)
-        local tag, err = container:get({
+    scope:enter(function(container)
+        local tag = container:get({
             index = opts.index,
             name = opts.name,
             path = opts.path,
         })
 
-        if not tag then
-            return err
-        end
-
-        ---@diagnostic disable-next-line: redefined-local
-        local err = tag:select(opts.command)
-        if err then
-            return err
+        if tag then
+            tag:select(opts.command)
         end
     end)
-    if err then
-        return err
-    end
 
     return nil
 end

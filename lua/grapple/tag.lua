@@ -22,7 +22,6 @@ function Tag:update()
 end
 
 ---@param command? function
----@return string? error
 function Tag:select(command)
     local short_path = Path.fs_short(self.path)
 
