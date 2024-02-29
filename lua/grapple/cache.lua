@@ -8,15 +8,20 @@ Cache.__index = Cache
 ---@field event? string | string[]
 ---@field pattern? string
 ---@field interval? integer
+---@field debounce? integer in milliseconds
 
 ---@class grapple.cache.value
 ---@field event? string | string[]
 ---@field pattern string?
 ---@field interval integer?
+---@field debounce integer? in milliseconds
+--
 ---@field au_id integer?
 ---@field timer uv_timer_t?
----@field value any
+--
+---@field debouncing boolean
 ---@field watching boolean
+---@field value any
 
 local CACHE_GROUP = vim.api.nvim_create_augroup("GrappleCache", { clear = true })
 
@@ -40,7 +45,10 @@ function Cache:open(id, opts)
         event = opts.event,
         pattern = opts.pattern,
         interval = opts.interval,
+        debounce = opts.debounce,
+        debouncing = false,
         watching = false,
+        value = nil,
     }
 
     self.cache[id] = cache_value
@@ -72,7 +80,20 @@ function Cache:watch(id)
     end
 
     local callback = function()
+        if cache_value.debouncing then
+            return
+        end
+
         self:invalidate(id)
+
+        if cache_value.debounce then
+            cache_value.debouncing = true
+
+            local timer = vim.loop.new_timer()
+            timer:start(cache_value.debounce, 0, function()
+                cache_value.debouncing = false
+            end)
+        end
     end
 
     if cache_value.event then

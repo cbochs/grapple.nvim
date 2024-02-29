@@ -59,8 +59,12 @@ local DEFAULT_SETTINGS = {
             name = "git",
             desc = "Git root directory",
             fallback = "cwd",
-            cache = { event = { "BufEnter", "FocusGained" } },
+            cache = {
+                event = { "BufEnter", "FocusGained" },
+                debounce = 250, -- ms
+            },
             resolver = function()
+                -- TODO: this will stop on submodules, needs fixing
                 local git_files = vim.fs.find(".git", { upward = true, stop = vim.loop.os_homedir() })
                 if #git_files == 0 then
                     return
@@ -75,7 +79,10 @@ local DEFAULT_SETTINGS = {
             name = "git_branch",
             desc = "Git root directory and branch",
             fallback = "git",
-            cache = { event = { "BufEnter", "FocusGained" } },
+            cache = {
+                event = { "BufEnter", "FocusGained" },
+                debounce = 1000, -- ms
+            },
             resolver = function()
                 -- TODO: this will stop on submodules, needs fixing
                 local git_files = vim.fs.find(".git", { upward = true, stop = vim.loop.os_homedir() })
@@ -100,7 +107,10 @@ local DEFAULT_SETTINGS = {
             name = "lsp",
             desc = "LSP root directory",
             fallback = "git",
-            cache = { event = { "LspAttach", "LspDetach" } },
+            cache = {
+                event = { "LspAttach", "LspDetach" },
+                debounce = 250, -- ms
+            },
             resolver = function()
                 local clients = vim.lsp.get_clients({ bufnr = 0 })
                 if #clients == 0 then
