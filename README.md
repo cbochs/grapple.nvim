@@ -97,6 +97,16 @@ require("grapple").setup({
     ---@type fun(scope: grapple.resolved_scope): string?
     tag_title = nil,
 
+    ---User-defined scope title function for Grapple windows
+    ---By default, renders "Grapple Scopes"
+    ---@type fun(): string?
+    scope_title = nil,
+
+    ---User-defined container title function for Grapple windows
+    ---By default, renders "Grapple Containers"
+    ---@type fun(): string?
+    container_title = nil,
+
     ---Additional window options for Grapple windows
     ---See :h nvim_open_win
     ---@type grapple.vim.win_opts
@@ -425,19 +435,20 @@ require("grapple").setup({
 
 ## Grapple Windows
 
-Popup windows are made available to enable easy management of tags and scopes. The opened buffer is given its own syntax (`grapple`) and file type (`grapple`) and can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions.
+Popup windows are made available to enable easy management of tags and scopes. The opened buffer is given its own syntax (`grapple`) and file type (`grapple`) and can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. The floating window can be closed with either `q` or `<esc>`.
 
 <img width="1038" alt="Screenshot 2022-12-15 at 09 05 07" src="https://user-images.githubusercontent.com/2467016/207909857-98e7bc5d-8b48-4650-acb9-5993dde87a0f.png">
 
 ### Tags Window
 
-Open a floating window containing all the tags for a given scope. The floating window can be closed with either `q` or `<esc>`. Several actions are available by default:
+Open a floating window with all the tags for a given scope. This buffer is modifiable. Several actions are available by default:
 
-- **Selection** (`<cr>`): open the tag under the cursor
+- **Selection** (`<cr>`): select the tag under the cursor
+- **Split (horizontal)** (`-`): select the tag under the cursor (`split`)
+- **Split (vertical)** (`|`): select the tag under the cursor (`vsplit`)
 - **Deletion**: delete a line to delete the tag
 - **Reordering**: move a line to move a tag
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
-- **Split** (`<c-v>`): open the tag under the cursor in a split
 
 Note, the title used by the tags window may be adjusted in the [settings](#settings).
 
@@ -469,10 +480,9 @@ require("grapple").open_tags("global")
 
 ### Scopes Window
 
-Open a floating window containing all the loaded project scopes. The window can be closed with either `q` or `<esc>`. Some basic actions are available by default:
+Open a floating window with all defined scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): set the current scope to the one under the cursor
-- **Deletion**: delete a line to reset a scope
 
 **API**: `require("grapple").open_scopes()`
 
@@ -482,6 +492,25 @@ Open a floating window containing all the loaded project scopes. The window can 
 ```lua
 -- Open the scopes window
 require("grapple").open_scopes()
+```
+
+</details>
+
+### Containers Window
+
+Open a floating window with all loaded containers. This buffer is not modifiable. Some basic actions are available by default:
+
+- **Selection** (`<cr>`): open the tags window for the container under the cursor
+- **Deletion**: delete a line to reset the container
+
+**API**: `require("grapple").open_scopes()`
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Open the scopes window
+require("grapple").open_containers()
 ```
 
 </details>
