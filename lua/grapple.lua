@@ -15,6 +15,40 @@ end
 ---@field cursor? integer[]
 ---@field scope? string
 
+---@param opts grapple.options
+---@return string | nil path, string? error
+local function extract_path(opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    if opts.path then
+        return opts.path
+    end
+
+    local buffer = opts.buffer or 0
+
+    if not vim.api.nvim_buf_is_valid(buffer) then
+        return nil, string.format("invalid buffer: %s", buffer)
+    end
+
+    local buftype = vim.api.nvim_get_option_value("buftype", { buf = buffer })
+    if vim.tbl_contains(app.settings.exclusions.buftype, buftype) then
+        return nil, string.format("invalid buftype for buffer %s: %s", buffer, buftype)
+    end
+
+    local filetype = vim.api.nvim_get_option_value("filetype", { buf = buffer })
+    if vim.tbl_contains(app.settings.exclusions.filetype, filetype) then
+        return nil, string.format("invalid filetype for buffer %s: %s", buffer, filetype)
+    end
+
+    local bufname = vim.api.nvim_buf_get_name(buffer)
+    if vim.tbl_contains(app.settings.exclusions.name, bufname) then
+        return nil, string.format('invalid name for buffer %s: "%s"', buffer, bufname)
+    end
+
+    return vim.api.nvim_buf_get_name(buffer), nil
+end
+
 ---Create a new tag or update an existing tag on a path, URI, or buffer
 ---By default, uses the current scope
 ---@param opts? grapple.options
@@ -25,7 +59,12 @@ function Grapple.tag(opts)
 
     local app = App.get()
     app:enter_with_save(opts.scope, function(container)
-        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        local path, err = extract_path(opts)
+        if not path then
+            return err
+        end
+        opts.path = path
+
         return container:insert(opts)
     end)
 end
@@ -40,7 +79,12 @@ function Grapple.untag(opts)
 
     local app = App.get()
     app:enter_with_save(opts.scope, function(container)
-        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        local path, err = extract_path(opts)
+        if not path then
+            return err
+        end
+        opts.path = path
+
         return container:remove(opts)
     end)
 end
@@ -55,7 +99,12 @@ function Grapple.toggle(opts)
 
     local app = App.get()
     app:enter_with_save(opts.scope, function(container)
-        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        local path, err = extract_path(opts)
+        if not path then
+            return err
+        end
+        opts.path = path
+
         if container:has(opts) then
             return container:remove(opts)
         else
@@ -74,7 +123,13 @@ function Grapple.select(opts)
 
     local app = App.get()
     app:enter_with_save(opts.scope, function(container)
-        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        local path, err = extract_path(opts)
+        if not path then
+            return err
+        end
+        opts.path = path
+
+        ---@diagnostic disable-next-line: redefined-local
         local index, err = container:find(opts)
         if not index then
             return err
@@ -133,7 +188,8 @@ function Grapple.cycle(direction, opts)
             return
         end
 
-        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        local path, _ = extract_path(opts)
+        opts.path = path
 
         -- Fancy maths to get the next index for a given direction
         -- 1. Change to 0-based indexing

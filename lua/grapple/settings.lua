@@ -232,6 +232,21 @@ local DEFAULT_SETTINGS = {
         -- Custom: adds padding around window title
         title_padding = " ",
     },
+
+    ---Values for which a buffer should be excluded from being tagged
+    exclusions = {
+        buftype = {
+            "nofile",
+        },
+
+        filetype = {
+            "grapple",
+        },
+
+        name = {
+            "",
+        },
+    },
 }
 
 Settings.__index = function(tbl, key)
