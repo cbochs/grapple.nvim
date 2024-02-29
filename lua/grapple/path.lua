@@ -320,7 +320,8 @@ end
 ---@return string joined
 function Path.join(...)
     if Path.windows then
-        return ""
+        -- TODO: There's some edge cases here, maybe add them some day?
+        return Path.clean(table.concat({ ... }, Path.separator))
     else
         return Path.clean(table.concat({ ... }, Path.separator))
     end
