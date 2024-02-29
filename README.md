@@ -532,9 +532,9 @@ By default, no scopes are loaded on startup. When `require("grapple").setup()` i
 
 ### Telescope
 
-You can use telescope to search through your tagged files instead of the built in popup menu.
+You can use telescope to search through your tagged files instead of the built in popup windows.
 
-Load the extension via
+Load the extension with
 
 ```lua
 require("telescope").load_extension("grapple")
@@ -609,6 +609,7 @@ Options available for defining how a scope should be cached.
 - **`event?`**: `string` | `string[]` autocmd event ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html))
 - **`pattern?`**: `string` autocmd pattern, useful for `User` events
 - **`interval?`**: `integer` timer interval
+- **`debounce?`**: `integer` debounce interval
 
 ### `grapple.scope_definition`
 
@@ -647,7 +648,7 @@ Result from observing a scope at a point in time.
 
 ### Contributors
 
-Thanks to these wonderful people, we enjoy this awesome plugin.
+Thanks to these wonderful people for their contributions!
 
 <a href="https://github.com/cbochs/grapple.nvim/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=cbochs/grapple.nvim" />
