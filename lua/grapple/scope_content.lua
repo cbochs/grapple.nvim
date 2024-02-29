@@ -1,5 +1,3 @@
-local Path = require("grapple.path")
-
 ---@class grapple.scope_content
 ---@field scope_manager grapple.scope_manager
 ---@field hook_fn grapple.hook_fn

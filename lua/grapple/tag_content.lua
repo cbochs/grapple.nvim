@@ -77,41 +77,42 @@ function TagContent:entities()
     return tags, nil
 end
 
+---@param path string
+---@return string? icon, string? hl_group
+local function get_icon(path)
+    local ok, icons = pcall(require, "nvim-web-devicons")
+    if not ok then
+        error('The plugin "nvim-tree/nvim-web-devicons" is required')
+    end
+
+    local filename = vim.fn.fnamemodify(path, ":p:t")
+
+    local icon, hl = icons.get_icon(filename)
+    if not icon then
+        if filename == "" then
+            icon = ""
+        else
+            icon = ""
+        end
+    end
+
+    return icon, hl
+end
+
 ---@param tag grapple.tag
 ---@param index integer
 ---@return grapple.window.entry
 function TagContent:create_entry(tag, index)
-    ---@param path string
-    ---@return string? icon, string? hl_group
-    local function get_icon(path)
-        local ok, icons = pcall(require, "nvim-web-devicons")
-        if not ok then
-            error('The plugin "nvim-tree/nvim-web-devicons" is required')
-        end
-
-        local filename = vim.fn.fnamemodify(path, ":p:t")
-
-        local icon, hl = icons.get_icon(filename)
-        if not icon then
-            if filename == "" then
-                icon = ""
-            else
-                icon = ""
-            end
-        end
-
-        return icon, hl
-    end
+    local App = require("grapple.app")
+    local app = App.get()
 
     -- A string representation of the index
     local id = string.format("/%03d", index)
-
-    -- TODO: allow different line rendering options in settings
     local rel_path = Path.fs_relative(self.scope.path, tag.path)
 
     local line, min_col, icon_highlight
-    local use_icons = require("grapple.app").get().settings.icons
-    if use_icons then
+
+    if app.settings.icons then
         local icon, icon_group = get_icon(tag.path)
 
         -- In compliance with "grapple" syntax
@@ -167,10 +168,15 @@ end
 ---@param line string
 ---@return grapple.window.parsed_entry
 function TagContent:parse_line(line)
-    local id, index, path
-    local use_icons = require("grapple.app").get().settings.icons
-    if use_icons then
-        id, _, path = string.match(line, "^/(%d+) (%S+)  (%S*)")
+    local App = require("grapple.app")
+    local app = App.get()
+
+    ---@diagnostic disable-next-line: unused-local
+    local id, icon, index, path
+
+    if app.settings.icons then
+        ---@diagnostic disable-next-line: unused-local
+        id, icon, path = string.match(line, "^/(%d+) (%S+)  (%S*)")
     else
         id, path = string.match(line, "^/(%d+) (%S*)")
     end
