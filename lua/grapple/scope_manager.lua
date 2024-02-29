@@ -63,8 +63,12 @@ end
 function ScopeManager:define(name, resolver, opts)
     opts = opts or {}
 
-    if self:exists(name) and not opts.force then
-        return string.format("scope already exists: %s", name)
+    if self:exists(name) then
+        if not opts.force then
+            return string.format("scope already exists: %s", name)
+        end
+
+        self.cache:close(name)
     end
 
     local fallback, err
