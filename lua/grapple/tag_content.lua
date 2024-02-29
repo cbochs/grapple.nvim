@@ -156,8 +156,10 @@ function TagContent:create_entry(tag, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
-                invalidate = true,
                 virt_text = tag.name and { { tag.name } },
+
+                -- TODO: requires nvim-0.10
+                -- invalidate = true,
             },
         },
     }

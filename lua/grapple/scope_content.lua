@@ -102,7 +102,9 @@ function ScopeContent:create_entry(scope, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
-                invalidate = true,
+
+                -- TODO: requires nvim-0.10
+                -- invalidate = true,
             },
         },
     }

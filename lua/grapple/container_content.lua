@@ -102,7 +102,9 @@ function ContainerContent:create_entry(container, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
-                invalidate = true,
+
+                -- TODO: requires nvim-0.10
+                -- invalidate = true,
             },
         },
     }
