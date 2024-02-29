@@ -112,6 +112,7 @@ local DEFAULT_SETTINGS = {
     },
 
     ---User-defined tag title function for Grapple windows
+    ---By default, uses the resolved scope's ID
     ---@type fun(scope: grapple.resolved_scope): string?
     tag_title = function(scope)
         return scope.id
@@ -176,9 +177,10 @@ local DEFAULT_SETTINGS = {
     end,
 
     ---User-defined scope title function for Grapple windows
+    ---By default, renders "Grapple Scopes"
     ---@type fun(): string?
     scope_title = function()
-        return "Scopes"
+        return "Grapple Scopes"
     end,
 
     ---Not user documented
@@ -200,9 +202,10 @@ local DEFAULT_SETTINGS = {
     end,
 
     ---User-defined container title function for Grapple windows
+    ---By default, renders "Grapple Containers"
     ---@type fun(): string?
     container_title = function()
-        return "Containers"
+        return "Grapple Containers"
     end,
 
     ---Not user documented
