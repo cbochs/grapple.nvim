@@ -214,6 +214,7 @@ function Grapple.cycle(direction, opts)
     end)
 end
 
+---Return if a tag exists. Used for statusline components
 ---@param opts? grapple.options
 function Grapple.exists(opts)
     local App = require("grapple.app")
@@ -232,6 +233,8 @@ function Grapple.exists(opts)
     return exists
 end
 
+---Return the name or index of a tag. Used for statusline components
+---@param opts? grapple.options
 function Grapple.name_or_index(opts)
     local App = require("grapple.app")
 
@@ -252,6 +255,7 @@ function Grapple.name_or_index(opts)
     return name_or_index
 end
 
+---Return the tags for a given scope. Used for integrations
 ---@param opts? { scope?: string }
 ---@return grapple.tag[] | nil, string? error
 function Grapple.tags(opts)
@@ -297,6 +301,7 @@ function Grapple.reset(opts)
     end
 end
 
+---Create a user-defined scope
 ---@param definition grapple.scope_definition
 function Grapple.define_scope(definition)
     local App = require("grapple.app")
@@ -311,7 +316,7 @@ function Grapple.clear_cache(scope)
     local app = App.get()
 
     -- TODO: This is digging a bit too far into the scope manager,
-    -- but just a bit too lazy right now to fix
+    -- but just a too lazy right now to fix
     app.scope_manager.cache:invalidate(scope or app.settings.scope)
 end
 
@@ -335,13 +340,15 @@ end
 
 ---Open a floating window populated with all tags for a given scope
 ---By default, uses the current scope
----@param scope_name? string
-function Grapple.open_tags(scope_name)
+---@param opts? { scope?: string }
+function Grapple.open_tags(opts)
     local App = require("grapple.app")
     local TagContent = require("grapple.tag_content")
 
+    opts = opts or {}
+
     local app = App.get()
-    local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
+    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
