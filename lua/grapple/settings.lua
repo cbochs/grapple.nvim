@@ -85,8 +85,10 @@ local DEFAULT_SETTINGS = {
 
                 local root = vim.fn.fnamemodify(git_files[1], ":h")
 
-                local result = vim.system({ "git", "symbolic-ref", "--short", "HEAD" }, { text = true }):wait()
-                local branch = vim.trim(string.gsub(result.stdout, "\n", ""))
+                -- TODO: Don't use vim.system, it's a nvim-0.10 feature
+                -- TODO: Don't shell out, read the git head or something similar
+                local result = vim.fn.system({ "git", "symbolic-ref", "--short", "HEAD" })
+                local branch = vim.trim(string.gsub(result, "\n", ""))
 
                 local id = string.format("%s:%s", root, branch)
                 local path = root
