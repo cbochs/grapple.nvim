@@ -319,12 +319,10 @@ end
 ---@param ... string
 ---@return string joined
 function Path.join(...)
-    if Path.windows then
-        -- TODO: There's some edge cases here, maybe add them some day?
-        return Path.clean(table.concat({ ... }, Path.separator))
-    else
-        return Path.clean(table.concat({ ... }, Path.separator))
-    end
+    -- TODO: Use vim.fs.joinpath when nvim-0.10 comes out
+    -- TODO: Handle Windows path edge cases
+
+    return Path.clean(table.concat({ ... }, Path.separator))
 end
 
 ---Not from the Go filepath package
