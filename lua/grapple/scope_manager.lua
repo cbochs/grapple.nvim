@@ -58,7 +58,7 @@ end
 
 ---@param name string
 ---@param resolver grapple.scope_resolver
----@param opts? { force?: boolean, desc?: string, fallback?: string, cache?: grapple.cache.options }
+---@param opts? { force?: boolean, desc?: string, fallback?: string, cache?: grapple.cache.options | boolean }
 ---@return string? error
 function ScopeManager:define(name, resolver, opts)
     opts = opts or {}
@@ -76,7 +76,8 @@ function ScopeManager:define(name, resolver, opts)
     end
 
     if opts.cache then
-        self.cache:open(name, opts.cache)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        self.cache:open(name, opts.cache == true and {} or opts.cache)
     end
 
     local scope = Scope:new(name, resolver, {
