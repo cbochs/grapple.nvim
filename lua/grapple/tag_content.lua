@@ -86,7 +86,7 @@ function TagContent:create_entry(tag, index)
     local function get_icon(path)
         local ok, icons = pcall(require, "nvim-web-devicons")
         if not ok then
-            return nil, nil
+            error('The plugin "nvim-tree/nvim-web-devicons" is required')
         end
 
         local filename = vim.fn.fnamemodify(path, ":p:t")
