@@ -234,6 +234,13 @@ function Grapple.reset(opts)
     end
 end
 
+---@param definition grapple.scope_definition
+function Grapple.define_scope(definition)
+    local App = require("grapple.app")
+    local app = App.get()
+    app:define_scope(definition)
+end
+
 ---@param scope? string
 function Grapple.clear_cache(scope)
     local App = require("grapple.app")

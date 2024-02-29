@@ -49,24 +49,24 @@ function App:update(opts)
     self.settings:update(opts)
 
     -- Define default scopes, if not already defined
-    for _, scope_definition in ipairs(self.settings.default_scopes) do
-        self.scope_manager:define(scope_definition.name, scope_definition.resolver, {
-            force = false,
-            desc = scope_definition.desc,
-            fallback = scope_definition.fallback,
-            cache = scope_definition.cache,
-        })
+    for _, definition in ipairs(self.settings.default_scopes) do
+        self:define_scope(vim.tbl_extend("force", definition, { force = false }))
     end
 
     -- Define user scopes, force recreation
-    for _, scope_definition in ipairs(self.settings.scopes) do
-        self.scope_manager:define(scope_definition.name, scope_definition.resolver, {
-            force = true,
-            desc = scope_definition.desc,
-            fallback = scope_definition.fallback,
-            cache = scope_definition.cache,
-        })
+    for _, definition in ipairs(self.settings.scopes) do
+        self:define_scope(vim.tbl_extend("force", definition, { force = true }))
     end
+end
+
+---@param definition grapple.scope_definition
+function App:define_scope(definition)
+    self.scope_manager:define(definition.name, definition.resolver, {
+        force = definition.force,
+        desc = definition.desc,
+        fallback = definition.fallback,
+        cache = definition.cache,
+    })
 end
 
 ---@return string? error
@@ -86,7 +86,7 @@ end
 
 ---@param scope_name? string
 ---@param callback fun(container: grapple.tag_container): string?
----@param opts { sync?: boolean }
+---@param opts { sync: boolean }
 function App:enter(scope_name, callback, opts)
     local scope, err = self.scope_manager:get_resolved(scope_name or self.settings.scope)
     if not scope then
