@@ -6,7 +6,7 @@ local DEFAULT_SETTINGS = {
     ---Grapple save location
     ---@type string
     ---@diagnostic disable-next-line: param-type-mismatch
-    save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
+    save_path = vim.fn.stdpath("data") .. "/" .. "grapple",
 
     ---Show icons next to tags or scopes in Grapple windows
     ---@type boolean

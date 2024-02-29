@@ -37,7 +37,7 @@ function State:new(save_dir)
 end
 
 function State:save_path(name)
-    return vim.fs.joinpath(self.save_dir, string.format("%s.json", path_encode(name)))
+    return Path.join(self.save_dir, string.format("%s.json", path_encode(name)))
 end
 
 ---@return string? error
