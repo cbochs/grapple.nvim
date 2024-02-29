@@ -15,6 +15,7 @@ end
 ---@field cursor? integer[]
 ---@field scope? string
 
+---Extract a valid path from the provided path or buffer options.
 ---@param opts grapple.options
 ---@return string | nil path, string? error
 local function extract_path(opts)
@@ -222,6 +223,9 @@ function Grapple.exists(opts)
     local exists = false
     local app = App.get()
     app:enter_without_save(opts.scope, function(container)
+        local path, _ = extract_path(opts)
+        opts.path = path
+
         exists = container:has(opts)
     end)
 
@@ -236,6 +240,9 @@ function Grapple.name_or_index(opts)
     local name_or_index
     local app = App.get()
     app:enter_without_save(opts.scope, function(container)
+        local path, _ = extract_path(opts)
+        opts.path = path
+
         local tag = container:get(opts)
         if tag then
             name_or_index = tag.name or assert(container:find(opts))
