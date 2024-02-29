@@ -42,7 +42,7 @@ end
 
 ---@return string? error
 function State:ensure_created()
-    local exists, err = vim.uv.fs_access(self.save_dir, "RW")
+    local exists, err = vim.loop.fs_access(self.save_dir, "RW")
     if err then
         return err
     end
@@ -65,7 +65,7 @@ end
 ---@return string? error, string? error_kind
 function State:remove(name)
     local path = self:save_path(name)
-    local _, err = vim.uv.fs_unlink(path)
+    local _, err = vim.loop.fs_unlink(path)
     if err then
         return err, "FS_UNLINK"
     end
@@ -76,26 +76,26 @@ end
 function State:read(name)
     local path = self:save_path(name)
 
-    local fd, err, err_kind = vim.uv.fs_open(path, "r", 438)
+    local fd, err, err_kind = vim.loop.fs_open(path, "r", 438)
     if not fd then
         return nil, err, err_kind
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local stat, err, err_kind = vim.uv.fs_fstat(fd)
+    local stat, err, err_kind = vim.loop.fs_fstat(fd)
     if not stat then
-        assert(vim.uv.fs_close(fd), string.format("could not close file: %s", path))
+        assert(vim.loop.fs_close(fd), string.format("could not close file: %s", path))
         return nil, err, err_kind
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local data, err, err_kind = vim.uv.fs_read(fd, stat.size, 0)
+    local data, err, err_kind = vim.loop.fs_read(fd, stat.size, 0)
     if not data then
-        assert(vim.uv.fs_close(fd), string.format("could not close file: %s", path))
+        assert(vim.loop.fs_close(fd), string.format("could not close file: %s", path))
         return nil, err, err_kind
     end
 
-    assert(vim.uv.fs_close(fd))
+    assert(vim.loop.fs_close(fd))
 
     local ok, decoded = pcall(vim.json.decode, data)
     if not ok then
@@ -119,14 +119,14 @@ function State:write(name, obj)
         return err, "JSON_ENCODE"
     end
 
-    local fd, err, err_kind = vim.uv.fs_open(path, "w", 438)
+    local fd, err, err_kind = vim.loop.fs_open(path, "w", 438)
     if not fd then
         return err, err_kind
     end
 
     assert(type(encoded) == "string", "could not encode as json")
-    assert(vim.uv.fs_write(fd, encoded, 0))
-    assert(vim.uv.fs_close(fd))
+    assert(vim.loop.fs_write(fd, encoded, 0))
+    assert(vim.loop.fs_close(fd))
 
     return nil
 end

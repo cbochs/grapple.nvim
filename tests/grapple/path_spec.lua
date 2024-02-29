@@ -192,7 +192,7 @@ describe("Path", function()
         }
 
         -- Only test when the OS is actually Windows
-        local os_is_windows = vim.uv.os_uname().version:match("Windows")
+        local os_is_windows = vim.loop.os_uname().version:match("Windows")
         if Path.windows and not os_is_windows then
             return print("SKIPPING TESTS .absolute")
         end
@@ -216,9 +216,9 @@ describe("Path", function()
             local path = string.gsub(test_case, "%$", root)
 
             it(string.format("path %s", path), function()
-                local expected_stat = assert(vim.uv.fs_stat(path))
+                local expected_stat = assert(vim.loop.fs_stat(path))
                 local absolute = Path.absolute(path)
-                local stat = assert(vim.uv.fs_stat(absolute))
+                local stat = assert(vim.loop.fs_stat(absolute))
 
                 assert.same(expected_stat.dev, stat.dev)
                 assert.is_true(Path.is_absolute(absolute))

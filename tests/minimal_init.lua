@@ -14,7 +14,7 @@ local function install(repo_name)
     local plug_path = vim.fs.joinpath(pack_path, plug_name)
     local repo_url = string.format("https://github.com/%s.git", repo_name)
 
-    if not vim.uv.fs_stat(plug_path) then
+    if not vim.loop.fs_stat(plug_path) then
         print("Installing: " .. plug_name)
         vim.fn.mkdir(pack_path, "p")
         vim.fn.system({

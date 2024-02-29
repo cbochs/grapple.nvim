@@ -22,7 +22,7 @@ end
 
 ---@param ... string
 function Helpers.fs_exist(...)
-    return vim.uv.fs_stat(Helpers.fs_path(...))
+    return vim.loop.fs_stat(Helpers.fs_path(...))
 end
 
 ---@param ... string
@@ -34,8 +34,8 @@ end
 
 ---@param ... string
 function Helpers.fs_touch(...)
-    local fd = assert(vim.uv.fs_open(Helpers.fs_path(...), "w", 438))
-    assert(vim.uv.fs_close(fd))
+    local fd = assert(vim.loop.fs_open(Helpers.fs_path(...), "w", 438))
+    assert(vim.loop.fs_close(fd))
 end
 
 ---@param ... string

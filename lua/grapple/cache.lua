@@ -84,7 +84,7 @@ function Cache:watch(id)
     end
 
     if cache_value.interval then
-        cache_value.timer = vim.uv.new_timer()
+        cache_value.timer = vim.loop.new_timer()
         cache_value.timer:start(cache_value.interval, cache_value.interval, callback)
     end
 

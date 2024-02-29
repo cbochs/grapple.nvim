@@ -20,9 +20,9 @@ local Path = {}
 
 ---@return "windows" | "macos" | "linux"
 function Path.get_os()
-    if vim.uv.os_uname().version:match("Windows") then
+    if vim.loop.os_uname().version:match("Windows") then
         return "windows"
-    elseif vim.uv.os_uname().sysname == "Darwin" then
+    elseif vim.loop.os_uname().sysname == "Darwin" then
         return "macos"
     else
         return "linux"
@@ -196,7 +196,7 @@ function Path.absolute(path)
         return Path.clean(path)
     end
 
-    return Path.clean(Path.join(vim.uv.cwd(), path))
+    return Path.clean(Path.join(vim.loop.cwd(), path))
 end
 
 ---Matches IsLocal(path string)
@@ -416,7 +416,7 @@ end
 ---@param path string
 ---@return boolean exists
 function Path.exists(path)
-    return vim.uv.fs_stat(path) ~= nil
+    return vim.loop.fs_stat(path) ~= nil
 end
 
 return Path

@@ -36,7 +36,7 @@ local DEFAULT_SETTINGS = {
             name = "global",
             desc = "Global scope",
             resolver = function()
-                return "global", vim.uv.cwd()
+                return "global", vim.loop.cwd()
             end,
         },
         {
@@ -44,7 +44,7 @@ local DEFAULT_SETTINGS = {
             desc = "Starting working directory",
             cache = true,
             resolver = function()
-                return "static", vim.uv.cwd()
+                return "static", vim.loop.cwd()
             end,
         },
         {
@@ -52,7 +52,7 @@ local DEFAULT_SETTINGS = {
             desc = "Current working directory",
             cache = { event = "DirChanged" },
             resolver = function()
-                return vim.uv.cwd(), vim.uv.cwd()
+                return vim.loop.cwd(), vim.loop.cwd()
             end,
         },
         {
@@ -61,7 +61,7 @@ local DEFAULT_SETTINGS = {
             fallback = "cwd",
             cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
-                local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
+                local git_files = vim.fs.find(".git", { upward = true, stop = vim.loop.os_homedir() })
                 if #git_files == 0 then
                     return
                 end
@@ -78,7 +78,7 @@ local DEFAULT_SETTINGS = {
             cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
                 -- TODO: this will stop on submodules, needs fixing
-                local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
+                local git_files = vim.fs.find(".git", { upward = true, stop = vim.loop.os_homedir() })
                 if #git_files == 0 then
                     return
                 end
