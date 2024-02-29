@@ -189,15 +189,26 @@ function Grapple.name_or_index(opts)
     return name_or_index
 end
 
----@param scope? string
-function Grapple.clear_cache(scope)
+---@param opts? { scope?: string }
+---@return grapple.tag[] | nil, string? error
+function Grapple.tags(opts)
     local App = require("grapple.app")
 
-    local app = App.get()
+    opts = opts or {}
 
-    -- TODO: This is digging a bit too far into the scope manager,
-    -- but just a bit too lazy right now to fix
-    app.scope_manager.cache:invalidate(scope or app.settings.scope)
+    local app = App.get()
+    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+    if not scope then
+        return nil, err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local tags, err = scope:tags()
+    if not tags then
+        return nil, err
+    end
+
+    return tags, nil
 end
 
 ---Clear all tags for a given scope
@@ -217,10 +228,21 @@ function Grapple.reset(opts)
 
     ---@diagnostic disable-next-line: redefined-local
     local err = app.tag_manager:reset(scope.id)
-    if not scope then
+    if err then
         ---@diagnostic disable-next-line: param-type-mismatch
         vim.notify(err, vim.log.levels.ERROR)
     end
+end
+
+---@param scope? string
+function Grapple.clear_cache(scope)
+    local App = require("grapple.app")
+
+    local app = App.get()
+
+    -- TODO: This is digging a bit too far into the scope manager,
+    -- but just a bit too lazy right now to fix
+    app.scope_manager.cache:invalidate(scope or app.settings.scope)
 end
 
 ---Convenience function to open content in a new floating window
