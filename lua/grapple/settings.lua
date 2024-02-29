@@ -14,7 +14,7 @@ local DEFAULT_SETTINGS = {
 
     ---Default scope to use when managing Grapple tags
     ---@type string
-    scope = "git_branch",
+    scope = "git",
 
     ---@class grapple.scope_definition
     ---@field name string
