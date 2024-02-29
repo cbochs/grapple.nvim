@@ -76,6 +76,7 @@ local DEFAULT_SETTINGS = {
             fallback = "git",
             cache = { event = { "BufEnter", "FocusGained" } },
             resolver = function()
+                -- TODO: this will stop on submodules, needs fixing
                 local git_files = vim.fs.find(".git", { upward = true, stop = vim.uv.os_homedir() })
                 if #git_files == 0 then
                     return
