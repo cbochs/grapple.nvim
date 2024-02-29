@@ -139,7 +139,7 @@ require("grapple").setup({
 
 <details>
 <summary>Grapple API and Examples</summary>
-\
+
 In general, the Grapple API is as follows:
 
 **Lua**: `require("grapple").{method}(opts)`
@@ -199,7 +199,7 @@ Remove a Grapple tag.
 
 **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
 
-**Note**: Tag is removed based on one of (in order): `path`, `buffer`, `name`, `index`
+**Note**: Tag is removed based on one of (in order): `index`, `name`, `path`, `buffer`
 
 <details>
 <summary><b>Examples</b></summary>
@@ -310,13 +310,16 @@ require("grapple").cycle_forward()
 
 #### `grapple#reset`
 
-Clear all tags within a scope.
+Clear all tags in a container or for a scope.
 
-**Command**: `:Grapple reset [scope]`
+**Command**: `:Grapple reset [scope={scope}] [id={id}]`
 
-**API**: `require("grapple").reset(scope)`
+**API**: `require("grapple").reset(opts)`
 
-**`scope?`**: `string` (default: `settings.scope`)
+**`opts?`**: `table`
+
+- **`scope?`**: `string` scope name
+- **`id?`**: `string` the ID of a resolved scope
 
 <details>
 <summary><b>Examples</b></summary>
@@ -325,8 +328,11 @@ Clear all tags within a scope.
 -- Reset the current scope
 require("grapple").reset()
 
--- Reset a different scope
-require("grapple").reset("global")
+-- Reset a scope (dynamic)
+require("grapple").reset({ scope = "git" })
+
+-- Reset a specific resolved scope ID
+require("grapple").reset({ id = "~/git" })
 ```
 
 </details>
@@ -611,9 +617,10 @@ Used for defining new scopes.
 **Type**: `table`
 
 - **`name`**: `string` scope name
+- **`desc`**: `string` scope description
 - **`resolver`**: [`grapple.scope_resolver`](#grapplescope_resolver)
 - **`fallback?`**: `string` fallback scope name
-- **`cache?`**: [`grapple.cache.options`](#grapplecacheoptions)
+- **`cache?`**: [`grapple.cache.options`](#grapplecacheoptions) | `boolean`
 
 ### `grapple.scope_resolver`
 
