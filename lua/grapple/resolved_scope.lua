@@ -21,9 +21,10 @@ function ResolvedScope:new(name, id, path, tag_manager)
 end
 
 ---@param callback fun(container: grapple.tag_container): string?
+---@param opts? { sync?: boolean }
 ---@return string? error
-function ResolvedScope:enter(callback)
-    return self.tag_manager:transaction(self.id, callback)
+function ResolvedScope:enter(callback, opts)
+    return self.tag_manager:transaction(self.id, callback, opts)
 end
 
 ---@return grapple.tag[] | nil, string? error

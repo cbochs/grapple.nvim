@@ -86,7 +86,8 @@ end
 
 ---@param scope_name? string
 ---@param callback fun(container: grapple.tag_container): string?
-function App:enter(scope_name, callback)
+---@param opts { sync?: boolean }
+function App:enter(scope_name, callback, opts)
     local scope, err = self.scope_manager:get_resolved(scope_name or self.settings.scope)
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
@@ -94,10 +95,22 @@ function App:enter(scope_name, callback)
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(callback)
+    local err = scope:enter(callback, opts)
     if err then
         vim.notify(err, vim.log.levels.WARN)
     end
+end
+
+---@return grapple.resolved_scope | nil, string? error
+---@param callback fun(container: grapple.tag_container): string?
+function App:enter_with_save(scope_name, callback)
+    self:enter(scope_name, callback, { sync = false })
+end
+
+---@return grapple.resolved_scope | nil, string? error
+---@param callback fun(container: grapple.tag_container): string?
+function App:enter_without_save(scope_name, callback)
+    self:enter(scope_name, callback, { sync = true })
 end
 
 return App

@@ -35,8 +35,13 @@ end
 
 ---@param id string
 ---@param callback fun(container: grapple.tag_container): string?
+---@param opts? { sync?: boolean }
 ---@return string? error
-function TagManager:transaction(id, callback)
+function TagManager:transaction(id, callback, opts)
+    opts = vim.tbl_extend("keep", opts or {}, {
+        sync = true,
+    })
+
     local container, err = self:load(id)
     if not container then
         return err
@@ -53,10 +58,12 @@ function TagManager:transaction(id, callback)
         modeline = false,
     })
 
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self:sync(id)
-    if err then
-        return err
+    if opts.sync then
+        ---@diagnostic disable-next-line: redefined-local
+        local err = self:sync(id)
+        if err then
+            return err
+        end
     end
 
     return nil

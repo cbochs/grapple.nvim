@@ -15,34 +15,46 @@ end
 ---@field cursor? integer[]
 ---@field scope? string
 
+---Create a new tag or update an existing tag on a path, URI, or buffer
+---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.tag(opts)
+    local App = require("grapple.app")
+
     opts = opts or {}
 
-    local app = require("grapple.app").get()
-    app:enter(opts.scope, function(container)
+    local app = App.get()
+    app:enter_with_save(opts.scope, function(container)
         opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
         return container:insert(opts)
     end)
 end
 
+---Delete a tag on a path, URI, or buffer
+---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.untag(opts)
+    local App = require("grapple.app")
+
     opts = opts or {}
 
-    local app = require("grapple.app").get()
-    app:enter(opts.scope, function(container)
+    local app = App.get()
+    app:enter_with_save(opts.scope, function(container)
         opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
         return container:remove(opts)
     end)
 end
 
+---Toggle a tag on a path, URI, or buffer. Lookup is done by index, name, path, or buffer
+---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.toggle(opts)
+    local App = require("grapple.app")
+
     opts = opts or {}
 
-    local app = require("grapple.app").get()
-    app:enter(opts.scope, function(container)
+    local app = App.get()
+    app:enter_with_save(opts.scope, function(container)
         opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
         if container:has(opts) then
             return container:remove(opts)
@@ -52,33 +64,35 @@ function Grapple.toggle(opts)
     end)
 end
 
+---Select a tag by index, name, path, or buffer
+---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.select(opts)
-    local TagActions = require("grapple.tag_actions")
+    local App = require("grapple.app")
 
     opts = opts or {}
 
-    local app = require("grapple.app").get()
-    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
+    local app = App.get()
+    app:enter_with_save(opts.scope, function(container)
+        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        local index, err = container:find(opts)
+        if not index then
+            return err
+        end
 
-    local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
-
-    ---@diagnostic disable-next-line: redefined-local
-    local err = TagActions.select({ index = opts.index, name = opts.name, path = path, scope = scope })
-    if err then
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
+        local tag = assert(container:get({ index = index }))
+        tag:select()
+    end)
 end
 
+---Open the quickfix window populated with paths from a given scope
+---By default, uses the current scope
 ---@param scope_name? string
 function Grapple.quickfix(scope_name)
+    local App = require("grapple.app")
     local TagActions = require("grapple.tag_actions")
 
-    local app = require("grapple.app").get()
+    local app = App.get()
     local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
@@ -92,23 +106,29 @@ function Grapple.quickfix(scope_name)
     end
 end
 
+---Select the next available tag for a given scope
+---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.cycle_forward(opts)
     Grapple.cycle("forward", opts)
 end
 
+---Select the previous available tag for a given scope
+---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.cycle_backward(opts)
     Grapple.cycle("backward", opts)
 end
 
+---Cycles through a given scope's tags
+---By default, uses the current scope
 ---@param direction "forward" | "backward"
 ---@param opts? grapple.options
 function Grapple.cycle(direction, opts)
     opts = opts or {}
 
     local app = require("grapple.app").get()
-    app:enter(opts.scope, function(container)
+    app:enter_with_save(opts.scope, function(container)
         if container:is_empty() then
             return
         end
@@ -137,23 +157,77 @@ function Grapple.cycle(direction, opts)
     end)
 end
 
----@param opts? { scope?: string, path?: string }
-function Grapple.reset(opts)
+---@param opts? grapple.options
+function Grapple.exists(opts)
     local App = require("grapple.app")
 
+    opts = opts or {}
+
+    local exists = false
     local app = App.get()
+    app:enter_without_save(opts.scope, function(container)
+        exists = container:has(opts)
+    end)
+
+    return exists
+end
+
+function Grapple.name_or_index(opts)
+    local App = require("grapple.app")
+
+    opts = opts or {}
+
+    local name_or_index
+    local app = App.get()
+    app:enter_without_save(opts.scope, function(container)
+        local tag = container:get(opts)
+        if tag then
+            name_or_index = tag.name or assert(container:find(opts))
+        end
+    end)
+
+    return name_or_index
 end
 
 ---@param scope? string
-function Grapple.invalidate(scope)
+function Grapple.clear_cache(scope)
     local App = require("grapple.app")
 
     local app = App.get()
+
+    -- TODO: This is digging a bit too far into the scope manager,
+    -- but just a bit too lazy right now to fix
+    app.scope_manager.cache:invalidate(scope or app.settings.scope)
 end
 
-local function open(content)
-    local Window = require("grapple.window")
+---Clear all tags for a given scope
+---By default, uses the current scope
+---@param opts? { scope?: string }
+function Grapple.reset(opts)
     local App = require("grapple.app")
+
+    opts = opts or {}
+
+    local app = App.get()
+    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = app.tag_manager:reset(scope.id)
+    if not scope then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        vim.notify(err, vim.log.levels.ERROR)
+    end
+end
+
+---Convenience function to open content in a new floating window
+---@param content grapple.tag_content | grapple.scope_content | grapple.container_content
+local function open(content)
+    local App = require("grapple.app")
+    local Window = require("grapple.window")
 
     local app = App:get()
     local window = Window:new(app.settings.win_opts)
@@ -167,6 +241,8 @@ local function open(content)
     end
 end
 
+---Open a floating window populated with all tags for a given scope
+---By default, uses the current scope
 ---@param scope_name? string
 function Grapple.open_tags(scope_name)
     local App = require("grapple.app")
@@ -184,6 +260,7 @@ function Grapple.open_tags(scope_name)
     open(content)
 end
 
+---Open a floating window populated with all defined scopes
 function Grapple.open_scopes()
     local App = require("grapple.app")
     local ScopeContent = require("grapple.scope_content")
@@ -194,6 +271,7 @@ function Grapple.open_scopes()
     open(content)
 end
 
+---Open a floating window populated with all loaded tag containers
 function Grapple.open_containers()
     local App = require("grapple.app")
     local ContainerContent = require("grapple.container_content")
@@ -204,6 +282,8 @@ function Grapple.open_containers()
     open(content)
 end
 
+---Initialize Grapple. Sets up autocommands to watch tagged files and creates the
+---"Grapple" user command. Called only once when plugin is loaded.
 function Grapple.initialize()
     vim.api.nvim_create_augroup("Grapple", { clear = true })
 
