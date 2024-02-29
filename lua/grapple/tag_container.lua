@@ -160,23 +160,31 @@ function TagContainer:find(opts)
         if index < 1 or index > #self.tags then
             return nil, string.format("tag index is out-of-bounds: %s", opts.index)
         end
-    elseif opts.name then
+
+        return index
+    end
+
+    if opts.name then
         index = self:index({ name = opts.name })
 
         if not index then
             return nil, string.format("tag does not exist for name: %s", opts.name)
         end
-    elseif opts.path then
+
+        return index
+    end
+
+    if opts.path then
         index = self:index({ path = opts.path })
 
         if not index then
             return nil, string.format("tag does not exist for path: %s", opts.path)
         end
-    else
-        return nil, "must provide either an index, name, or path"
+
+        return index
     end
 
-    return index, nil
+    return nil, "must provide either an index, name, or path"
 end
 
 ---Lookup the tag index based on a given name or path
