@@ -81,17 +81,19 @@ end
 ---@param index integer
 ---@return grapple.window.entry
 function TagContent:create_entry(tag, index)
-    ---@param name string
+    ---@param path string
     ---@return string? icon, string? hl_group
-    local function get_icon(name)
+    local function get_icon(path)
         local ok, icons = pcall(require, "nvim-web-devicons")
         if not ok then
             return nil, nil
         end
 
-        local icon, hl = icons.get_icon(name)
+        local filename = vim.fn.fnamemodify(path, ":p:t")
+
+        local icon, hl = icons.get_icon(filename)
         if not icon then
-            if name == "" then
+            if filename == "" then
                 icon = ""
             else
                 icon = ""
@@ -105,16 +107,12 @@ function TagContent:create_entry(tag, index)
     local id = string.format("/%03d", index)
 
     -- TODO: allow different line rendering options in settings
-    local rel_path = Path.relative(self.scope.path, tag.path)
+    local rel_path = Path.fs_relative(self.scope.path, tag.path)
 
     local line, min_col, icon_highlight
     local use_icons = require("grapple.app").get().settings.icons
     if use_icons then
-        ---@type string
-        ---@diagnostic disable-next-line: assign-type-mismatch
-        local name = vim.fn.fnamemodify(tag.path, ":p")
-
-        local icon, icon_group = get_icon(name)
+        local icon, icon_group = get_icon(tag.path)
 
         -- In compliance with "grapple" syntax
         line = string.format("%s %s  %s", id, icon, rel_path)
@@ -140,6 +138,7 @@ function TagContent:create_entry(tag, index)
         ---@class grapple.tag.content.data
         data = {
             path = tag.path,
+            name = tag.name,
             cursor = tag.cursor,
         },
 
@@ -157,6 +156,7 @@ function TagContent:create_entry(tag, index)
             opts = {
                 sign_text = string.format("%d", index),
                 invalidate = true,
+                virt_text = tag.name and { { tag.name } },
             },
         },
     }
@@ -208,7 +208,7 @@ function TagContent:parse_line(line)
         path = Path.join(self.scope.path, path)
     end
 
-    path = Path.absolute(path)
+    path = Path.fs_absolute(path)
 
     ---@type grapple.window.parsed_entry
     local entry = {
@@ -247,7 +247,7 @@ function TagContent:diff(original, modified)
             goto continue
         end
 
-        local cursor
+        local name, cursor
         if entry.index then
             local original_entry = original[entry.index]
 
@@ -255,6 +255,7 @@ function TagContent:diff(original, modified)
             local original_data = original_entry.data
 
             if original_data.path == data.path then
+                name = original_data.name
                 cursor = original_data.cursor
             end
         end
@@ -263,6 +264,7 @@ function TagContent:diff(original, modified)
             action = "insert",
             opts = {
                 path = entry.data.path,
+                name = name,
                 cursor = cursor,
                 index = i,
             },
@@ -284,9 +286,6 @@ function TagContent:apply_changes(changes)
             if change.action == "insert" then
                 ---@diagnostic disable-next-line: param-type-mismatch
                 container:insert(change.opts)
-            elseif change.action == "move" then
-                ---@diagnostic disable-next-line: param-type-mismatch
-                container:move(change.opts)
             elseif change.action == "remove" then
                 ---@diagnostic disable-next-line: param-type-mismatch
                 container:remove(change.opts)
@@ -301,7 +300,7 @@ end
 ---@param opts? grapple.action.options
 ---@return string? error
 function TagContent:perform(action, opts)
-    opts = vim.tbl_extend("force", opts, {
+    opts = vim.tbl_extend("force", opts or {}, {
         scope = self.scope,
     })
 

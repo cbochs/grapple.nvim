@@ -11,8 +11,9 @@ local TagActions = {}
 ---@field scope grapple.resolved_scope
 ---
 ---User-provided information
----@field path? string
 ---@field index? integer
+---@field name? string
+---@field path? string
 ---@field command? function
 
 ---@param opts grapple.action.tag_options
@@ -21,7 +22,12 @@ function TagActions.select(opts)
     local scope = opts.scope
 
     local err = scope:enter(function(container)
-        local tag, err = container:get({ path = opts.path, index = opts.index })
+        local tag, err = container:get({
+            index = opts.index,
+            name = opts.name,
+            path = opts.path,
+        })
+
         if not tag then
             return err
         end
@@ -58,7 +64,7 @@ function TagActions.quickfix(opts)
             filename = tag.path,
             lnum = tag.cursor[1],
             col = tag.cursor[2] + 1,
-            text = Path.relative(scope.path, tag.path),
+            text = Path.fs_relative(scope.path, tag.path),
         })
     end
 

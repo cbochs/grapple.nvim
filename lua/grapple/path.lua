@@ -192,22 +192,16 @@ end
 ---@param path string
 ---@return string abs_path
 function Path.absolute(path)
-    -- Assume URIs are already absolute, don't clean them
-    if Path.is_uri(path) then
-        return path
+    if Path.is_absolute(path) then
+        return Path.clean(path)
     end
 
-    -- Expand "~" and environment variables before cleaning
-    local norm_path = vim.fs.normalize(path)
-
-    if Path.is_absolute(norm_path) then
-        return Path.clean(norm_path)
-    end
-
-    return Path.clean(Path.join(vim.uv.cwd(), norm_path))
+    return Path.clean(Path.join(vim.uv.cwd(), path))
 end
 
-function Path.is_local(path)
+---Matches IsLocal(path string)
+---@param path string
+function Path.is_relative(path)
     if Path.windows then
         if path == "" then
             return false
@@ -243,11 +237,6 @@ end
 ---@param targ string
 ---@return string | nil rel_path, string? error
 function Path.relative(base, targ)
-    -- Assume URIs cannot be made relative
-    if Path.is_uri(targ) then
-        return targ, nil
-    end
-
     local base_path = Path.clean(base)
     local targ_path = Path.clean(targ)
 
@@ -313,28 +302,6 @@ function Path.relative(base, targ)
     return rel_path, nil
 end
 
----@param ... string
----@return string joined
-function Path.join(...)
-    if Path.windows then
-        return ""
-    else
-        return Path.clean(table.concat({ ... }, Path.separator))
-    end
-end
-
----Not from the Go filepath package
----Simple check to see if a path is a URI
----@param path string
----@return boolean
-function Path.is_uri(path)
-    local index = string.find(path, ":")
-
-    -- 1. If there is no index, it is not a URI
-    -- 2. If there is an index, check that it is not a Windows volume "C:"
-    return index and index > 2 or false
-end
-
 ---Not from the Go filepath package
 ---Check to see if a path can be the tail end of a join
 ---1. The path is relative to known directory (i.e. CWD or HOME)
@@ -349,10 +316,61 @@ function Path.is_joinable(path)
         or Path.is_absolute(path)
 end
 
+---@param ... string
+---@return string joined
+function Path.join(...)
+    if Path.windows then
+        return ""
+    else
+        return Path.clean(table.concat({ ... }, Path.separator))
+    end
+end
+
 ---Not from the Go filepath package
+---Returns the absolute path after observing the filesystem
+function Path.fs_absolute(path)
+    -- Assume URIs are already absolute, don't clean them
+    if Path.is_uri(path) then
+        return path
+    end
+
+    path = vim.fs.normalize(path)
+    path = Path.absolute(path)
+    path = vim.fn.fnamemodify(path, ":p")
+    return path
+end
+
+---Not from the Go filepath package
+---Returns the relative path after observing the filesystem
+---@param base string
+---@param targ string
+---@return string | nil rel_path, string? error
+function Path.fs_relative(base, targ)
+    -- Assume URIs cannot be made relative
+    if Path.is_uri(targ) then
+        return targ, nil
+    end
+
+    base = Path.fs_absolute(base)
+    targ = Path.fs_absolute(targ)
+
+    local path, err = Path.relative(base, targ)
+    if not path then
+        return nil, err
+    end
+
+    if vim.fn.isdirectory(targ) == 1 then
+        path = path .. "/"
+    end
+
+    return path
+end
+
+---Not from the Go filepath package
+---Returns the short path after observing the filesystem
 ---@param path string
 ---@return string short_path, string? error
-function Path.short(path)
+function Path.fs_short(path)
     -- Assume URIs are already as short as they can be
     if Path.is_uri(path) then
         return path
@@ -365,6 +383,32 @@ function Path.short(path)
     local short_path = vim.fn.fnamemodify(abs_path, ":~:.")
 
     return short_path
+end
+
+---Not from the Go filepath package
+---Simple check to see if a path is a URI
+---@param path string
+---@return boolean
+function Path.is_uri(path)
+    local index = string.find(path, ":")
+
+    -- 1. If there is no index, it is not a URI
+    -- 2. If there is an index, check that it is not a Windows volume "C:"
+    return index and index > 2 or false
+end
+
+---@param path string
+---@return string | nil scheme, integer path_start
+function Path.scheme(path)
+    if not Path.is_uri(path) then
+        return nil, 1
+    end
+
+    local index = assert(string.find(path, ":"))
+    local scheme = string.sub(path, 1, index - 1)
+    local path_start = index + 1
+
+    return scheme, path_start
 end
 
 ---Not from the Go filepath package

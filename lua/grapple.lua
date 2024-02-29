@@ -12,6 +12,7 @@ end
 ---@field path? string
 ---@field name? string
 ---@field index? integer
+---@field cursor? integer[]
 ---@field scope? string
 
 ---@param opts? grapple.options
@@ -20,8 +21,8 @@ function Grapple.tag(opts)
 
     local app = require("grapple.app").get()
     app:enter(opts.scope, function(container)
-        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
-        return container:insert({ path = path, index = opts.index })
+        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        return container:insert(opts)
     end)
 end
 
@@ -31,8 +32,8 @@ function Grapple.untag(opts)
 
     local app = require("grapple.app").get()
     app:enter(opts.scope, function(container)
-        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
-        return container:remove({ path = path, index = opts.index })
+        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        return container:remove(opts)
     end)
 end
 
@@ -42,11 +43,11 @@ function Grapple.toggle(opts)
 
     local app = require("grapple.app").get()
     app:enter(opts.scope, function(container)
-        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
-        if container:has(path) then
-            return container:remove({ path = path })
+        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        if container:has(opts) then
+            return container:remove(opts)
         else
-            return container:insert({ path = path })
+            return container:insert(opts)
         end
     end)
 end
@@ -67,7 +68,7 @@ function Grapple.select(opts)
     local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = TagActions.select({ scope = scope, path = path, index = opts.index })
+    local err = TagActions.select({ index = opts.index, name = opts.name, path = path, scope = scope })
     if err then
         return vim.notify(err, vim.log.levels.ERROR)
     end
@@ -112,13 +113,13 @@ function Grapple.cycle(direction, opts)
             return
         end
 
-        local path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
+        opts.path = opts.path or vim.api.nvim_buf_get_name(opts.buffer or 0)
 
         -- Fancy maths to get the next index for a given direction
         -- 1. Change to 0-based indexing
         -- 2. Perform index % container length, being careful of negative values
         -- 3. Change back to 1-based indexing
-        local index = (container:find({ path = path, index = opts.index }) or 1) - 1
+        local index = (container:find(opts) or 1) - 1
         local next_direction = direction == "forward" and 1 or -1
         local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
 
@@ -134,6 +135,20 @@ function Grapple.cycle(direction, opts)
             return err
         end
     end)
+end
+
+---@param opts? { scope?: string, path?: string }
+function Grapple.reset(opts)
+    local App = require("grapple.app")
+
+    local app = App.get()
+end
+
+---@param scope? string
+function Grapple.invalidate(scope)
+    local App = require("grapple.app")
+
+    local app = App.get()
 end
 
 local function open(content)
@@ -213,6 +228,11 @@ function Grapple.initialize()
 
             for _, arg in ipairs({ unpack(opts.fargs, 2) }) do
                 local key, value = string.match(arg, "^(.*)=(.*)$")
+
+                if value == "" then
+                    value = nil
+                end
+
                 if not key then
                     table.insert(args, tonumber(arg) or arg)
                 else
@@ -220,7 +240,15 @@ function Grapple.initialize()
                 end
             end
 
-            Grapple[action](unpack(args), unpack(kwargs))
+            if #args > 0 and not vim.tbl_isempty(kwargs) then
+                Grapple[action](unpack(args), kwargs)
+            elseif #args > 0 and vim.tbl_isempty(kwargs) then
+                Grapple[action](unpack(args))
+            elseif #args == 0 and not vim.tbl_isempty(kwargs) then
+                Grapple[action](kwargs)
+            else
+                Grapple[action]()
+            end
         end,
         {
             desc = "Grapple",

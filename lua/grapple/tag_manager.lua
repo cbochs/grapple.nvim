@@ -15,17 +15,14 @@ function TagManager:new(state)
     }, self)
 end
 
----@param opts grapple.tag.container.get
----@return boolean success, string[] errors
+---@param opts grapple.options
+---@return string[] errors
 function TagManager:update_all(opts)
     local errors = {}
 
     for _, id in ipairs(vim.tbl_keys(self.containers)) do
         local err = self:transaction(id, function(container)
-            local _, err = container:update(opts)
-            if err then
-                return err
-            end
+            return container:update(opts)
         end)
 
         if err then
@@ -33,7 +30,7 @@ function TagManager:update_all(opts)
         end
     end
 
-    return (#errors == 0), errors
+    return errors
 end
 
 ---@param id string

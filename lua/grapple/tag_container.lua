@@ -2,13 +2,15 @@ local Path = require("grapple.path")
 local Tag = require("grapple.tag")
 
 ---@class grapple.tag.container.insert
----@field path string
+---@field path string rquired, must be unique
+---@field name? string optional, but must be unique
 ---@field cursor? integer[]
 ---@field index? integer
 
 ---@class grapple.tag.container.get
----@field path? string
 ---@field index? integer
+---@field name? string
+---@field path? string
 
 ---@class grapple.tag.container.move
 ---@field path string
@@ -17,6 +19,8 @@ local Tag = require("grapple.tag")
 ---@class grapple.tag_container
 ---@field name string
 ---@field tags grapple.tag[]
+---@field paths_index table<string, grapple.tag>
+---@field names_index table<string, grapple.tag>
 local TagContainer = {}
 TagContainer.__index = TagContainer
 
@@ -26,6 +30,8 @@ function TagContainer:new(name)
     return setmetatable({
         name = name,
         tags = {},
+        paths_index = {},
+        names_index = {},
     }, self)
 end
 
@@ -37,47 +43,56 @@ function TagContainer:is_empty()
     return self:len() == 0
 end
 
----@param opts grapple.tag.container.insert
+---@param opts grapple.options
 ---@return string? error
 function TagContainer:insert(opts)
-    if self:has(opts.path) then
-        return string.format("tag already exists: %s", opts.path)
+    vim.validate({ path = { opts.path, "string" } })
+
+    if opts.index and (opts.index < 1 or opts.index > #self.tags + 1) then
+        return string.format("tag insert opts.index is out-of-bounds: %s", opts.index)
     end
 
-    local path = Path.absolute(opts.path)
-    local tag = Tag:new(path, opts.cursor)
+    local path = Path.fs_absolute(opts.path)
 
-    table.insert(self.tags, opts.index or (#self.tags + 1), tag)
+    -- Grab previous information from the "path" tag
+    local path_tag = self:get({ path = path })
+    local cursor = opts.cursor or path_tag and path_tag.cursor
+    local name = opts.name or path_tag and path_tag.name
+    local tag = Tag:new(path, name, cursor)
+
+    local index = opts.index or self:index({ path = path }) or (#self.tags + 1)
+
+    -- It's possible the "path" tag and "name" tag are different.
+    -- In this case, account for the possibility of two tags being
+    -- removed during a single insert
+    local name_tag = self:get({ name = opts.name })
+    local same_tag = path_tag and name_tag and path_tag.path == name_tag.path
+    if not same_tag then
+        local name_index = self:index({ name = opts.name })
+        if name_index and name_index < index then
+            index = index + 1
+        end
+    end
+
+    -- Attempt to clear the "path" tag and "name" tag
+    self:remove({ path = path })
+    self:remove({ name = name })
+
+    -- Clamp the index to (at most) the end of the list
+    index = math.min(index, #self.tags + 1)
+
+    table.insert(self.tags, index, tag)
+
+    -- Update path and name indices
+    self.paths_index[tag.path] = tag
+    if tag.name then
+        self.names_index[tag.name] = tag
+    end
 
     return nil
 end
 
----@param opts grapple.tag.container.move
----@return string? error
-function TagContainer:move(opts)
-    local index = self:index(opts.path)
-    if not index then
-        return string.format("tag does not exist for file path: %s", opts.path)
-    end
-
-    local tag = self.tags[index]
-
-    if opts.index == index then
-        return nil
-    elseif opts.index < index then
-        table.remove(self.tags, index)
-        table.insert(self.tags, opts.index, tag)
-        return nil
-    elseif opts.index > index then
-        table.insert(self.tags, opts.index + 1, tag)
-        table.remove(self.tags, index)
-        return nil
-    end
-
-    error(string.format("tag could not be moved from index %s to %s: %s", index, opts.index, opts.path))
-end
-
----@param opts grapple.tag.container.get
+---@param opts grapple.options
 ---@return string? error
 function TagContainer:remove(opts)
     if self:is_empty() then
@@ -89,87 +104,101 @@ function TagContainer:remove(opts)
         return err
     end
 
+    local tag = assert(self:get({ index = index }))
+
     table.remove(self.tags, index)
+    self.paths_index[tag.path] = nil
+    if tag.name then
+        self.names_index[tag.name] = nil
+    end
 
     return nil
 end
 
----@param opts grapple.tag.container.get
----@return boolean success, string? error
+---@param opts grapple.options
+---@return string? error
 function TagContainer:update(opts)
-    local tag, err = self:get(opts)
-    if not tag then
-        return false, err
+    local index, err = self:find(opts)
+    if not index then
+        return err
     end
 
-    ---@diagnostic disable-next-line: redefined-local
-    local ok, err = tag:update()
-    if not ok then
-        return false, err
-    end
-
-    return true, nil
+    local tag = assert(self:get({ index = index }))
+    tag:update()
 end
 
 function TagContainer:clear()
     self.tags = {}
+    self.paths_index = {}
+    self.names_index = {}
 end
 
----@param opts grapple.tag.container.get
----@return grapple.tag | nil, string? error
+---@param opts grapple.options
+function TagContainer:has(opts)
+    return self:get(opts) ~= nil
+    -- stylua: ignore
+end
+
+---@param opts grapple.options
+---@return grapple.tag | nil
 function TagContainer:get(opts)
-    local index, err = self:find(opts)
-    if not index then
-        return nil, err
-    end
-
-    return self.tags[index], nil
+    -- stylua: ignore
+    return self.tags[opts.index]
+        or self.names_index[opts.name]
+        or self.paths_index[opts.path and Path.fs_absolute(opts.path)]
 end
 
----@param opts grapple.tag.container.get
+---Search for a tag
+---@param opts grapple.options
 ---@return integer | nil index, string? error
 function TagContainer:find(opts)
     local index
-    if opts.path then
-        index = self:index(opts.path)
 
-        if not index then
-            return nil, string.format("tag does not exist for file path: %s", opts.path)
-        end
-    elseif opts.index then
+    if opts.index then
         index = opts.index
 
         if index < 1 or index > #self.tags then
             return nil, string.format("tag index is out-of-bounds: %s", opts.index)
         end
-    end
+    elseif opts.name then
+        index = self:index({ name = opts.name })
 
-    if not index then
-        return nil, "must provide either a tag path or index"
+        if not index then
+            return nil, string.format("tag does not exist for name: %s", opts.name)
+        end
+    elseif opts.path then
+        index = self:index({ path = opts.path })
+
+        if not index then
+            return nil, string.format("tag does not exist for path: %s", opts.path)
+        end
+    else
+        return nil, "must provide either an index, name, or path"
     end
 
     return index, nil
 end
 
----@param path string
+---Lookup the tag index based on a given name or path
+---@param opts table
 ---@return integer | nil index
-function TagContainer:index(path)
-    local abs_path, _ = Path.absolute(path)
-    if not abs_path then
+function TagContainer:index(opts)
+    if opts.path then
+        opts.path = Path.fs_absolute(opts.path)
+    end
+
+    -- Short-circuit for container indices
+    if (opts.path or opts.name) and not self:has(opts) then
         return nil
     end
 
     for i, tag in ipairs(self.tags) do
-        if tag.path == abs_path then
-            return i
+        for key, value in pairs(opts) do
+            if tag[key] == value then
+                return i
+            end
         end
     end
-end
-
----@param path string
----@return boolean
-function TagContainer:has(path)
-    return self:index(path) ~= nil
 end
 
 -- Implements Serializable
@@ -200,9 +229,35 @@ function TagContainer.from_table(tbl)
         end
 
         table.insert(container.tags, tag)
+        container.paths_index[tag.path] = tag
+        if tag.name then
+            container.names_index[tag.name] = tag
+        end
     end
 
     return container, nil
+end
+
+---Unused
+---@param opts grapple.tag.container.move
+---@return string? error
+function TagContainer:move(opts)
+    local index = self:index({ path = opts.path })
+    if not index then
+        return string.format("tag does not exist for path: %s", opts.path)
+    end
+
+    local tag = self.tags[index]
+
+    if opts.index == index then
+        -- Do nothing
+    elseif opts.index < index then
+        table.remove(self.tags, index)
+        table.insert(self.tags, opts.index, tag)
+    elseif opts.index > index then
+        table.insert(self.tags, opts.index + 1, tag)
+        table.remove(self.tags, index)
+    end
 end
 
 return TagContainer

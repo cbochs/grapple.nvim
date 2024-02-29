@@ -2,30 +2,29 @@ local Path = require("grapple.path")
 
 ---@class grapple.tag
 ---@field path string absolute path
+---@field name string tag name
 ---@field cursor integer[] (1, 0)-indexed cursor position
 local Tag = {}
 Tag.__index = Tag
 
 ---@param path string
 ---@param cursor? integer[]
-function Tag:new(path, cursor)
+function Tag:new(path, name, cursor)
     return setmetatable({
         path = path,
+        name = name,
         cursor = cursor or { 1, 0 },
     }, self)
 end
 
----@return boolean success, string? error
 function Tag:update()
     self.cursor = vim.api.nvim_win_get_cursor(0)
-
-    return true, nil
 end
 
 ---@param command? function
 ---@return string? error
 function Tag:select(command)
-    local short_path = Path.short(self.path)
+    local short_path = Path.fs_short(self.path)
 
     command = command or vim.cmd.edit
     command(short_path)
@@ -44,6 +43,7 @@ function Tag:into_table()
     ---@class grapple.tag.format
     local tbl = {
         path = self.path,
+        name = self.name,
         cursor = self.cursor,
     }
 
@@ -54,7 +54,7 @@ end
 ---@param tbl grapple.tag.format
 ---@return grapple.tag | nil, string? error
 function Tag.from_table(tbl)
-    return Tag:new(tbl.path, tbl.cursor), nil
+    return Tag:new(tbl.path, tbl.name, tbl.cursor), nil
 end
 
 return Tag

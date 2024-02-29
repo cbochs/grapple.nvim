@@ -265,7 +265,7 @@ describe("Path", function()
             local expected = test_case[2]
 
             it(string.format("path %s, expect %s", path, expected), function()
-                assert.same(expected, Path.is_local(path))
+                assert.same(expected, Path.is_relative(path))
             end)
         end
     end)
