@@ -26,14 +26,15 @@ Grapple is a plugin that aims to provide immediate navigation to important files
 
 ```lua
 vim.keymap.set("n", "<leader>m", "<cmd>Grapple toggle<cr>")
-vim.keymap.set("n", "<leader>M", "<cmd>Grapple open_tags<cr>"
+vim.keymap.set("n", "<leader>M", "<cmd>Grapple open_tags<cr>")
 ```
 
 **Next steps**
 
 - Check out the default [settings](#settings)
-- View your tags with `:Grapple open_tags`
 - Choose a scope with `:Grapple open_scopes`
+- View your tags with `:Grapple open_tags`
+- Manage your tags with `:Grapple open_containers`
 - Add a [statusline component](#statusline)
 - Explore the [Grapple](#grapple-api) and [Scope](#scopes-api) APIs
 
@@ -138,7 +139,7 @@ require("grapple").setup({
 
 <details>
 <summary>Grapple API and Examples</summary>
-
+\
 In general, the Grapple API is as follows:
 
 **Lua**: `require("grapple").{method}(opts)`
