@@ -18,9 +18,10 @@ local DEFAULT_SETTINGS = {
 
     ---@class grapple.scope_definition
     ---@field name string
+    ---@field force? boolean
     ---@field desc? string
     ---@field fallback? string name of scope to fall back on
-    ---@field cache? grapple.cache.options
+    ---@field cache? grapple.cache.options | boolean
     ---@field resolver grapple.scope_resolver
 
     ---User-defined scopes or overrides
