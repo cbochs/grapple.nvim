@@ -557,7 +557,7 @@ require("lualine").setup({
     sections = {
         lualine_b = {
             {
-                require("grapple").key,
+                require("grapple").name_or_index,
                 cond = require("grapple").exists
             }
         }
@@ -573,7 +573,7 @@ require("lualine").setup({
         lualine_b = {
             {
                 function()
-                    local key = require("grapple").key()
+                    local key = require("grapple").name_or_index()
                     return "  [" .. key .. "]"
                 end,
                 cond = require("grapple").exists,
