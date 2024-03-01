@@ -482,7 +482,7 @@ The following scopes are made available by default:
 - `git`: tags are scoped to the current git repository, **fallback**: `static`
 - `git_branch`: tags are scoped to the current git repository and branch, **fallback**: `static`
 
-It is also possible to create your own **custom scope**. See the [Scope API]() section for more information on defining a custom scope.
+It is also possible to create your own **custom scope**. See the [Scope API](#scopes-api) section for more information.
 
 <details>
 <summary><b>Examples</b></summary>
