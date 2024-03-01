@@ -2,13 +2,16 @@
 
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/1b350ddf-78f2-4457-899b-5b3cdeade01e">
 
-_Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
-
-## Showcase
+<details>
+<summary>Showcase</summary>
 
 ![grapple_showcase](https://user-images.githubusercontent.com/2467016/207667062-13883515-fd21-4d40-be87-656665de3d0e.gif)
 
 **Note**: this showcase is slightly outdated, but aside from the command name changes, it still represents how Grapple works.
+
+</details>
+
+_Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
 ## Introduction
 
