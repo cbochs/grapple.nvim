@@ -310,7 +310,7 @@ require("grapple").cycle_forward()
 
 #### `grapple#reset`
 
-Clear all tags in a container or for a scope.
+Clear all tags for a scope.
 
 **Command**: `:Grapple reset [scope={scope}] [id={id}]`
 
@@ -579,7 +579,7 @@ require("grapple").open_scopes()
 
 Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 
-- **Selection** (`<cr>`): open the tags window for the container under the cursor
+- **Selection** (`<cr>`): open the tags window for the loaded scope under the cursor
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 
 **API**: `require("grapple").open_loaded()`
