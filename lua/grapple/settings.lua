@@ -205,7 +205,7 @@ local DEFAULT_SETTINGS = {
             local entry = window:current_entry()
             local name = entry.data.name
 
-            local err = window:perform(ScopeActions.select, { name = entry.data.name })
+            local err = window:perform(ScopeActions.select, { name = name })
             if err then
                 return vim.notify(err, vim.log.levels.ERROR)
             end
@@ -223,7 +223,19 @@ local DEFAULT_SETTINGS = {
 
     ---Not user documented
     ---@type grapple.hook_fn
-    loaded_hook = function(window) end,
+    loaded_hook = function(window)
+        local ContainerActions = require("grapple.container_actions")
+
+        window:map("n", "<cr>", function()
+            local entry = window:current_entry()
+            local id = entry.data.id
+
+            local err = window:perform(ContainerActions.select, { id = id })
+            if err then
+                return vim.notify(err, vim.log.levels.ERROR)
+            end
+        end, { desc = "" })
+    end,
 
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts

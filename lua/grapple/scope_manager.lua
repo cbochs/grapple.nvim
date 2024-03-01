@@ -4,6 +4,7 @@ local Scope = require("grapple.scope")
 ---@field tag_manager grapple.tag_manager
 ---@field cache grapple.cache
 ---@field scopes table<string, grapple.scope>
+---@field resolved_lookup table<string, grapple.resolved_scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
@@ -15,6 +16,7 @@ function ScopeManager:new(tag_manager, cache)
         tag_manager = tag_manager,
         cache = cache,
         scopes = {},
+        resolved_lookup = {},
     }, self)
 end
 
@@ -26,10 +28,21 @@ end
 ---@return grapple.scope | nil, string? error
 function ScopeManager:get(name)
     if not self:exists(name) then
-        return nil, string.format("Could not find scope %s", name)
+        return nil, string.format("could not find scope: %s", name)
     end
 
     return self.scopes[name], nil
+end
+
+---@param id string
+---@return grapple.resolved_scope | nil, string? error
+function ScopeManager:lookup(id)
+    local resolved = self.resolved_lookup[id]
+    if not resolved then
+        return nil, string.format("could not find resolved scope for id: %s", id)
+    end
+
+    return self.resolved_lookup[id], nil
 end
 
 ---@param name string scope name
@@ -52,6 +65,7 @@ function ScopeManager:get_resolved(name)
     end
 
     self.cache:store(name, resolved)
+    self.resolved_lookup[resolved.id] = resolved
 
     return resolved
 end

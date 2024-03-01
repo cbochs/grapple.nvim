@@ -62,7 +62,7 @@ function ContainerContent:entities()
     ---@param cont_a grapple.tag_container
     ---@param cont_b grapple.tag_container
     local function by_name(cont_a, cont_b)
-        return string.lower(cont_a.name) < string.lower(cont_b.name)
+        return string.lower(cont_a.id) < string.lower(cont_b.id)
     end
 
     local containers = vim.tbl_values(self.tag_manager.containers)
@@ -79,14 +79,14 @@ function ContainerContent:create_entry(container, index)
     local id = string.format("/%03d", index)
 
     -- In compliance with "grapple" syntax
-    local line = string.format("%s %s", id, container.name)
+    local line = string.format("%s %s", id, container.id)
     local min_col = assert(string.find(line, "%s")) -- width of id
 
     ---@type grapple.window.entry
     local entry = {
         ---@class grapple.scope_content.data
         data = {
-            name = container.name,
+            id = container.id,
         },
 
         line = line,

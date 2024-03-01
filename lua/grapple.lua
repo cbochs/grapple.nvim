@@ -316,23 +316,34 @@ end
 
 ---Clear all tags for a given scope
 ---By default, uses the current scope
----@param opts? { scope?: string }
+---@param opts? { scope?: string, id?: string }
 function Grapple.reset(opts)
     local App = require("grapple.app")
 
     opts = opts or {}
 
     local app = App.get()
-    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
+
+    ---@type string
+    local id
+    if opts.id then
+        id = opts.id
+    else
+        local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+        if not scope then
+            ---@diagnostic disable-next-line: param-type-mismatch
+            return vim.notify(err, vim.log.levels.ERROR)
+        end
+
+        id = scope.id
     end
 
-    ---@diagnostic disable-next-line: redefined-local
-    local err = app.tag_manager:reset(scope.id)
+    if not id then
+        return vim.notify(string.format("must provide a valid scope or id: %s", vim.inspect(opts)))
+    end
+
+    local err = app.tag_manager:reset(id)
     if err then
-        ---@diagnostic disable-next-line: param-type-mismatch
         vim.notify(err, vim.log.levels.ERROR)
     end
 end
@@ -351,13 +362,13 @@ function Grapple.use_scope(scope)
     local App = require("grapple.app")
     local app = App.get()
 
-    local scope, err = app.scope_manager:get(scope)
-    if not scope then
+    local resolved, err = app.scope_manager:get(scope)
+    if not resolved then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
-    app.settings:update({ scope = scope.name })
+    app.settings:update({ scope = resolved.name })
 end
 
 ---@param scope? string
@@ -387,7 +398,7 @@ end
 
 ---Open a floating window populated with all tags for a given scope
 ---By default, uses the current scope
----@param opts? { scope?: string }
+---@param opts? { scope?: string, id?: string }
 function Grapple.open_tags(opts)
     local App = require("grapple.app")
     local TagContent = require("grapple.tag_content")
@@ -395,7 +406,14 @@ function Grapple.open_tags(opts)
     opts = opts or {}
 
     local app = App.get()
-    local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+
+    local scope, err
+    if opts.id then
+        scope, err = app.scope_manager:lookup(opts.id)
+    else
+        scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+    end
+
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)

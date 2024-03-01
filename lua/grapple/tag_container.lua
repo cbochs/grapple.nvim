@@ -17,18 +17,18 @@ local Tag = require("grapple.tag")
 ---@field index integer
 
 ---@class grapple.tag_container
----@field name string
+---@field id string
 ---@field tags grapple.tag[]
 ---@field paths_index table<string, grapple.tag>
 ---@field names_index table<string, grapple.tag>
 local TagContainer = {}
 TagContainer.__index = TagContainer
 
----@param name string
+---@param id string
 ---@return grapple.tag_container
-function TagContainer:new(name)
+function TagContainer:new(id)
     return setmetatable({
-        name = name,
+        id = id,
         tags = {},
         paths_index = {},
         names_index = {},
@@ -219,7 +219,7 @@ function TagContainer:into_table()
 
     ---@class grapple.tag.container.format
     return {
-        name = self.name,
+        id = self.id,
         tags = vim.tbl_map(into_table, self.tags),
     }
 end
@@ -228,7 +228,7 @@ end
 ---@param tbl grapple.tag.container.format
 ---@return grapple.tag_container | nil, string? error
 function TagContainer.from_table(tbl)
-    local container = TagContainer:new(tbl.name)
+    local container = TagContainer:new(tbl.id)
 
     for _, tag_tbl in ipairs(tbl.tags) do
         local tag, err = Tag.from_table(tag_tbl)
