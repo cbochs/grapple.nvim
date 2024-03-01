@@ -125,10 +125,7 @@ function Grapple.select(opts)
 
     local app = App.get()
     app:enter_with_save(opts.scope, function(container)
-        local path, err = extract_path(opts)
-        if not path then
-            return err
-        end
+        local path, _ = extract_path(opts)
         opts.path = path
 
         ---@diagnostic disable-next-line: redefined-local
