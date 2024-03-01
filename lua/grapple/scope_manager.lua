@@ -34,17 +34,6 @@ function ScopeManager:get(name)
     return self.scopes[name], nil
 end
 
----@param id string
----@return grapple.resolved_scope | nil, string? error
-function ScopeManager:lookup(id)
-    local resolved = self.resolved_lookup[id]
-    if not resolved then
-        return nil, string.format("could not find resolved scope for id: %s", id)
-    end
-
-    return self.resolved_lookup[id], nil
-end
-
 ---@param name string scope name
 ---@return grapple.resolved_scope | nil, string? error
 function ScopeManager:get_resolved(name)
@@ -68,6 +57,17 @@ function ScopeManager:get_resolved(name)
     self.resolved_lookup[resolved.id] = resolved
 
     return resolved
+end
+
+---@param id string
+---@return grapple.resolved_scope | nil, string? error
+function ScopeManager:lookup(id)
+    local resolved = self.resolved_lookup[id]
+    if not resolved then
+        return nil, string.format("could not find resolved scope for id: %s", id)
+    end
+
+    return self.resolved_lookup[id], nil
 end
 
 ---@param name string
