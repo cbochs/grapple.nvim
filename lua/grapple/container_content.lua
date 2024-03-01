@@ -115,14 +115,14 @@ end
 ---@param line string
 ---@return grapple.window.parsed_entry
 function ContainerContent:parse_line(line)
-    local id, name = string.match(line, "^/(%d+) (%S*)")
+    local id, container_id = string.match(line, "^/(%d+) (%S*)")
     local index = tonumber(id)
 
     ---@type grapple.window.parsed_entry
     local entry = {
         ---@type grapple.scope_content.data
         data = {
-            name = name,
+            id = container_id,
         },
         index = index,
         line = line,

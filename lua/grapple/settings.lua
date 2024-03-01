@@ -210,7 +210,7 @@ local DEFAULT_SETTINGS = {
                 return vim.notify(err, vim.log.levels.ERROR)
             end
 
-            vim.notify(string.format("Changed scope: %s", name))
+            vim.notify(string.format("Changing scope: %s", name))
         end, { desc = "Change scope" })
     end,
 
@@ -234,7 +234,19 @@ local DEFAULT_SETTINGS = {
             if err then
                 return vim.notify(err, vim.log.levels.ERROR)
             end
-        end, { desc = "" })
+        end, { desc = "Open tags" })
+
+        window:map("n", "x", function()
+            local entry = window:current_entry()
+            local id = entry.data.id
+
+            local err = window:perform(ContainerActions.reset, { id = id })
+            if err then
+                return vim.notify(err, vim.log.levels.ERROR)
+            end
+
+            vim.notify(string.format("Reset scope: %s", id))
+        end, { desc = "Reset scope" })
     end,
 
     ---Additional window options for Grapple windows

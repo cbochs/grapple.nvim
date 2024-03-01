@@ -1,4 +1,4 @@
-local ScopeActions = {}
+local ContainerActions = {}
 
 ---@class grapple.action.container_options
 ---
@@ -7,8 +7,14 @@ local ScopeActions = {}
 
 ---@param opts grapple.action.container_options
 ---@return string? error
-function ScopeActions.select(opts)
+function ContainerActions.select(opts)
     require("grapple").open_tags({ id = opts.id })
 end
 
-return ScopeActions
+---@param opts grapple.action.container_options
+---@return string? error
+function ContainerActions.reset(opts)
+    require("grapple").reset({ id = opts.id })
+end
+
+return ContainerActions

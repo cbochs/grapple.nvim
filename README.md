@@ -580,7 +580,7 @@ require("grapple").open_scopes()
 Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the tags window for the container under the cursor
-- **Deletion**: delete a line to reset the container
+- **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 
 **API**: `require("grapple").open_scopes()`
 
