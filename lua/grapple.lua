@@ -255,12 +255,15 @@ end
 
 ---Return the name or index of a tag. Used for statusline components
 ---@param opts? grapple.options
+---@return string | integer | nil
 function Grapple.name_or_index(opts)
     local App = require("grapple.app")
 
     opts = opts or {}
 
+    ---@type string | integer | nil
     local name_or_index
+
     local app = App.get()
     app:enter_without_save(opts.scope, function(container)
         local path, _ = extract_path(opts)
@@ -273,6 +276,19 @@ function Grapple.name_or_index(opts)
     end)
 
     return name_or_index
+end
+
+---Return a formatted string to be displayed on the statusline
+---@return string | nil
+function Grapple.statusline()
+    local App = require("grapple.app")
+    local app = App.get()
+    local icon = app.settings.icons and "󰛢 " or ""
+
+    local key = Grapple.name_or_index()
+    if key then
+        return icon .. key
+    end
 end
 
 ---Return the tags for a given scope. Used for integrations
