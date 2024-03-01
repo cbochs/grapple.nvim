@@ -124,7 +124,7 @@ local DEFAULT_SETTINGS = {
         },
     },
 
-    ---User-defined tag title function for Grapple windows
+    ---User-defined tags title function for Grapple windows
     ---By default, uses the resolved scope's ID
     ---@type fun(scope: grapple.resolved_scope): string?
     tag_title = function(scope)
@@ -189,7 +189,7 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Refresh" })
     end,
 
-    ---User-defined scope title function for Grapple windows
+    ---User-defined scopes title function for Grapple windows
     ---By default, renders "Grapple Scopes"
     ---@type fun(): string?
     scope_title = function()
@@ -214,16 +214,16 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Change scope" })
     end,
 
-    ---User-defined container title function for Grapple windows
-    ---By default, renders "Grapple Containers"
+    ---User-defined loaded scopes title function for Grapple windows
+    ---By default, renders "Grapple Loaded Scopes"
     ---@type fun(): string?
-    container_title = function()
-        return "Grapple Containers"
+    loaded_title = function()
+        return "Grapple Loaded Scopes"
     end,
 
     ---Not user documented
     ---@type grapple.hook_fn
-    container_hook = function(window) end,
+    loaded_hook = function(window) end,
 
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts

@@ -417,13 +417,13 @@ function Grapple.open_scopes()
     open(content)
 end
 
----Open a floating window populated with all loaded tag containers
-function Grapple.open_containers()
+---Open a floating window populated with all loaded scopes
+function Grapple.open_loaded()
     local App = require("grapple.app")
     local ContainerContent = require("grapple.container_content")
 
     local app = App.get()
-    local content = ContainerContent:new(app.tag_manager, app.settings.container_hook, app.settings.container_title)
+    local content = ContainerContent:new(app.tag_manager, app.settings.loaded_hook, app.settings.loaded_title)
 
     open(content)
 end

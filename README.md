@@ -32,9 +32,9 @@ vim.keymap.set("n", "<leader>M", "<cmd>Grapple open_tags<cr>")
 **Next steps**
 
 - Check out the default [settings](#settings)
-- Choose a scope with `:Grapple open_scopes`
 - View your tags with `:Grapple open_tags`
-- Manage your tags with `:Grapple open_containers`
+- Choose a scope with `:Grapple open_scopes`
+- Manage your loaded scopes with `:Grapple open_loaded`
 - Add a [statusline component](#statusline)
 - Explore the [Grapple](#grapple-api) and [Scope](#scopes-api) APIs
 
@@ -93,20 +93,20 @@ require("grapple").setup({
     ---@type grapple.scope_definition[]
     scopes = {},
 
-    ---User-defined tag title function for Grapple windows
+    ---User-defined tags title function for Grapple windows
     ---By default, uses the resolved scope's ID
     ---@type fun(scope: grapple.resolved_scope): string?
     tag_title = nil,
 
-    ---User-defined scope title function for Grapple windows
+    ---User-defined scopes title function for Grapple windows
     ---By default, renders "Grapple Scopes"
     ---@type fun(): string?
     scope_title = nil,
 
-    ---User-defined container title function for Grapple windows
-    ---By default, renders "Grapple Containers"
+    ---User-defined loaded scopes title function for Grapple windows
+    ---By default, renders "Grapple Loaded Scopes"
     ---@type fun(): string?
-    container_title = nil,
+    loaded_title = nil,
 
     ---Additional window options for Grapple windows
     ---See :h nvim_open_win
@@ -575,9 +575,9 @@ require("grapple").open_scopes()
 
 </details>
 
-### Containers Window
+### Loaded Scopes Window
 
-Open a floating window with all loaded containers. This buffer is not modifiable. Some basic actions are available by default:
+Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the tags window for the container under the cursor
 - **Deletion**: delete a line to reset the container
@@ -589,7 +589,7 @@ Open a floating window with all loaded containers. This buffer is not modifiable
 
 ```lua
 -- Open the scopes window
-require("grapple").open_containers()
+require("grapple").open_loaded()
 ```
 
 </details>
@@ -620,7 +620,7 @@ Then use this command to see the grapple tags for the project in a telescope win
 
 ### Statusline
 
-A statusline component can be easily added to show whether a buffer is tagged or not by using either (or both) [`grapple#key`](#grapplekey) and [`grapple#find`](#grapplefind).
+A statusline component can be easily added to show whether a buffer is tagged.
 
 **Simple [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
 
@@ -629,7 +629,7 @@ require("lualine").setup({
     sections = {
         lualine_b = {
             {
-                require("grapple").name_or_index,
+                require("grapple").statusline,
                 cond = require("grapple").exists
             }
         }
@@ -644,10 +644,7 @@ require("lualine").setup({
     sections = {
         lualine_b = {
             {
-                function()
-                    local key = require("grapple").name_or_index()
-                    return "  [" .. key .. "]"
-                end,
+                require("grapple").statusline
                 cond = require("grapple").exists,
             }
         }
