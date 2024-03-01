@@ -275,6 +275,21 @@ function Grapple.name_or_index(opts)
     return name_or_index
 end
 
+local deprecated_once = false
+
+---Deprecated. Return the name or index of a tag. Same as Grapple.name_or_index
+---@return string | integer | nil
+function Grapple.key()
+    if not deprecated_once then
+        deprecated_once = true
+        vim.notify(
+            "Grapple.key is deprecated. Use Grapple.name_or_index or Grapple.statusline instead",
+            vim.log.levels.WARN
+        )
+    end
+    return Grapple.name_or_index()
+end
+
 ---Return a formatted string to be displayed on the statusline
 ---@return string | nil
 function Grapple.statusline()
