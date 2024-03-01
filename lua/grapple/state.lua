@@ -40,18 +40,12 @@ function State:save_path(name)
     return Path.join(self.save_dir, string.format("%s.json", path_encode(name)))
 end
 
----@return string? error
 function State:ensure_created()
-    local exists, err = vim.loop.fs_access(self.save_dir, "RW")
-    if err then
-        return err
+    if Path.exists(self.save_dir) then
+        return
     end
 
-    if not exists then
-        vim.fn.mkdir(self.save_dir, "-p")
-    end
-
-    return nil
+    vim.fn.mkdir(self.save_dir, "-p")
 end
 
 ---@param name string

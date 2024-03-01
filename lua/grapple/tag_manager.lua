@@ -9,6 +9,8 @@ TagManager.__index = TagManager
 ---@param state grapple.state
 ---@return grapple.tag_manager
 function TagManager:new(state)
+    state:ensure_created()
+
     return setmetatable({
         state = state,
         containers = {},
