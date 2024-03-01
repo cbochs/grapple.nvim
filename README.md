@@ -1,6 +1,6 @@
 # Grapple.nvim
 
-![grapple_showcase](https://user-images.githubusercontent.com/2467016/207667062-13883515-fd21-4d40-be87-656665de3d0e.gif)
+<img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/1b350ddf-78f2-4457-899b-5b3cdeade01e">
 
 _Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
@@ -365,11 +365,87 @@ require("grapple").quickfix("global")
 <details>
 <summary>Scope API and Examples</summary>
 
-#### `grapple#invalidate`
+#### `grapple#define_scope`
+
+Create a user-defined scope.
+
+**API**: `require("grapple").define_scope(definition)`
+
+**`definition`**: [`grapple.scope_definition`](#grapplescopedefinition)
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Define a scope during setup
+require("grapple").setup({
+    scope = "home_dir",
+
+    scopes = {
+        {
+            name = "home_dir",
+            desc = "Home directory",
+            cache = { debounce = 250 }
+            resolver = function()
+                local path = vim.loop.cwd()
+                local id = path
+                return id, path, nil
+            end
+        }
+    }
+})
+
+-- Define a scope outside of setup
+require("grapple").define_scope({
+    name = "projects",
+    desc = "Project directory"
+    fallback = "cwd",
+    cache = { event = "DirChanged" },
+    resolver = function()
+        local projects_dir = vim.fs.find("projects", {
+            upwards = true,
+            stop = vim.loop.os_homedir()
+        })
+
+        if #projects_dir == 0 then
+            return nil, nil, "Not in projects dir"
+        end
+
+        local path = projects_dir[1]
+        local id = path
+        return id, path, nil
+    end
+})
+
+-- Use the scope
+require("grapple").use_scope("projects")
+```
+
+</details>
+
+#### `grapple#use_scope`
+
+Change the currently selected scope.
+
+**API**: `require("grapple").use_scope(scope)`
+
+**`scope`**: `string` scope name
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Clear the cached value (if any) for the "git" scope
+require("grapple").use_scope("git_branch")
+```
+
+</details>
+
+#### `grapple#clear_cache`
 
 Clear any cached value for a given scope.
 
-**API**: `require("grapple").invalidate(scope)`
+**API**: `require("grapple").clear_cache(scope)`
 
 **`scope?`**: `string` scope name (default: `settings.scope`)
 
@@ -377,12 +453,8 @@ Clear any cached value for a given scope.
 <summary><b>Examples</b></summary>
 
 ```lua
-local my_resolver = require("grapple.scope").resolver(function()
-    return vim.fn.getcwd()
-end)
-
--- Invalidate a cached scope associated with a scope resolver
-require("grapple.scope").invalidate(my_resolver)
+-- Clear the cached value (if any) for the "git" scope
+require("grapple").clear_cache("git")
 ```
 
 </details>
