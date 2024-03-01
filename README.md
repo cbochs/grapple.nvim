@@ -516,7 +516,7 @@ require("grapple").setup({
 
 Popup windows are made available to enable easy management of tags and scopes. The opened buffer is given its own syntax (`grapple`) and file type (`grapple`) and can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. The floating window can be closed with either `q` or `<esc>`.
 
-<img width="1038" alt="Screenshot 2022-12-15 at 09 05 07" src="https://user-images.githubusercontent.com/2467016/207909857-98e7bc5d-8b48-4650-acb9-5993dde87a0f.png">
+<img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/19aa1902-3bbb-4eab-9707-a1fa053fea09">
 
 ### Tags Window
 
