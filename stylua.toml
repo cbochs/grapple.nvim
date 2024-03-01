@@ -1,0 +1,6 @@
+column_width = 120
+indent_type = "Spaces"
+indent_width = 4
+
+[sort_requires]
+enabled = true
