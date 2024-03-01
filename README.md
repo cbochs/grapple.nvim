@@ -582,7 +582,7 @@ Open a floating window with all loaded scopes. This buffer is not modifiable. So
 - **Selection** (`<cr>`): open the tags window for the container under the cursor
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 
-**API**: `require("grapple").open_scopes()`
+**API**: `require("grapple").open_loaded()`
 
 <details>
 <summary><b>Examples</b></summary>
