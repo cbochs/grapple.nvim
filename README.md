@@ -4,6 +4,12 @@
 
 _Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
 
+## Showcase
+
+![grapple_showcase](https://user-images.githubusercontent.com/2467016/207667062-13883515-fd21-4d40-be87-656665de3d0e.gif)
+
+**Note**: this showcase is slightly outdated, but aside from the command name changes, it still represents how Grapple works.
+
 ## Introduction
 
 Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). See the [quickstart](#quickstart) section to get started.
