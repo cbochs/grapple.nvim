@@ -8,9 +8,13 @@ local DEFAULT_SETTINGS = {
     ---@diagnostic disable-next-line: param-type-mismatch
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple",
 
-    ---Show icons next to tags or scopes in Grapple windows
+    ---Show icons next to tags in Grapple windows
     ---@type boolean
     icons = true,
+
+    ---Add highlights to Grapple windows
+    ---@type boolean
+    highlights = true,
 
     ---Default scope to use when managing Grapple tags
     ---@type string
