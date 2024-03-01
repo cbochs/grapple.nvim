@@ -371,7 +371,7 @@ Create a user-defined scope.
 
 **API**: `require("grapple").define_scope(definition)`
 
-**`definition`**: [`grapple.scope_definition`](#grapplescopedefinition)
+**`definition`**: [`grapple.scope_definition`](#grapplescope_definition)
 
 <details>
 <summary><b>Examples</b></summary>
@@ -622,7 +622,7 @@ Then use this command to see the grapple tags for the project in a telescope win
 
 A statusline component can be easily added to show whether a buffer is tagged.
 
-**Simple [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
+**[lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
 
 ```lua
 require("lualine").setup({
@@ -631,21 +631,6 @@ require("lualine").setup({
             {
                 require("grapple").statusline,
                 cond = require("grapple").exists
-            }
-        }
-    }
-})
-```
-
-**Slightly nicer [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
-
-```lua
-require("lualine").setup({
-    sections = {
-        lualine_b = {
-            {
-                require("grapple").statusline
-                cond = require("grapple").exists,
             }
         }
     }
