@@ -41,10 +41,10 @@ local DEFAULT_SETTINGS = {
         },
         {
             name = "static",
-            desc = "Starting working directory",
+            desc = "Initial working directory",
             cache = true,
             resolver = function()
-                return "static", vim.loop.cwd()
+                return vim.loop.cwd(), vim.loop.cwd()
             end,
         },
         {
