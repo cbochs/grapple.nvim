@@ -1,3 +1,5 @@
+local Path = require("grapple.path")
+
 ---@class grapple.container_content
 ---@field tag_manager grapple.tag_manager
 ---@field hook_fn grapple.hook_fn
@@ -59,28 +61,61 @@ function ContainerContent:sync(original, parsed) end
 
 ---@return grapple.window.entity[] | nil, string? error
 function ContainerContent:entities()
+    local App = require("grapple.app")
+    local app = App.get()
+
+    local current_scope, err = app:current_scope()
+    if not current_scope then
+        return nil, err
+    end
+
     ---@param cont_a grapple.tag_container
     ---@param cont_b grapple.tag_container
-    local function by_name(cont_a, cont_b)
+    local function by_id(cont_a, cont_b)
         return string.lower(cont_a.id) < string.lower(cont_b.id)
     end
 
     local containers = vim.tbl_values(self.tag_manager.containers)
-    table.sort(containers, by_name)
+    table.sort(containers, by_id)
 
-    return containers, nil
+    local entities = {}
+
+    for _, container in ipairs(containers) do
+        ---@class grapple.container_content.entity
+        local entity = {
+            container = container,
+            current = container.id == current_scope.id,
+        }
+
+        table.insert(entities, entity)
+    end
+
+    return entities, nil
 end
 
----@param container grapple.tag_container
+---@param entity grapple.container_content.entity
 ---@param index integer
 ---@return grapple.window.entry
-function ContainerContent:create_entry(container, index)
+function ContainerContent:create_entry(entity, index)
+    local container = entity.container
+
     -- A string representation of the index
     local id = string.format("/%03d", index)
+    local rel_id = vim.fn.fnamemodify(container.id, ":~")
 
     -- In compliance with "grapple" syntax
-    local line = string.format("%s %s", id, container.id)
+    local line = string.format("%s %s", id, rel_id)
     local min_col = assert(string.find(line, "%s")) -- width of id
+
+    local line_highlight
+    if entity.current then
+        line_highlight = {
+            hl_group = "GrappleCurrent",
+            line = index - 1,
+            col_start = min_col,
+            col_end = -1,
+        }
+    end
 
     ---@type grapple.window.entry
     local entry = {
@@ -94,7 +129,7 @@ function ContainerContent:create_entry(container, index)
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]
-        highlights = {},
+        highlights = { line_highlight },
 
         ---@type grapple.vim.extmark
         mark = {
@@ -122,7 +157,7 @@ function ContainerContent:parse_line(line)
     local entry = {
         ---@type grapple.scope_content.data
         data = {
-            id = container_id,
+            id = Path.fs_absolute(container_id),
         },
         index = index,
         line = line,
