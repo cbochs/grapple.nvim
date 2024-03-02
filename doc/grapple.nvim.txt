@@ -51,6 +51,7 @@ FEATURES                                  *grapple.nvim-grapple.nvim-features*
 REQUIREMENTS                          *grapple.nvim-grapple.nvim-requirements*
 
 - Neovim >= 0.9 <https://github.com/neovim/neovim/releases/tag/v0.9.0>
+- nvim-web-devicons <https://github.com/nvim-tree/nvim-web-devicons> (optional)
 
 
 QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
@@ -70,9 +71,9 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 **Next steps**
 
 - Check out the default |grapple.nvim-settings|
-- View your tags with |grapple.nvim-`:grapple-toggle_tags`|
-- Choose a scope with |grapple.nvim-`:grapple-toggle_scopes`|
-- Manage your loaded scopes with |grapple.nvim-`:grapple-toggle_loaded`|
+- View your |grapple.nvim-tags| with `:Grapple toggle_tags`
+- Choose a |grapple.nvim-scope| with `:Grapple toggle_scopes`
+- Manage your |grapple.nvim-loaded-scopes| with `:Grapple toggle_loaded`
 - Add a |grapple.nvim-statusline-component|
 - Explore the |grapple.nvim-grapple| and |grapple.nvim-scope| APIs
 
@@ -82,18 +83,28 @@ INSTALLATION                          *grapple.nvim-grapple.nvim-installation*
 lazy.nvim ~
 
 >lua
-    { "cbochs/grapple.nvim" }
+    {
+        "cbochs/grapple.nvim"
+        dependencies = {
+            { "nvim-tree/nvim-web-devicons", lazy = true }
+        }
+    
+    }
 <
 
 packer ~
 
 >lua
-    use { "cbochs/grapple.nvim" }
+    use {
+        "cbochs/grapple.nvim"
+        requires = { "nvim-tree/nvim-web-devicons" }
+    }
 <
 
 vim-plug ~
 
 >vim
+    Plug "nvim-tree/nvim-web-devicons"
     Plug "cbochs/grapple.nvim"
 <
 
