@@ -571,7 +571,7 @@ Popup windows are made available to enable easy management of tags and scopes. T
 Open a floating window with all the tags for a given scope. This buffer is modifiable. Several actions are available by default:
 
 - **Selection** (`<cr>`): select the tag under the cursor
-- **Split (horizontal)** (`<c-v>`): select the tag under the cursor (`split`)
+- **Split (horizontal)** (`<c-s>`): select the tag under the cursor (`split`)
 - **Split (vertical)** (`|`): select the tag under the cursor (`vsplit`)
 - **Quick select** (`1-9`): select the tag at a given index
 - **Deletion**: delete a line to delete the tag

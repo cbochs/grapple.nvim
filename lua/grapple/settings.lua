@@ -156,7 +156,7 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Select" })
 
         -- Select (horizontal split)
-        window:map("n", "<c-v>", function()
+        window:map("n", "<c-s>", function()
             local cursor = window:cursor()
             window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.split })
         end, { desc = "Select (split)" })
