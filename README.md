@@ -544,20 +544,15 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 - **Reordering**: move a line to move a tag
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 
-Note, the title used by the tags window may be adjusted in the [settings](#settings).
+**API**:
 
-```lua
--- Set title relative to the users home directory
-require("grapple").setup({
-    tag_title = function(scope)
-        return vim.fn.fnamemodify(scope.path, ":~")
-    end
-})
-```
+- `require("grapple").open_tags(opts)`
+- `require("grapple").toggle_tags(opts)`
 
-**API**: `require("grapple").open_tags(scope)`
+**`opts?`**: `table`
 
-**`scope?`**: `string` scope name (default: `settings.scope`)
+- **`scope?`**: `string` scope name
+- **`id?`**: `string` the ID of a resolved scope
 
 <details>
 <summary><b>Examples</b></summary>
@@ -580,7 +575,10 @@ Open a floating window with all defined scopes. This buffer is not modifiable. S
 
 - **Selection** (`<cr>`): set the current scope to the one under the cursor
 
-**API**: `require("grapple").open_scopes()`
+**API**:
+
+- `require("grapple").open_scopes()`
+- `require("grapple").toggle_scopes()`
 
 <details>
 <summary><b>Examples</b></summary>
@@ -601,7 +599,10 @@ Open a floating window with all loaded scopes. This buffer is not modifiable. So
 - **Selection** (`<cr>`): open the tags window for the loaded scope under the cursor
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 
-**API**: `require("grapple").open_loaded()`
+**API**:
+
+- `require("grapple").open_loaded()`
+- `require("grapple").toggle_loaded()`
 
 <details>
 <summary><b>Examples</b></summary>
