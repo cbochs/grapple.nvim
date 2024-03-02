@@ -2,7 +2,7 @@
 
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/1b350ddf-78f2-4457-899b-5b3cdeade01e">
 
-_Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)_
+Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
 
 <details>
 <summary>Showcase</summary>
@@ -19,9 +19,11 @@ Grapple is a plugin that aims to provide immediate navigation to important files
 
 ## Features
 
-- **Persistent** cursor tracking for tagged files
-- **Scoped** file tagging for immediate navigation
-- **Popup** windows to manage tags and scopes as regular text
+- **Persistent** tags on file paths to track and restore cursor location
+- **Scoped** tags for fine-grained, per-project tagging (i.e. git branch)
+- **Rich** well-defined [Grapple](#grapple-api) and [Scope](#scope-api) APIs
+- **Toggleable** windows to manage tags and scopes as a regular vim buffer
+- **Integration** with [telescope.nvim](#telescope)
 - **Integration** with [portal.nvim](https://github.com/cbochs/portal.nvim) for additional jump options
 
 ## Requirements
@@ -45,11 +47,11 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 **Next steps**
 
 - Check out the default [settings](#settings)
-- View your tags with `:Grapple toggle_tags`
-- Choose a scope with `:Grapple toggle_scopes`
-- Manage your loaded scopes with `:Grapple toggle_loaded`
+- View your tags with [`:Grapple toggle_tags`](#tags-window)
+- Choose a scope with [`:Grapple toggle_scopes`](#scopes-window)
+- Manage your loaded scopes with [`:Grapple toggle_loaded`](#loaded-scopes-window)
 - Add a [statusline component](#statusline)
-- Explore the [Grapple](#grapple-api) and [Scope](#scopes-api) APIs
+- Explore the [Grapple](#grapple-api) and [Scope](#scope-api) APIs
 
 ## Installation
 
@@ -82,7 +84,7 @@ Plug "cbochs/grapple.nvim"
 
 ## Settings
 
-The following are the default settings for Grapple. **Setup is not required**, but settings may be overridden by passing them as table arguments to the `grapple#setup` function.
+The following are the default settings for Grapple. **Setup is not required**, but settings may be overridden by passing them as table arguments to the `Grapple.setup` function.
 
 <details>
 <summary>Default Settings</summary>
@@ -153,17 +155,12 @@ require("grapple").setup({
 
 ## Usage
 
-### Grapple API
+In general, the API is as follows:
 
-<details>
-<summary>Grapple API and Examples</summary>
-
-In general, the Grapple API is as follows:
-
-**Lua**: `require("grapple").{method}(opts)`
+**Lua**: `require("grapple").{method}(...)`
 **Command**: `:Grapple [method] [opts...]`
 
-Where `opts` in the user command is a list of `value` arguments `key=value` keyword arguments. For example,
+Where `opts` in the user command is a list of `value` arguments and `key=value` keyword arguments. For example,
 
 ```vim
 :Grapple cycle forward scope=cwd
@@ -175,7 +172,12 @@ Has the equivalent form
 require("grapple").cycle("forward", { scope = "cwd" })
 ```
 
-#### `grapple#tag`
+### Grapple API
+
+<details>
+<summary>Grapple API and Examples</summary>
+
+#### `Grapple.tag`
 
 Create a grapple tag.
 
@@ -209,7 +211,7 @@ require("grapple").tag({ scope = "global" })
 
 </details>
 
-#### `grapple#untag`
+#### `Grapple.untag`
 
 Remove a Grapple tag.
 
@@ -235,7 +237,7 @@ require("grapple").untag({ scope = "global" })
 
 </details>
 
-#### `grapple#toggle`
+#### `Grapple.toggle`
 
 Toggle a Grapple tag.
 
@@ -253,7 +255,7 @@ require("grapple").toggle()
 
 </details>
 
-#### `grapple#select`
+#### `Grapple.select`
 
 Select a Grapple tag.
 
@@ -273,7 +275,9 @@ require("grapple").select({ index = 3 })
 
 </details>
 
-#### `grapple#exists`
+#### `Grapple.exists`
+
+Return if a tag exists. Used for statusline components
 
 **API**: `require("grapple").exists(opts)`
 
@@ -296,9 +300,9 @@ require("grapple").exists({ scope = "global" })
 
 </details>
 
-#### `grapple#cycle`
+#### `Grapple.cycle`
 
-Cycle through and select from the available tagged files in a scoped tag list.
+Cycle through and select the next or previous available tag for a given scope.
 
 **Command**: `:Grapple cycle {direction} [opts...]`
 
@@ -326,7 +330,7 @@ require("grapple").cycle_forward()
 
 </details>
 
-#### `grapple#reset`
+#### `Grapple.reset`
 
 Clear all tags for a scope.
 
@@ -355,22 +359,25 @@ require("grapple").reset({ id = "~/git" })
 
 </details>
 
-#### `grapple#quickfix`
+#### `Grapple.quickfix`
 
-Open the quickfix menu and populate the quickfix list with a project scope's tags.
+Open the quickfix window populated with paths from a given scope
 
-**API**: `require("grapple").quickfix(scope)`
+**API**: `require("grapple").quickfix(opts)`
 
-**`scope?`**: `string` (default: `settings.scope`)
+**`opts?`**: `table`
+
+- **`scope?`**: `string` scope name (default: `settings.scope`)
+- **`id?`**: `string` the ID of a resolved scope
 
 <details>
 <summary><b>Examples</b></summary>
 
 ```lua
--- Open the quickfix menu for the current scope
+-- Open the quickfix window for the current scope
 require("grapple").quickfix()
 
--- Open the quickfix menu for a specified scope
+-- Open the quickfix window for a specified scope
 require("grapple").quickfix("global")
 ```
 
@@ -378,12 +385,12 @@ require("grapple").quickfix("global")
 
 </details>
 
-### Scopes API
+### Scope API
 
 <details>
-<summary>Scope API and Examples</summary>
+<summary>Scopes API and Examples</summary>
 
-#### `grapple#define_scope`
+#### `Grapple.define_scope`
 
 Create a user-defined scope.
 
@@ -394,21 +401,42 @@ Create a user-defined scope.
 <details>
 <summary><b>Examples</b></summary>
 
+For more examples, see [settings.lua](./lua/grapple/settings.lua)
+
 ```lua
 -- Define a scope during setup
 require("grapple").setup({
-    scope = "home_dir",
+    scope = "cwd_branch",
 
     scopes = {
         {
-            name = "home_dir",
-            desc = "Home directory",
-            cache = { debounce = 250 }
+            name = "cwd_branch",
+            desc = "Current working directory and git branch",
+            fallback = "cwd",
+            cache = {
+                event = { "BufEnter", "FocusGained" },
+                debounce = 1000, -- ms
+            },
             resolver = function()
-                local path = vim.loop.cwd()
-                local id = path
-                return id, path, nil
-            end
+                local git_files = vim.fs.find(".git", {
+                    upward = true,
+                    stop = vim.loop.os_homedir(),
+                })
+
+                if #git_files == 0 then
+                    return
+                end
+
+                local root = vim.loop.cwd()
+
+                local result = vim.fn.system({ "git", "symbolic-ref", "--short", "HEAD" })
+                local branch = vim.trim(string.gsub(result, "\n", ""))
+
+                local id = string.format("%s:%s", root, branch)
+                local path = root
+
+                return id, path
+            end,
         }
     }
 })
@@ -441,7 +469,7 @@ require("grapple").use_scope("projects")
 
 </details>
 
-#### `grapple#use_scope`
+#### `Grapple.use_scope`
 
 Change the currently selected scope.
 
@@ -459,7 +487,7 @@ require("grapple").use_scope("git_branch")
 
 </details>
 
-#### `grapple#clear_cache`
+#### `Grapple.clear_cache`
 
 Clear any cached value for a given scope.
 
@@ -471,8 +499,8 @@ Clear any cached value for a given scope.
 <summary><b>Examples</b></summary>
 
 ```lua
--- Clear the cached value (if any) for the "git" scope
-require("grapple").clear_cache("git")
+-- Clear the cached value for the initial working directory scope
+require("grapple").clear_cache("static")
 ```
 
 </details>
@@ -496,11 +524,11 @@ The following scopes are made available by default:
 - `global`: tags are scoped to a global namespace
 - `static`: tags are scoped to neovim's initial working directory
 - `cwd`: tags are scoped to the current working directory
-- `lsp`: tags are scoped using the `root_dir` of the current buffer's attached LSP server, **fallback**: `static`
-- `git`: tags are scoped to the current git repository, **fallback**: `static`
-- `git_branch`: tags are scoped to the current git repository and branch, **fallback**: `static`
+- `lsp`: tags are scoped to the root directory of the current buffer's attached LSP server, **fallback**: `cwd`
+- `git`: tags are scoped to the current git repository, **fallback**: `cwd`
+- `git_branch`: tags are scoped to the current git directory **and** git branch, **fallback**: `cwd`
 
-It is also possible to create your own **custom scope**. See the [Scope API](#scopes-api) section for more information.
+It is also possible to create your own **custom scope**. See the [Scope API](#scope-api) for more information.
 
 <details>
 <summary><b>Examples</b></summary>
@@ -532,7 +560,7 @@ require("grapple").setup({
 
 ## Grapple Windows
 
-Popup windows are made available to enable easy management of tags and scopes. The opened buffer is given its own syntax (`grapple`) and file type (`grapple`) and can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. The floating window can be closed with either `q` or `<esc>`.
+Popup windows are made available to enable easy management of tags and scopes. The opened buffer is given its own syntax (`grapple`) and file type (`grapple`) and can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. The floating window can be toggled or closed with either `q` or `<esc>`.
 
 ### Tags Window
 
@@ -628,7 +656,7 @@ By default, no scopes are loaded on startup. When `require("grapple").setup()` i
 
 ### Telescope
 
-You can use telescope to search through your tagged files instead of the built in popup windows.
+You can use [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) to search through your tagged files instead of the built in popup windows.
 
 Load the extension with
 
@@ -680,9 +708,9 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 
 ### `grapple.cache.options`
 
-Options available for defining how a scope should be cached.
+Options available for defining how a scope should be cached. Using the value of `true` will indicate a value should be cached indefinitely and is equivalent to providing an empty set of options (`{}`).
 
-**Type**: `table`
+**Type**: `table` | `boolean`
 
 - **`event?`**: `string` | `string[]` autocmd event ([`:h autocmd`](https://neovim.io/doc/user/autocmd.html))
 - **`pattern?`**: `string` autocmd pattern, useful for `User` events
@@ -735,8 +763,6 @@ Thanks to these wonderful people for their contributions!
 ## Inspiration and Thanks
 
 - ThePrimeagen's [harpoon](https://github.com/ThePrimeagen/harpoon)
-- kwarlwang's [bufjump.nvim](https://github.com/kwkarlwang/bufjump.nvim)
 - stevearc's [oil.nvim](https://github.com/stevearc/oil.nvim)
-- tjdevries [vlog.nvim](https://github.com/tjdevries/vlog.nvim)
 
 <!-- panvimdoc-ignore-end -->
