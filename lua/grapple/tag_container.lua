@@ -139,6 +139,8 @@ function TagContainer:has(opts)
     -- stylua: ignore
 end
 
+---Get a tag by index, name, or path
+-- Guaranteed lookup order: index, then name, then path
 ---@param opts grapple.options
 ---@return grapple.tag | nil
 function TagContainer:get(opts)
