@@ -175,6 +175,7 @@ require("grapple").setup({
 In general, the API is as follows:
 
 **Lua**: `require("grapple").{method}(...)`
+<br>
 **Command**: `:Grapple [method] [opts...]`
 
 Where `opts` in the user command is a list of `value` arguments and `key=value` keyword arguments. For example,
