@@ -461,8 +461,16 @@ end
 ---Initialize Grapple. Sets up autocommands to watch tagged files and creates the
 ---"Grapple" user command. Called only once when plugin is loaded.
 function Grapple.initialize()
-    vim.api.nvim_create_augroup("Grapple", { clear = true })
+    -- Create highlights for Grapple windows
+    vim.cmd("highlight default GrappleBold gui=bold cterm=bold")
+    vim.cmd("highlight default GrappleCurrentBold gui=bold cterm=bold")
 
+    vim.cmd("highlight default link GrappleNoExist DiagnosticError")
+    vim.cmd("highlight default link GrappleCurrent SpecialChar")
+    vim.cmd("highlight! link GrappleCurrentBold GrappleCurrent")
+
+    -- Create autocommand to keep Grapple state up-to-date
+    vim.api.nvim_create_augroup("Grapple", { clear = true })
     vim.api.nvim_create_autocmd({ "BufWinLeave", "QuitPre" }, {
         pattern = "?*", -- non-empty file
         group = "Grapple",
@@ -473,6 +481,7 @@ function Grapple.initialize()
         end,
     })
 
+    -- Create top-level user command
     vim.api.nvim_create_user_command(
         "Grapple",
 

@@ -1,3 +1,5 @@
+local Path = require("grapple.path")
+
 ---@class grapple.container_content
 ---@field tag_manager grapple.tag_manager
 ---@field hook_fn grapple.hook_fn
@@ -34,13 +36,11 @@ end
 ---@param window grapple.window
 ---@return string? error
 function ContainerContent:attach(window)
-    if not self.hook_fn then
-        return
-    end
-
-    local err = self.hook_fn(window)
-    if err then
-        return err
+    if self.hook_fn then
+        local err = self.hook_fn(window)
+        if err then
+            return err
+        end
     end
 
     return nil
@@ -59,28 +59,59 @@ function ContainerContent:sync(original, parsed) end
 
 ---@return grapple.window.entity[] | nil, string? error
 function ContainerContent:entities()
+    local App = require("grapple.app")
+    local app = App.get()
+
+    local current_scope, err = app:current_scope()
+    if not current_scope then
+        return nil, err
+    end
+
     ---@param cont_a grapple.tag_container
     ---@param cont_b grapple.tag_container
-    local function by_name(cont_a, cont_b)
+    local function by_id(cont_a, cont_b)
         return string.lower(cont_a.id) < string.lower(cont_b.id)
     end
 
     local containers = vim.tbl_values(self.tag_manager.containers)
-    table.sort(containers, by_name)
+    table.sort(containers, by_id)
 
-    return containers, nil
+    local entities = {}
+
+    for _, container in ipairs(containers) do
+        ---@class grapple.container_content.entity
+        local entity = {
+            container = container,
+            current = container.id == current_scope.id,
+        }
+
+        table.insert(entities, entity)
+    end
+
+    return entities, nil
 end
 
----@param container grapple.tag_container
+---@param entity grapple.container_content.entity
 ---@param index integer
 ---@return grapple.window.entry
-function ContainerContent:create_entry(container, index)
+function ContainerContent:create_entry(entity, index)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    local container = entity.container
+
     -- A string representation of the index
     local id = string.format("/%03d", index)
+    local rel_id = vim.fn.fnamemodify(container.id, ":~")
 
     -- In compliance with "grapple" syntax
-    local line = string.format("%s %s", id, container.id)
+    local line = string.format("%s %s", id, rel_id)
     local min_col = assert(string.find(line, "%s")) -- width of id
+
+    local sign_highlight
+    if app.settings.status and entity.current then
+        sign_highlight = "GrappleCurrent"
+    end
 
     ---@type grapple.window.entry
     local entry = {
@@ -102,6 +133,7 @@ function ContainerContent:create_entry(container, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
+                sign_hl_group = sign_highlight,
 
                 -- TODO: requires nvim-0.10
                 -- invalidate = true,
@@ -122,7 +154,7 @@ function ContainerContent:parse_line(line)
     local entry = {
         ---@type grapple.scope_content.data
         data = {
-            id = container_id,
+            id = Path.fs_absolute(container_id),
         },
         index = index,
         line = line,

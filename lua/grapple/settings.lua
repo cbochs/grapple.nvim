@@ -12,9 +12,10 @@ local DEFAULT_SETTINGS = {
     ---@type boolean
     icons = true,
 
-    ---Add highlights to Grapple windows
+    ---Highlight the current selection in Grapple windows
+    ---Also, indicates when a tag path does not exist
     ---@type boolean
-    highlights = true,
+    status = true,
 
     ---Default scope to use when managing Grapple tags
     ---@type string
@@ -65,7 +66,7 @@ local DEFAULT_SETTINGS = {
             fallback = "cwd",
             cache = {
                 event = { "BufEnter", "FocusGained" },
-                debounce = 250, -- ms
+                debounce = 1000, -- ms
             },
             resolver = function()
                 -- TODO: this will stop on submodules, needs fixing
@@ -116,7 +117,8 @@ local DEFAULT_SETTINGS = {
                 debounce = 250, -- ms
             },
             resolver = function()
-                local clients = vim.lsp.get_clients({ bufnr = 0 })
+                -- TODO: Don't use vim.lsp.get_clients, it's a nvim-0.10 feature
+                local clients = vim.lsp.get_active_clients({ bufnr = 0 })
                 if #clients == 0 then
                     return
                 end

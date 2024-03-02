@@ -1,3 +1,4 @@
+local Path = require("grapple.path")
 local Util = require("grapple.util")
 
 ---@class grapple.window
@@ -31,6 +32,7 @@ function Window:new(win_opts)
         au_id = WINDOW_GROUP,
         buf_id = nil,
         win_id = nil,
+        alt_win = nil,
         win_opts = win_opts or {},
     }, self)
 end
@@ -119,6 +121,9 @@ function Window:open()
         return
     end
 
+    -- Store current window as the "alternate window"
+    self.alt_win = vim.api.nvim_get_current_win()
+
     -- Create temporary buffer
     self.buf_id = self:create_buffer()
 
@@ -146,6 +151,7 @@ function Window:close()
         vim.api.nvim_win_close(self.win_id, true)
         self.win_id = nil
         self.buf_id = nil
+        self.alt_win = nil
     end
 
     self.entries = nil
@@ -324,6 +330,13 @@ function Window:render()
     local win_opts = self:window_options()
     vim.api.nvim_win_set_config(self.win_id, win_opts)
 
+    -- Attach the content to the window
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.content:attach(self)
+    if err then
+        return err
+    end
+
     -- Update window entries
     local entities, err = self.content:entities()
     if not entities then
@@ -350,13 +363,6 @@ function Window:render()
 
     for _, mark in ipairs(vim.tbl_map(to_mark, self.entries)) do
         vim.api.nvim_buf_set_extmark(self.buf_id, self.ns_id, mark.line, mark.col, mark.opts)
-    end
-
-    -- Attach the content to the rendered buffer
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self.content:attach(self)
-    if err then
-        return err
     end
 
     -- Prevent undo after content has been rendered. Set undolevels to -1 when
@@ -464,8 +470,8 @@ function Window:map(mode, lhs, rhs, opts)
     )
 end
 
----See :h vim.api.nvim_create_autocmd
 ---Safety: used only inside a callback hook when a window is open
+---See :h vim.api.nvim_create_autocmd
 ---@param event any
 ---@param opts vim.api.keyset.create_autocmd
 function Window:autocmd(event, opts)
@@ -495,7 +501,7 @@ function Window:perform(action, opts)
     end
 end
 
----Safety: used only when a buffer is available
+---Safety: used only inside a callback hook when a window is open
 ---@return grapple.window.parsed_entry
 function Window:current_entry()
     local current_line = self:current_line()
@@ -503,13 +509,14 @@ function Window:current_entry()
     return entry
 end
 
----Safety: used only when a buffer is available
+---Safety: used only inside a callback hook when a window is open
 ---@return string
 function Window:current_line()
     return vim.api.nvim_get_current_line()
 end
 
----Safety: used only when a buffer is available
+---Safety: used only inside a callback hook when a window is open
+---@return string[]
 function Window:lines()
     return vim.api.nvim_buf_get_lines(self.buf_id, 0, -1, true)
 end
@@ -518,6 +525,27 @@ end
 ---@return integer[]
 function Window:cursor()
     return vim.api.nvim_win_get_cursor(self.win_id)
+end
+
+---Safety: used only inside a callback hook when a window is open
+---Returns the path for the buffer from current window before opening the
+---Grapple window. In a sense, it's like vim's alternate file
+---@return string | nil
+function Window:alternate_path()
+    -- It's possible that the alternate window is not valid after opening the
+    -- grapple window. For example, opening Grapple from Telescope
+    if not vim.api.nvim_win_is_valid(self.alt_win) then
+        return
+    end
+
+    local alt_buf = vim.api.nvim_win_get_buf(self.alt_win)
+    local alt_name = vim.api.nvim_buf_get_name(alt_buf)
+
+    if alt_name == "" then
+        return
+    end
+
+    return Path.fs_absolute(alt_name)
 end
 
 return Window

@@ -389,7 +389,8 @@ end
 ---@param path string
 ---@return boolean
 function Path.is_uri(path)
-    local index = string.find(path, ":")
+    -- URIs can be more complex than this. Just use a basic check right now
+    local index = string.find(path, "://")
 
     -- 1. If there is no index, it is not a URI
     -- 2. If there is an index, check that it is not a Windows volume "C:"

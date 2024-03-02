@@ -93,6 +93,11 @@ require("grapple").setup({
     ---@type boolean
     icons = true,
 
+    ---Highlight the current selection in Grapple windows
+    ---Also, indicates when a tag path does not exist
+    ---@type boolean
+    status = true,
+
     ---Default scope to use when managing Grapple tags
     ---@type string
     scope = "git",
@@ -525,15 +530,16 @@ require("grapple").setup({
 
 Popup windows are made available to enable easy management of tags and scopes. The opened buffer is given its own syntax (`grapple`) and file type (`grapple`) and can be modified like a regular buffer; meaning items can be selected, modified, reordered, or deleted with well-known vim motions. The floating window can be closed with either `q` or `<esc>`.
 
-<img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/19aa1902-3bbb-4eab-9707-a1fa053fea09">
-
 ### Tags Window
+
+<img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/e1fda612-c4f2-4202-9264-c8c6aee68795">
 
 Open a floating window with all the tags for a given scope. This buffer is modifiable. Several actions are available by default:
 
 - **Selection** (`<cr>`): select the tag under the cursor
 - **Split (horizontal)** (`-`): select the tag under the cursor (`split`)
 - **Split (vertical)** (`|`): select the tag under the cursor (`vsplit`)
+- **Quick select** (`1-9`): select the tag at a given index
 - **Deletion**: delete a line to delete the tag
 - **Reordering**: move a line to move a tag
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
@@ -568,6 +574,8 @@ require("grapple").open_tags("global")
 
 ### Scopes Window
 
+<img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/6af61cfa-3765-4dbf-a117-d599791e9a74">
+
 Open a floating window with all defined scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): set the current scope to the one under the cursor
@@ -585,6 +593,8 @@ require("grapple").open_scopes()
 </details>
 
 ### Loaded Scopes Window
+
+<img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/8b91222f-cf5e-43b9-9286-56379a6a80f0">
 
 Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 

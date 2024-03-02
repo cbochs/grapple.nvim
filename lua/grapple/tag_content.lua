@@ -4,6 +4,7 @@ local Path = require("grapple.path")
 ---@field scope grapple.resolved_scope
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
+---@field current_selection string | nil path of the current buffer
 local TagContent = {}
 TagContent.__index = TagContent
 
@@ -16,6 +17,7 @@ function TagContent:new(scope, hook_fn, title_fn)
         scope = scope,
         hook_fn = hook_fn,
         title_fn = title_fn,
+        current_selection = nil,
     }, self)
 end
 
@@ -36,14 +38,15 @@ end
 ---@param window grapple.window
 ---@return string? error
 function TagContent:attach(window)
-    if not self.hook_fn then
-        return
+    if self.hook_fn then
+        local err = self.hook_fn(window)
+        if err then
+            return err
+        end
     end
 
-    local err = self.hook_fn(window)
-    if err then
-        return err
-    end
+    -- Get the path for the buffer in the current window, not the Grapple window
+    self.current_selection = window:alternate_path()
 
     return nil
 end
@@ -51,7 +54,9 @@ end
 ---@param window grapple.window
 ---@return string? error
 ---@diagnostic disable-next-line: unused-local
-function TagContent:detach(window) end
+function TagContent:detach(window)
+    self.current_selection = nil
+end
 
 ---@param original grapple.window.entry
 ---@param parsed grapple.window.entry
@@ -74,7 +79,19 @@ function TagContent:entities()
         return nil, err
     end
 
-    return tags, nil
+    local entities = {}
+
+    for _, tag in ipairs(tags) do
+        ---@class grapple.tag_content.entity
+        local entity = {
+            tag = tag,
+            current = tag.path == self.current_selection,
+        }
+
+        table.insert(entities, entity)
+    end
+
+    return entities, nil
 end
 
 ---@param path string
@@ -99,18 +116,32 @@ local function get_icon(path)
     return icon, hl
 end
 
----@param tag grapple.tag
+---@param entity grapple.tag_content.entity
 ---@param index integer
 ---@return grapple.window.entry
-function TagContent:create_entry(tag, index)
+function TagContent:create_entry(entity, index)
     local App = require("grapple.app")
     local app = App.get()
+
+    local tag = entity.tag
 
     -- A string representation of the index
     local id = string.format("/%03d", index)
     local rel_path = Path.fs_relative(self.scope.path, tag.path)
 
-    local line, min_col, icon_highlight
+    -- In compliance with "grapple" syntax
+    local line = string.format("%s %s", id, rel_path)
+    local min_col = assert(string.find(line, "%s")) -- width of id
+
+    local sign_highlight, icon_highlight
+
+    if not app.settings.status then
+        -- Do not set highlight
+    elseif entity.current then
+        sign_highlight = "GrappleCurrent"
+    elseif not Path.exists(tag.path) then
+        sign_highlight = "GrappleNoExist"
+    end
 
     if app.settings.icons then
         local icon, icon_group = get_icon(tag.path)
@@ -128,10 +159,6 @@ function TagContent:create_entry(tag, index)
                 col_end = assert(string.find(line, "%s%s")),
             }
         end
-    else
-        -- In compliance with "grapple" syntax
-        line = string.format("%s %s", id, rel_path)
-        min_col = assert(string.find(line, "%s")) -- width of id
     end
 
     ---@type grapple.window.entry
@@ -156,6 +183,7 @@ function TagContent:create_entry(tag, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
+                sign_hl_group = sign_highlight,
                 virt_text = tag.name and { { tag.name } },
 
                 -- TODO: requires nvim-0.10

@@ -21,7 +21,7 @@ function Deserializable.from_table(tbl) end
 ---@field col integer
 ---@field opts? table<string, any>
 
----See :h nvim_buf_set_highlights
+---See :h nvim_buf_add_highlight
 ---@class grapple.vim.highlight
 ---@field hl_group string
 ---@field line integer
