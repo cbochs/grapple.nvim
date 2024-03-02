@@ -1,5 +1,7 @@
 # Grapple.nvim
 
+<!-- panvimdoc-ignore-start -->
+
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/1b350ddf-78f2-4457-899b-5b3cdeade01e">
 
 Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
@@ -13,9 +15,11 @@ Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
 
 </details>
 
+<!-- panvimdoc-ignore-end -->
+
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). See the [quickstart](#quickstart) section to get started.
+Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). Similar to [harpoon](https://github.com/ThePrimeagen/harpoon). See the [quickstart](#quickstart) section to get started.
 
 ## Features
 
