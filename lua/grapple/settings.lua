@@ -202,7 +202,6 @@ local DEFAULT_SETTINGS = {
             local entry = window:current_entry()
             local name = entry.data.name
             window:perform(ScopeActions.select, { name = name })
-            vim.notify(string.format("Changing scope: %s", name))
         end, { desc = "Change scope" })
 
         -- Quick select
