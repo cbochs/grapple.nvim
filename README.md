@@ -132,11 +132,13 @@ require("grapple").setup({
     ---See :h nvim_open_win
     ---@type grapple.vim.win_opts
     win_opts = {
-        relative = "editor",
-        width = 0.5,
-        height = 10,
+        -- Can be fractional
+        width = 80,
+        height = 12,
         row = 0.5,
         col = 0.5,
+
+        relative = "editor",
         border = "single",
         focusable = false,
         style = "minimal",
