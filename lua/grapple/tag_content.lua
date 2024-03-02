@@ -4,7 +4,7 @@ local Path = require("grapple.path")
 ---@field scope grapple.resolved_scope
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
----@field selected_path string
+---@field current_selection string | nil path of the current buffer
 local TagContent = {}
 TagContent.__index = TagContent
 
@@ -17,7 +17,7 @@ function TagContent:new(scope, hook_fn, title_fn)
         scope = scope,
         hook_fn = hook_fn,
         title_fn = title_fn,
-        selected_path = nil,
+        current_selection = nil,
     }, self)
 end
 
@@ -46,11 +46,7 @@ function TagContent:attach(window)
     end
 
     -- Get the path for the current window, not the Grapple window
-    local alternate_buffer = window:alternate_buffer()
-    local alternate_name = vim.api.nvim_buf_get_name(alternate_buffer)
-    if alternate_name ~= "" then
-        self.selected_path = Path.fs_absolute(alternate_name)
-    end
+    self.current_selection = window:alternate_path()
 
     return nil
 end
@@ -59,7 +55,7 @@ end
 ---@return string? error
 ---@diagnostic disable-next-line: unused-local
 function TagContent:detach(window)
-    self.selected_path = nil
+    self.current_selection = nil
 end
 
 ---@param original grapple.window.entry
@@ -89,7 +85,7 @@ function TagContent:entities()
         ---@class grapple.tag_content.entity
         local entity = {
             tag = tag,
-            current = tag.path == self.selected_path,
+            current = tag.path == self.current_selection,
         }
 
         table.insert(entities, entity)
@@ -137,9 +133,13 @@ function TagContent:create_entry(entity, index)
     local line = string.format("%s %s", id, rel_path)
     local min_col = assert(string.find(line, "%s")) -- width of id
 
-    local sign_highlight, line_highlight, icon_highlight
+    local sign_highlight, icon_highlight
 
-    if not Path.exists(tag.path) then
+    if not app.settings.status then
+        -- Do not set highlight
+    elseif entity.current then
+        sign_highlight = "GrappleCurrent"
+    elseif not Path.exists(tag.path) then
         sign_highlight = "GrappleNoExist"
     end
 
@@ -161,15 +161,6 @@ function TagContent:create_entry(entity, index)
         end
     end
 
-    if entity.current then
-        line_highlight = {
-            hl_group = "GrappleCurrent",
-            line = index - 1,
-            col_start = min_col,
-            col_end = -1,
-        }
-    end
-
     ---@type grapple.window.entry
     local entry = {
         ---@class grapple.tag.content.data
@@ -184,7 +175,7 @@ function TagContent:create_entry(entity, index)
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]
-        highlights = { icon_highlight, line_highlight },
+        highlights = { icon_highlight },
 
         ---@type grapple.vim.extmark
         mark = {
@@ -193,7 +184,6 @@ function TagContent:create_entry(entity, index)
             opts = {
                 sign_text = string.format("%d", index),
                 sign_hl_group = sign_highlight,
-
                 virt_text = tag.name and { { tag.name } },
 
                 -- TODO: requires nvim-0.10

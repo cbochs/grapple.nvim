@@ -1,3 +1,4 @@
+local Path = require("grapple.path")
 local Util = require("grapple.util")
 
 ---@class grapple.window
@@ -527,16 +528,24 @@ function Window:cursor()
 end
 
 ---Safety: used only inside a callback hook when a window is open
----Returns the buffer for the current window before opening the Grapple window
+---Returns the path for the buffer from current window before opening the
+---Grapple window. In a sense, it's like vim's alternate file
 ---@return string | nil
-function Window:alternate_buffer()
+function Window:alternate_path()
     -- It's possible that the alternate window is not valid after opening the
     -- grapple window. For example, opening Grapple from Telescope
     if not vim.api.nvim_win_is_valid(self.alt_win) then
         return
     end
 
-    return vim.api.nvim_win_get_buf(self.alt_win)
+    local alt_buf = vim.api.nvim_win_get_buf(self.alt_win)
+    local alt_name = vim.api.nvim_buf_get_name(alt_buf)
+
+    if alt_name == "" then
+        return
+    end
+
+    return Path.fs_absolute(alt_name)
 end
 
 return Window

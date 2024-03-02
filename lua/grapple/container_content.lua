@@ -36,13 +36,11 @@ end
 ---@param window grapple.window
 ---@return string? error
 function ContainerContent:attach(window)
-    if not self.hook_fn then
-        return
-    end
-
-    local err = self.hook_fn(window)
-    if err then
-        return err
+    if self.hook_fn then
+        local err = self.hook_fn(window)
+        if err then
+            return err
+        end
     end
 
     return nil
@@ -97,6 +95,9 @@ end
 ---@param index integer
 ---@return grapple.window.entry
 function ContainerContent:create_entry(entity, index)
+    local App = require("grapple.app")
+    local app = App.get()
+
     local container = entity.container
 
     -- A string representation of the index
@@ -107,14 +108,9 @@ function ContainerContent:create_entry(entity, index)
     local line = string.format("%s %s", id, rel_id)
     local min_col = assert(string.find(line, "%s")) -- width of id
 
-    local line_highlight
-    if entity.current then
-        line_highlight = {
-            hl_group = "GrappleCurrent",
-            line = index - 1,
-            col_start = min_col,
-            col_end = -1,
-        }
+    local sign_highlight
+    if app.settings.status and entity.current then
+        sign_highlight = "GrappleCurrent"
     end
 
     ---@type grapple.window.entry
@@ -129,7 +125,7 @@ function ContainerContent:create_entry(entity, index)
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]
-        highlights = { line_highlight },
+        highlights = {},
 
         ---@type grapple.vim.extmark
         mark = {
@@ -137,6 +133,7 @@ function ContainerContent:create_entry(entity, index)
             col = 0,
             opts = {
                 sign_text = string.format("%d", index),
+                sign_hl_group = sign_highlight,
 
                 -- TODO: requires nvim-0.10
                 -- invalidate = true,
