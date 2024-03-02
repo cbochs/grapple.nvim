@@ -462,9 +462,12 @@ end
 ---"Grapple" user command. Called only once when plugin is loaded.
 function Grapple.initialize()
     -- Create highlights for Grapple windows
-    vim.cmd.highlight({ "default", "link", "GrappleCurrent", "SpecialChar" })
-    vim.cmd.highlight({ "default", "link", "GrappleNoExist", "DiagnosticError" })
-    vim.cmd.highlight({ "default", "link", "GrappleEmpty", "DiagnosticInfo" })
+    vim.cmd("highlight default GrappleBold gui=bold cterm=bold")
+    vim.cmd("highlight default GrappleCurrentBold gui=bold cterm=bold")
+
+    vim.cmd("highlight default link GrappleNoExist DiagnosticError")
+    vim.cmd("highlight default link GrappleCurrent SpecialChar")
+    vim.cmd("highlight! link GrappleCurrentBold GrappleCurrent")
 
     -- Create autocommand to keep Grapple state up-to-date
     vim.api.nvim_create_augroup("Grapple", { clear = true })

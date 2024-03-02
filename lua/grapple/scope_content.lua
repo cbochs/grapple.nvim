@@ -100,10 +100,22 @@ function ScopeContent:create_entry(entity, index)
     local line = string.format("%s %s %s", id, scope.name, scope.desc)
     local min_col = assert(string.find(line, "%s")) -- width of id
 
+    local name_group = "GrappleBold"
     local sign_highlight
+
     if app.settings.status and entity.current then
         sign_highlight = "GrappleCurrent"
+        name_group = "GrappleCurrentBold"
     end
+
+    local col_start = string.find(line, "%s")
+    local col_end = col_start + string.len(scope.name)
+    local name_highlight = {
+        hl_group = name_group,
+        line = index - 1,
+        col_start = col_start,
+        col_end = col_end,
+    }
 
     ---@type grapple.window.entry
     local entry = {
@@ -117,7 +129,7 @@ function ScopeContent:create_entry(entity, index)
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]
-        highlights = {},
+        highlights = { name_highlight },
 
         ---@type grapple.vim.extmark
         mark = {
