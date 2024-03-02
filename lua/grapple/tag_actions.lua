@@ -31,7 +31,7 @@ end
 ---@param opts grapple.action.tag_options
 ---@return string? error
 function TagActions.quickfix(opts)
-    require("grapple").quickfix(opts.scope.name)
+    require("grapple").quickfix({ scope = opts.scope.name })
 end
 
 return TagActions

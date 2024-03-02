@@ -142,13 +142,22 @@ end
 
 ---Open the quickfix window populated with paths from a given scope
 ---By default, uses the current scope
----@param scope_name? string
-function Grapple.quickfix(scope_name)
+---@param opts? { scope?: string, id?: string }
+function Grapple.quickfix(opts)
     local App = require("grapple.app")
     local Path = require("grapple.path")
 
     local app = App.get()
-    local scope, err = app.scope_manager:get_resolved(scope_name or app.settings.scope)
+
+    opts = opts or {}
+
+    local scope, err
+    if opts.id then
+        scope, err = app.scope_manager:lookup(opts.id)
+    else
+        scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
+    end
+
     if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
@@ -193,7 +202,7 @@ function Grapple.cycle_backward(opts)
     Grapple.cycle("backward", opts)
 end
 
----Cycles through a given scope's tags
+-- Cycle through and select the next or previous available tag for a given scope.
 ---By default, uses the current scope
 ---@param direction "forward" | "backward"
 ---@param opts? grapple.options
