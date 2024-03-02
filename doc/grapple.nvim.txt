@@ -1,4 +1,4 @@
-*grapple.nvim.txt*          For NVIM v0.8.0         Last change: 2024 March 01
+*grapple.nvim.txt*          For NVIM v0.8.0         Last change: 2024 March 02
 
 ==============================================================================
 Table of Contents                             *grapple.nvim-table-of-contents*
@@ -109,6 +109,11 @@ Default Settings ~
         ---Show icons next to tags or scopes in Grapple windows
         ---@type boolean
         icons = true,
+    
+        ---Highlight the current selection in Grapple windows
+        ---Also, indicates when a tag path does not exist
+        ---@type boolean
+        status = true,
     
         ---Default scope to use when managing Grapple tags
         ---@type string
@@ -541,9 +546,9 @@ modified, reordered, or deleted with well-known vim motions. The floating
 window can be closed with either `q` or `<esc>`.
 
 
-
-
 TAGS WINDOW ~
+
+
 
 Open a floating window with all the tags for a given scope. This buffer is
 modifiable. Several actions are available by default:
@@ -551,6 +556,7 @@ modifiable. Several actions are available by default:
 - **Selection** (`<cr>`): select the tag under the cursor
 - **Split (horizontal)** (`-`): select the tag under the cursor (`split`)
 - **Split (vertical)** (`|`): select the tag under the cursor (`vsplit`)
+- **Quick select** (`1-9`): select the tag at a given index
 - **Deletion**delete a line to delete the tag
 - **Reordering**move a line to move a tag
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list (||quickfix||)
@@ -584,6 +590,8 @@ Examples ~
 
 SCOPES WINDOW ~
 
+
+
 Open a floating window with all defined scopes. This buffer is not modifiable.
 Some basic actions are available by default:
 
@@ -600,6 +608,8 @@ Examples ~
 
 
 LOADED SCOPES WINDOW ~
+
+
 
 Open a floating window with all loaded scopes. This buffer is not modifiable.
 Some basic actions are available by default:
