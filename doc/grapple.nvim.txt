@@ -64,9 +64,9 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 **Next steps**
 
 - Check out the default |grapple.nvim-settings|
-- View your tags with `:Grapple open_tags`
-- Choose a scope with `:Grapple open_scopes`
-- Manage your loaded scopes with `:Grapple open_loaded`
+- View your tags with `:Grapple toggle_tags`
+- Choose a scope with `:Grapple toggle_scopes`
+- Manage your loaded scopes with `:Grapple toggle_loaded`
 - Add a |grapple.nvim-statusline-component|
 - Explore the |grapple.nvim-grapple| and |grapple.nvim-scope| APIs
 
@@ -344,7 +344,7 @@ Clear all tags for a scope.
 
 **opts?**`table`
 
-- **scope?**`string` scope name
+- **scope?**`string` scope name (default: `settings.scope`)
 - **id?**`string` the ID of a resolved scope
 
 Examples ~
