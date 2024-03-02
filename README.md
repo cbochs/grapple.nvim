@@ -34,8 +34,12 @@ Grapple is a plugin that aims to provide immediate navigation to important files
 - Add a keybind to `tag`, `untag`, or `toggle` a path. For example,
 
 ```lua
-vim.keymap.set("n", "<leader>m", "<cmd>Grapple toggle<cr>")
-vim.keymap.set("n", "<leader>M", "<cmd>Grapple open_tags<cr>")
+-- Lua
+vim.keymap.set("n", "<leader>m", require("grapple").toggle)
+vim.keymap.set("n", "<leader>M", require("grapple").toggle_tags)
+
+-- User command
+vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 ```
 
 **Next steps**
