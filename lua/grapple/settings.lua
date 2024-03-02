@@ -265,11 +265,13 @@ local DEFAULT_SETTINGS = {
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts
     win_opts = {
-        relative = "editor",
-        width = 0.5,
-        height = 0.5,
+        -- Can be fractional
+        width = 80,
+        height = 12,
         row = 0.5,
         col = 0.5,
+
+        relative = "editor",
         border = "single",
         focusable = false,
         style = "minimal",
