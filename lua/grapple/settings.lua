@@ -134,7 +134,14 @@ local DEFAULT_SETTINGS = {
     ---By default, uses the resolved scope's ID
     ---@type fun(scope: grapple.resolved_scope): string?
     tag_title = function(scope)
-        return scope.id
+        local Path = require("grapple.path")
+
+        -- If the scope ID is something like "global"
+        if not Path.is_absolute(scope.id) then
+            return scope.id
+        end
+
+        return vim.fn.fnamemodify(scope.id, ":~")
     end,
 
     ---Not user documented
