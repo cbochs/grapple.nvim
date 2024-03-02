@@ -41,9 +41,9 @@ vim.keymap.set("n", "<leader>M", "<cmd>Grapple open_tags<cr>")
 **Next steps**
 
 - Check out the default [settings](#settings)
-- View your tags with `:Grapple open_tags`
-- Choose a scope with `:Grapple open_scopes`
-- Manage your loaded scopes with `:Grapple open_loaded`
+- View your tags with `:Grapple toggle_tags`
+- Choose a scope with `:Grapple toggle_scopes`
+- Manage your loaded scopes with `:Grapple toggle_loaded`
 - Add a [statusline component](#statusline)
 - Explore the [Grapple](#grapple-api) and [Scope](#scopes-api) APIs
 
@@ -332,7 +332,7 @@ Clear all tags for a scope.
 
 **`opts?`**: `table`
 
-- **`scope?`**: `string` scope name
+- **`scope?`**: `string` scope name (default: `settings.scope`)
 - **`id?`**: `string` the ID of a resolved scope
 
 <details>
