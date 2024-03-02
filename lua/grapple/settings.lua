@@ -182,7 +182,7 @@ local DEFAULT_SETTINGS = {
         -- Go "up" to scopes
         window:map("n", "-", function()
             window:perform(TagActions.open_scopes)
-        end)
+        end, { desc = "Go to scopes" })
     end,
 
     ---User-defined scopes title function for Grapple windows
@@ -267,7 +267,7 @@ local DEFAULT_SETTINGS = {
         -- Navigate "up" to scopes
         window:map("n", "-", function()
             window:perform(ContainerActions.open_scopes)
-        end)
+        end, { desc = "Go to scopes" })
     end,
 
     ---Additional window options for Grapple windows
