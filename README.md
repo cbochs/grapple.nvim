@@ -532,9 +532,9 @@ Popup windows are made available to enable easy management of tags and scopes. T
 
 ### Tags Window
 
-Open a floating window with all the tags for a given scope. This buffer is modifiable. Several actions are available by default:
-
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/e1fda612-c4f2-4202-9264-c8c6aee68795">
+
+Open a floating window with all the tags for a given scope. This buffer is modifiable. Several actions are available by default:
 
 - **Selection** (`<cr>`): select the tag under the cursor
 - **Split (horizontal)** (`-`): select the tag under the cursor (`split`)
