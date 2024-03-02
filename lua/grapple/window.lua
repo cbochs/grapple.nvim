@@ -502,11 +502,29 @@ function Window:perform(action, opts)
 end
 
 ---Safety: used only inside a callback hook when a window is open
+---Returns a parsed entry for the current line
 ---@return grapple.window.parsed_entry
 function Window:current_entry()
     local current_line = self:current_line()
     local entry = self.content:parse_line(current_line)
     return entry
+end
+
+---Safety: used only inside a callback hook when a window is open
+---Returns a parsed entry for a line at a given index
+---@param opts { index: integer }
+---@return grapple.window.parsed_entry | nil, string? error
+function Window:entry(opts)
+    local lines = self:lines()
+
+    local line = lines[opts.index]
+    if not line then
+        return nil, string.format("no entry for index: %s", opts.index)
+    end
+
+    local entry = self.content:parse_line(line)
+
+    return entry, nil
 end
 
 ---Safety: used only inside a callback hook when a window is open
