@@ -587,12 +587,13 @@ Open a floating window with all the tags for a given scope. This buffer is
 modifiable. Several actions are available by default:
 
 - **Selection** (`<cr>`): select the tag under the cursor
-- **Split (horizontal)** (`-`): select the tag under the cursor (`split`)
+- **Split (horizontal)** (`<c-s>`): select the tag under the cursor (`split`)
 - **Split (vertical)** (`|`): select the tag under the cursor (`vsplit`)
 - **Quick select** (`1-9`): select the tag at a given index
 - **Deletion**delete a line to delete the tag
 - **Reordering**move a line to move a tag
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list (||quickfix||)
+- **Go up** (`-`): navigate up to the |grapple.nvim-scopes-window|
 
 **API**
 
@@ -623,6 +624,8 @@ Open a floating window with all defined scopes. This buffer is not modifiable.
 Some basic actions are available by default:
 
 - **Selection** (`<cr>`): set the current scope to the one under the cursor
+- **Quick select** (`1-9`): select the scope at a given index
+- **Go up** (`-`): navigate across to the |grapple.nvim-loaded-scopes-window|
 
 **API**
 
@@ -645,7 +648,9 @@ Open a floating window with all loaded scopes. This buffer is not modifiable.
 Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the tags window for the loaded scope under the cursor
+- **Quick select** (`1-9`): select the loaded scope at a given index
 - **Deletion (x)**reset the tags for the loaded scope under the cursor
+- **Go up** (`-`): navigate across to the |grapple.nvim-scopes-window|
 
 **API**
 
