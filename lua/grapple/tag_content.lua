@@ -45,7 +45,7 @@ function TagContent:attach(window)
         end
     end
 
-    -- Get the path for the current window, not the Grapple window
+    -- Get the path for the buffer in the current window, not the Grapple window
     self.current_selection = window:alternate_path()
 
     return nil
