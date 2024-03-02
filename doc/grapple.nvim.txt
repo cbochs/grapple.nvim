@@ -23,7 +23,7 @@ Table of Contents                             *grapple.nvim-table-of-contents*
 
 
 
-_Theme: kanagawa_
+Theme: kanagawa <https://github.com/rebelot/kanagawa.nvim>
 
 Showcase ~
 
@@ -40,9 +40,11 @@ section to get started.
 
 FEATURES                                  *grapple.nvim-grapple.nvim-features*
 
-- **Persistent** cursor tracking for tagged files
-- **Scoped** file tagging for immediate navigation
-- **Popup** windows to manage tags and scopes as regular text
+- **Persistent** tags on file paths to track and restore cursor location
+- **Scoped** tags for fine-grained, per-project tagging (i.e. git branch)
+- **Rich** well-defined |grapple.nvim-grapple| and |grapple.nvim-scope| APIs
+- **Toggleable** windows to manage tags and scopes as a regular vim buffer
+- **Integration** with |grapple.nvim-telescope.nvim|
 - **Integration** with portal.nvim <https://github.com/cbochs/portal.nvim> for additional jump options
 
 
@@ -68,9 +70,9 @@ QUICKSTART                              *grapple.nvim-grapple.nvim-quickstart*
 **Next steps**
 
 - Check out the default |grapple.nvim-settings|
-- View your tags with `:Grapple toggle_tags`
-- Choose a scope with `:Grapple toggle_scopes`
-- Manage your loaded scopes with `:Grapple toggle_loaded`
+- View your tags with |grapple.nvim-`:grapple-toggle_tags`|
+- Choose a scope with |grapple.nvim-`:grapple-toggle_scopes`|
+- Manage your loaded scopes with |grapple.nvim-`:grapple-toggle_loaded`|
 - Add a |grapple.nvim-statusline-component|
 - Explore the |grapple.nvim-grapple| and |grapple.nvim-scope| APIs
 
@@ -100,7 +102,7 @@ SETTINGS                                  *grapple.nvim-grapple.nvim-settings*
 
 The following are the default settings for Grapple. **Setup is not required**,
 but settings may be overridden by passing them as table arguments to the
-`grapple#setup` function.
+`Grapple.setup` function.
 
 Default Settings ~
 
@@ -169,17 +171,12 @@ Default Settings ~
 
 USAGE                                        *grapple.nvim-grapple.nvim-usage*
 
+In general, the API is as follows:
 
-GRAPPLE API ~
-
-Grapple API and Examples ~
-
-In general, the Grapple API is as follows:
-
-**Lua**`require("grapple").{method}(opts)` **Command**`:Grapple [method]
+**Lua**`require("grapple").{method}(...)` **Command**`:Grapple [method]
 [opts...]`
 
-Where `opts` in the user command is a list of `value` arguments `key=value`
+Where `opts` in the user command is a list of `value` arguments and `key=value`
 keyword arguments. For example,
 
 >vim
@@ -193,7 +190,12 @@ Has the equivalent form
 <
 
 
-GRAPPLE#TAG
+GRAPPLE API ~
+
+Grapple API and Examples ~
+
+
+GRAPPLE.TAG
 
 Create a grapple tag.
 
@@ -227,7 +229,7 @@ Examples ~
 <
 
 
-GRAPPLE#UNTAG
+GRAPPLE.UNTAG
 
 Remove a Grapple tag.
 
@@ -252,7 +254,7 @@ Examples ~
 <
 
 
-GRAPPLE#TOGGLE
+GRAPPLE.TOGGLE
 
 Toggle a Grapple tag.
 
@@ -268,7 +270,7 @@ Examples ~
 <
 
 
-GRAPPLE#SELECT
+GRAPPLE.SELECT
 
 Select a Grapple tag.
 
@@ -287,7 +289,9 @@ Examples ~
 <
 
 
-GRAPPLE#EXISTS
+GRAPPLE.EXISTS
+
+Return if a tag exists. Used for statusline components
 
 **API**`require("grapple").exists(opts)`
 
@@ -309,9 +313,9 @@ Examples ~
 <
 
 
-GRAPPLE#CYCLE
+GRAPPLE.CYCLE
 
-Cycle through and select from the available tagged files in a scoped tag list.
+Cycle through and select the next or previous available tag for a given scope.
 
 **Command**`:Grapple cycle {direction} [opts...]`
 
@@ -338,7 +342,7 @@ Examples ~
 <
 
 
-GRAPPLE#RESET
+GRAPPLE.RESET
 
 Clear all tags for a scope.
 
@@ -365,32 +369,34 @@ Examples ~
 <
 
 
-GRAPPLE#QUICKFIX
+GRAPPLE.QUICKFIX
 
-Open the quickfix menu and populate the quickfix list with a project scope’s
-tags.
+Open the quickfix window populated with paths from a given scope
 
-**API**`require("grapple").quickfix(scope)`
+**API**`require("grapple").quickfix(opts)`
 
-**scope?**`string` (default: `settings.scope`)
+**opts?**`table`
+
+- **scope?**`string` scope name (default: `settings.scope`)
+- **id?**`string` the ID of a resolved scope
 
 Examples ~
 
 >lua
-    -- Open the quickfix menu for the current scope
+    -- Open the quickfix window for the current scope
     require("grapple").quickfix()
     
-    -- Open the quickfix menu for a specified scope
+    -- Open the quickfix window for a specified scope
     require("grapple").quickfix("global")
 <
 
 
-SCOPES API ~
+SCOPE API ~
 
-Scope API and Examples ~
+Scopes API and Examples ~
 
 
-GRAPPLE#DEFINE_SCOPE
+GRAPPLE.DEFINE_SCOPE
 
 Create a user-defined scope.
 
@@ -400,21 +406,42 @@ Create a user-defined scope.
 
 Examples ~
 
+For more examples, see settings.lua <./lua/grapple/settings.lua>
+
 >lua
     -- Define a scope during setup
     require("grapple").setup({
-        scope = "home_dir",
+        scope = "cwd_branch",
     
         scopes = {
             {
-                name = "home_dir",
-                desc = "Home directory",
-                cache = { debounce = 250 }
+                name = "cwd_branch",
+                desc = "Current working directory and git branch",
+                fallback = "cwd",
+                cache = {
+                    event = { "BufEnter", "FocusGained" },
+                    debounce = 1000, -- ms
+                },
                 resolver = function()
-                    local path = vim.loop.cwd()
-                    local id = path
-                    return id, path, nil
-                end
+                    local git_files = vim.fs.find(".git", {
+                        upward = true,
+                        stop = vim.loop.os_homedir(),
+                    })
+    
+                    if #git_files == 0 then
+                        return
+                    end
+    
+                    local root = vim.loop.cwd()
+    
+                    local result = vim.fn.system({ "git", "symbolic-ref", "--short", "HEAD" })
+                    local branch = vim.trim(string.gsub(result, "\n", ""))
+    
+                    local id = string.format("%s:%s", root, branch)
+                    local path = root
+    
+                    return id, path
+                end,
             }
         }
     })
@@ -446,7 +473,7 @@ Examples ~
 <
 
 
-GRAPPLE#USE_SCOPE
+GRAPPLE.USE_SCOPE
 
 Change the currently selected scope.
 
@@ -462,7 +489,7 @@ Examples ~
 <
 
 
-GRAPPLE#CLEAR_CACHE
+GRAPPLE.CLEAR_CACHE
 
 Clear any cached value for a given scope.
 
@@ -473,8 +500,8 @@ Clear any cached value for a given scope.
 Examples ~
 
 >lua
-    -- Clear the cached value (if any) for the "git" scope
-    require("grapple").clear_cache("git")
+    -- Clear the cached value for the initial working directory scope
+    require("grapple").clear_cache("static")
 <
 
 
@@ -508,12 +535,12 @@ The following scopes are made available by default:
 - `global`tags are scoped to a global namespace
 - `static`tags are scoped to neovim’s initial working directory
 - `cwd`tags are scoped to the current working directory
-- `lsp`tags are scoped using the `root_dir` of the current buffer’s attached LSP server, **fallback**`static`
-- `git`tags are scoped to the current git repository, **fallback**`static`
-- `git_branch`tags are scoped to the current git repository and branch, **fallback**`static`
+- `lsp`tags are scoped to the root directory of the current buffer’s attached LSP server, **fallback**`cwd`
+- `git`tags are scoped to the current git repository, **fallback**`cwd`
+- `git_branch`tags are scoped to the current git directory **and** git branch, **fallback**`cwd`
 
 It is also possible to create your own **custom scope**. See the
-|grapple.nvim-scope-api| section for more information.
+|grapple.nvim-scope-api| for more information.
 
 Examples ~
 
@@ -547,7 +574,7 @@ Popup windows are made available to enable easy management of tags and scopes.
 The opened buffer is given its own syntax (`grapple`) and file type (`grapple`)
 and can be modified like a regular buffer; meaning items can be selected,
 modified, reordered, or deleted with well-known vim motions. The floating
-window can be closed with either `q` or `<esc>`.
+window can be toggled or closed with either `q` or `<esc>`.
 
 
 TAGS WINDOW ~
@@ -647,8 +674,8 @@ INTEGRATIONS                          *grapple.nvim-grapple.nvim-integrations*
 
 TELESCOPE ~
 
-You can use telescope to search through your tagged files instead of the built
-in popup windows.
+You can use telescope.nvim <https://github.com/nvim-telescope/telescope.nvim>
+to search through your tagged files instead of the built in popup windows.
 
 Load the extension with
 
@@ -705,9 +732,11 @@ toggle, etc).
 
 GRAPPLE.CACHE.OPTIONS ~
 
-Options available for defining how a scope should be cached.
+Options available for defining how a scope should be cached. Using the value of
+`true` will indicate a value should be cached indefinitely and is equivalent to
+providing an empty set of options (`{}`).
 
-**Type**`table`
+**Type**`table` | `boolean`
 
 - **event?**`string` | `string[]` autocmd event (||autocmd||)
 - **pattern?**`string` autocmd pattern, useful for `User` events
