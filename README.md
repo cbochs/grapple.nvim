@@ -574,9 +574,9 @@ require("grapple").open_tags("global")
 
 ### Scopes Window
 
-Open a floating window with all defined scopes. This buffer is not modifiable. Some basic actions are available by default:
-
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/6af61cfa-3765-4dbf-a117-d599791e9a74">
+
+Open a floating window with all defined scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): set the current scope to the one under the cursor
 
@@ -594,9 +594,9 @@ require("grapple").open_scopes()
 
 ### Loaded Scopes Window
 
-Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
-
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/8b91222f-cf5e-43b9-9286-56379a6a80f0">
+
+Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the tags window for the loaded scope under the cursor
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
