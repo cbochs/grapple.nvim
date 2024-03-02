@@ -408,6 +408,25 @@ local function open(content)
     end
 end
 
+---Convenience function to toggle content in a floating window
+---@param open_fn function
+---@param opts any
+local function toggle(open_fn, opts)
+    local filetype = vim.api.nvim_get_option_value("filetype", { buf = 0 })
+    if filetype == "grapple" then
+        vim.cmd.close()
+    else
+        open_fn(opts)
+    end
+end
+
+---Toggle a floating window populated with all tags for a given scope
+---By default, uses the current scope
+---@param opts? { scope?: string, id?: string }
+function Grapple.toggle_tags(opts)
+    toggle(Grapple.open_tags, opts)
+end
+
 ---Open a floating window populated with all tags for a given scope
 ---By default, uses the current scope
 ---@param opts? { scope?: string, id?: string }
@@ -436,6 +455,11 @@ function Grapple.open_tags(opts)
     open(content)
 end
 
+---Toggle a floating window populated with all defined scopes
+function Grapple.toggle_scopes()
+    toggle(Grapple.open_scopes)
+end
+
 ---Open a floating window populated with all defined scopes
 function Grapple.open_scopes()
     local App = require("grapple.app")
@@ -445,6 +469,11 @@ function Grapple.open_scopes()
     local content = ScopeContent:new(app.scope_manager, app.settings.scope_hook, app.settings.scope_title)
 
     open(content)
+end
+
+---Toggle a floating window populated with all loaded scopes
+function Grapple.toggle_loaded()
+    toggle(Grapple.open_loaded)
 end
 
 ---Open a floating window populated with all loaded scopes
