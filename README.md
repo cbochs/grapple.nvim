@@ -29,6 +29,7 @@ Grapple is a plugin that aims to provide immediate navigation to important files
 ## Requirements
 
 - [Neovim >= 0.9](https://github.com/neovim/neovim/releases/tag/v0.9.0)
+- [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons) (optional)
 
 ## Quickstart
 
@@ -47,9 +48,9 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 **Next steps**
 
 - Check out the default [settings](#settings)
-- View your tags with [`:Grapple toggle_tags`](#tags-window)
-- Choose a scope with [`:Grapple toggle_scopes`](#scopes-window)
-- Manage your loaded scopes with [`:Grapple toggle_loaded`](#loaded-scopes-window)
+- View your [tags](#tags-window) with `:Grapple toggle_tags`
+- Choose a [scope](#scopes-window) with `:Grapple toggle_scopes`
+- Manage your [loaded scopes](#loaded-scopes-window) with `:Grapple toggle_loaded`
 - Add a [statusline component](#statusline)
 - Explore the [Grapple](#grapple-api) and [Scope](#scope-api) APIs
 
@@ -59,7 +60,13 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 <summary>lazy.nvim</summary>
 
 ```lua
-{ "cbochs/grapple.nvim" }
+{
+    "cbochs/grapple.nvim"
+    dependencies = {
+        { "nvim-tree/nvim-web-devicons", lazy = true }
+    }
+
+}
 ```
 
 </details>
@@ -68,7 +75,10 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 <summary>packer</summary>
 
 ```lua
-use { "cbochs/grapple.nvim" }
+use {
+    "cbochs/grapple.nvim"
+    requires = { "nvim-tree/nvim-web-devicons" }
+}
 ```
 
 </details>
@@ -77,6 +87,7 @@ use { "cbochs/grapple.nvim" }
 <summary>vim-plug</summary>
 
 ```vim
+Plug "nvim-tree/nvim-web-devicons"
 Plug "cbochs/grapple.nvim"
 ```
 
