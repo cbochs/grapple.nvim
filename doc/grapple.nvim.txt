@@ -14,7 +14,7 @@ Table of Contents                             *grapple.nvim-table-of-contents*
   - Tags                                      |grapple.nvim-grapple.nvim-tags|
   - Scopes                                  |grapple.nvim-grapple.nvim-scopes|
   - Grapple Windows                |grapple.nvim-grapple.nvim-grapple-windows|
-  - Persistent State              |grapple.nvim-grapple.nvim-persistent-state|
+  - PersistentState                |grapple.nvim-grapple.nvim-persistentstate|
   - Integrations                      |grapple.nvim-grapple.nvim-integrations|
   - Grapple Types                    |grapple.nvim-grapple.nvim-grapple-types|
 
@@ -561,21 +561,15 @@ modifiable. Several actions are available by default:
 - **Reordering**move a line to move a tag
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list (||quickfix||)
 
-Note, the title used by the tags window may be adjusted in the
-|grapple.nvim-settings|.
+**API**
 
->lua
-    -- Set title relative to the users home directory
-    require("grapple").setup({
-        tag_title = function(scope)
-            return vim.fn.fnamemodify(scope.path, ":~")
-        end
-    })
-<
+- `require("grapple").open_tags(opts)`
+- `require("grapple").toggle_tags(opts)`
 
-**API**`require("grapple").open_tags(scope)`
+**opts?**`table`
 
-**scope?**`string` scope name (default: `settings.scope`)
+- **scope?**`string` scope name
+- **id?**`string` the ID of a resolved scope
 
 Examples ~
 
@@ -597,7 +591,10 @@ Some basic actions are available by default:
 
 - **Selection** (`<cr>`): set the current scope to the one under the cursor
 
-**API**`require("grapple").open_scopes()`
+**API**
+
+- `require("grapple").open_scopes()`
+- `require("grapple").toggle_scopes()`
 
 Examples ~
 
@@ -607,7 +604,7 @@ Examples ~
 <
 
 
-LOADED SCOPES WINDOW ~
+LOADEDSCOPES WINDOW ~
 
 
 
@@ -617,7 +614,10 @@ Some basic actions are available by default:
 - **Selection** (`<cr>`): open the tags window for the loaded scope under the cursor
 - **Deletion (x)**reset the tags for the loaded scope under the cursor
 
-**API**`require("grapple").open_loaded()`
+**API**
+
+- `require("grapple").open_loaded()`
+- `require("grapple").toggle_loaded()`
 
 Examples ~
 
@@ -627,7 +627,7 @@ Examples ~
 <
 
 
-PERSISTENT STATE                  *grapple.nvim-grapple.nvim-persistent-state*
+PERSISTENTSTATE                    *grapple.nvim-grapple.nvim-persistentstate*
 
 Grapple saves all scopes to a common directory. The default directory is named
 `grapple` and lives in Neovim’s `"data"` directory (||standard-path||). Each
