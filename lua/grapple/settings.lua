@@ -152,54 +152,37 @@ local DEFAULT_SETTINGS = {
         -- Select
         window:map("n", "<cr>", function()
             local cursor = window:cursor()
-            local err = window:perform(TagActions.select, { index = cursor[1] })
-            if err then
-                vim.notify(err, vim.log.levels.ERROR)
-            end
+            window:perform(TagActions.select, { index = cursor[1] })
         end, { desc = "Select" })
 
         -- Select (horizontal split)
-        window:map("n", "-", function()
+        window:map("n", "<c-s>", function()
             local cursor = window:cursor()
-            local err = window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.split })
-            if err then
-                vim.notify(err, vim.log.levels.ERROR)
-            end
+            window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.split })
         end, { desc = "Select (split)" })
 
         -- Select (vertical split)
         window:map("n", "|", function()
             local cursor = window:cursor()
-            local err = window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
-            if err then
-                vim.notify(err, vim.log.levels.ERROR)
-            end
+            window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
         end, { desc = "Select (vsplit)" })
 
         -- Quick select
         for i = 1, 9 do
             window:map("n", string.format("%s", i), function()
-                local err = window:perform(TagActions.select, { index = i })
-                if err then
-                    vim.notify(err, vim.log.levels.ERROR)
-                end
+                window:perform(TagActions.select, { index = i })
             end, { desc = string.format("Select %d", i) })
         end
 
         -- Quickfix list
         window:map("n", "<c-q>", function()
-            local err = window:perform(TagActions.quickfix)
-            if err then
-                vim.notify(err, vim.log.levels.ERROR)
-            end
+            window:perform(TagActions.quickfix)
         end, { desc = "Quickfix" })
 
-        window:map("n", "<c-r>", function()
-            local err = window:refresh()
-            if err then
-                vim.notify(err, vim.log.levels.ERROR)
-            end
-        end, { desc = "Refresh" })
+        -- Go "up" to scopes
+        window:map("n", "-", function()
+            window:perform(TagActions.open_scopes)
+        end, { desc = "Go to scopes" })
     end,
 
     ---User-defined scopes title function for Grapple windows
@@ -214,17 +197,31 @@ local DEFAULT_SETTINGS = {
     scope_hook = function(window)
         local ScopeActions = require("grapple.scope_actions")
 
+        -- Select
         window:map("n", "<cr>", function()
             local entry = window:current_entry()
             local name = entry.data.name
-
-            local err = window:perform(ScopeActions.select, { name = name })
-            if err then
-                return vim.notify(err, vim.log.levels.ERROR)
-            end
-
-            vim.notify(string.format("Changing scope: %s", name))
+            window:perform(ScopeActions.select, { name = name })
         end, { desc = "Change scope" })
+
+        -- Quick select
+        for i = 1, 9 do
+            window:map("n", string.format("%s", i), function()
+                local entry, err = window:entry({ index = i })
+                if not entry then
+                    ---@diagnostic disable-next-line: param-type-mismatch
+                    return vim.notify(err, vim.log.levels.ERROR)
+                end
+
+                local name = entry.data.name
+                window:perform(ScopeActions.select, { name = name })
+            end, { desc = string.format("Select %d", i) })
+        end
+
+        -- Navigate "up" to loaded scopes
+        window:map("n", "-", function()
+            window:perform(ScopeActions.open_loaded)
+        end, { desc = "Go to loaded scopes" })
     end,
 
     ---User-defined loaded scopes title function for Grapple windows
@@ -239,27 +236,38 @@ local DEFAULT_SETTINGS = {
     loaded_hook = function(window)
         local ContainerActions = require("grapple.container_actions")
 
+        -- Select
         window:map("n", "<cr>", function()
             local entry = window:current_entry()
             local id = entry.data.id
-
-            local err = window:perform(ContainerActions.select, { id = id })
-            if err then
-                return vim.notify(err, vim.log.levels.ERROR)
-            end
+            window:perform(ContainerActions.select, { id = id })
         end, { desc = "Open tags" })
 
+        -- Quick select
+        for i = 1, 9 do
+            window:map("n", string.format("%s", i), function()
+                local entry, err = window:entry({ index = i })
+                if not entry then
+                    ---@diagnostic disable-next-line: param-type-mismatch
+                    return vim.notify(err, vim.log.levels.ERROR)
+                end
+
+                local name = entry and entry.data.name
+                window:perform(ContainerActions.select, { name = name })
+            end, { desc = string.format("Select %d", i) })
+        end
+
+        -- Reset
         window:map("n", "x", function()
             local entry = window:current_entry()
             local id = entry.data.id
-
-            local err = window:perform(ContainerActions.reset, { id = id })
-            if err then
-                return vim.notify(err, vim.log.levels.ERROR)
-            end
-
-            vim.notify(string.format("Reset scope: %s", id))
+            window:perform(ContainerActions.reset, { id = id })
         end, { desc = "Reset scope" })
+
+        -- Navigate "up" to scopes
+        window:map("n", "-", function()
+            window:perform(ContainerActions.open_scopes)
+        end, { desc = "Go to scopes" })
     end,
 
     ---Additional window options for Grapple windows

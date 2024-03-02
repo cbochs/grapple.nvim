@@ -34,4 +34,8 @@ function TagActions.quickfix(opts)
     require("grapple").quickfix({ scope = opts.scope.name })
 end
 
+function TagActions.open_scopes()
+    require("grapple").open_scopes()
+end
+
 return TagActions

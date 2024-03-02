@@ -389,7 +389,10 @@ function Grapple.use_scope(scope)
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
-    app.settings:update({ scope = resolved.name })
+    if resolved.name ~= app.settings.scope then
+        app.settings:update({ scope = resolved.name })
+        vim.notify(string.format("Changing scope: %s", resolved.name))
+    end
 end
 
 ---@param scope? string
