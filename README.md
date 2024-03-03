@@ -111,6 +111,7 @@ require("grapple").setup({
     save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
 
     ---Show icons next to tags or scopes in Grapple windows
+    ---Requires "nvim-tree/nvim-web-devicons"
     ---@type boolean
     icons = true,
 

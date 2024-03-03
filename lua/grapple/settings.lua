@@ -9,6 +9,7 @@ local DEFAULT_SETTINGS = {
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple",
 
     ---Show icons next to tags in Grapple windows
+    ---Requires "nvim-tree/nvim-web-devicons"
     ---@type boolean
     icons = true,
 
