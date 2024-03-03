@@ -1,0 +1,11 @@
+local Grapple = require("grapple")
+describe("Grapple", function()
+    before_each(Grapple.initialize)
+
+    describe("user command", function()
+        it("can tab complete", function()
+            local ok, _ = pcall(vim.fn.getcompletion, "Grapple ", "cmdline")
+            assert.is_true(ok)
+        end)
+    end)
+end)
