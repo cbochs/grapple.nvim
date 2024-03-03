@@ -559,7 +559,7 @@ function Grapple.initialize()
         {
             desc = "Grapple",
             nargs = "*",
-            complete = function(current, command, index)
+            complete = function(current, command, _)
                 local Util = require("grapple.util")
                 local App = require("grapple.app")
                 local app = App.get()
