@@ -45,17 +45,8 @@ function Window:window_options()
     local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
 
     -- Window title
-    if opts.title and opts.title == "{{ title }}" then
-        if self:has_content() then
-            local title = self.content:title()
-            if title then
-                opts.title = title
-            else
-                opts.title = nil
-            end
-        else
-            opts.title = nil
-        end
+    if self:has_content() and self.content:title() then
+        opts.title = self.content:title()
     end
 
     if opts.title and opts.title_padding then

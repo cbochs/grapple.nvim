@@ -159,8 +159,8 @@ require("grapple").setup({
         style = "minimal",
         title_pos = "center",
 
-        -- Custom: "{{ title }}" will use the tag_title or scope_title
-        title = "{{ title }}",
+        -- Custom: fallback title for Grapple windows
+        title = "Grapple",
 
         -- Custom: adds padding around window title
         title_padding = " ",
