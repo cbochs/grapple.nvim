@@ -522,7 +522,7 @@ function Grapple.initialize()
         end,
     })
 
-    -- Create top-level user command
+    -- Create top-level user command. Basically a wrapper around the lua API
     vim.api.nvim_create_user_command(
         "Grapple",
 
@@ -564,9 +564,14 @@ function Grapple.initialize()
                 local App = require("grapple.app")
                 local app = App.get()
 
+                -- Keyword argument names permitted by Grapple
+                -- "tag" kwargs refer to methods that accept all keyword argument (i.e. toggle)
+                -- "new" kwargs refer to methods that create a new tag (i.e. tag)
+                -- "use" kwargs refer to methods that use an existing tag (i.e. select)
+                -- "scope" kwargs refer to methods that operate on a scope (i.e. quickfix)
                 local tag_kwargs = { "buffer", "path", "name", "index", "cursor", "scope", "command" }
-                local use_kwargs = Util.subtract(tag_kwargs, { "cursor" })
                 local new_kwargs = Util.subtract(tag_kwargs, { "command" })
+                local use_kwargs = Util.subtract(tag_kwargs, { "cursor" })
                 local scope_kwargs = { "scope", "id" }
 
                 -- stylua: ignore
@@ -597,7 +602,7 @@ function Grapple.initialize()
                     scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
                 }
 
-                -- API functions which are not actionable
+                -- API methods which are not actionable
                 local excluded_subcmds = {
                     "define_scope",
                     "exists",
