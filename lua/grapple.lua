@@ -631,7 +631,7 @@ function Grapple.initialize()
                 end
 
                 -- Time to start processing the command
-                local input = vim.split(command, " ")
+                local input = vim.split(command, "%s+")
                 local input_subcmd = input[2]
                 local input_rem = { unpack(input, 3) }
 
