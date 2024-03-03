@@ -237,7 +237,7 @@ function Window:parse_lines()
     end
 
     ---@diagnostic disable: redefined-local
-    local lines = vim.tbl_filter(Util.is_empty, self:lines())
+    local lines = vim.tbl_filter(Util.not_empty, self:lines())
 
     ---@type grapple.window.parsed_entry[]
     local parsed_entries = {}

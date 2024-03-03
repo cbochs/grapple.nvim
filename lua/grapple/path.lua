@@ -119,7 +119,7 @@ function Path.clean(path)
     -- Expand upward-relative path operatives
     local dotdot = 0
     local path_parts = Util.reduce(
-        vim.tbl_filter(Util.is_empty, vim.split(path, Path.separator)),
+        vim.tbl_filter(Util.not_empty, vim.split(path, Path.separator)),
 
         ---@param parts string[]
         ---@param part string
@@ -271,8 +271,8 @@ function Path.relative(base, targ)
         return nil, string.format("cannot make %s relative to %s", base, targ)
     end
 
-    local base_parts = vim.tbl_filter(Util.is_empty, vim.split(base_path, Path.separator))
-    local targ_parts = vim.tbl_filter(Util.is_empty, vim.split(targ_path, Path.separator))
+    local base_parts = vim.tbl_filter(Util.not_empty, vim.split(base_path, Path.separator))
+    local targ_parts = vim.tbl_filter(Util.not_empty, vim.split(targ_path, Path.separator))
 
     local last_index = 1
     while Path.are_same(base_parts[last_index], targ_parts[last_index]) do

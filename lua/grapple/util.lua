@@ -16,16 +16,83 @@ function Util.reduce(list, fn, init)
     return acc
 end
 
-function Util.is_empty(value)
-    return value ~= ""
+---@generic T
+---@param tbl T[]
+---@param removed T[]
+---@return T[]
+function Util.subtract(tbl, removed)
+    local lookup = {}
+    for _, value in ipairs(removed) do
+        lookup[value] = true
+    end
+
+    local subtracted = vim.deepcopy(tbl)
+    for i = #subtracted, 0, -1 do
+        if lookup[subtracted[i]] then
+            table.remove(subtracted, i)
+        end
+    end
+
+    return subtracted
 end
 
-function Util.is_nil(value)
+---@generic T
+---@param list_a T[]
+---@param list_b T[]
+---@return boolean
+function Util.same(list_a, list_b)
+    if #list_a ~= #list_b then
+        return false
+    end
+
+    return #Util.subtract(list_a, list_b) == 0
+end
+
+---Transformer adds a prefix to a string value
+---@param prefix string
+---@return fun(value: string): string
+function Util.with_prefix(prefix)
+    return function(value)
+        return prefix .. value
+    end
+end
+
+---Transformer adds a suffix to a string value
+---@param suffix string
+---@return fun(value: string): string
+function Util.with_suffix(suffix)
+    return function(value)
+        return value .. suffix
+    end
+end
+
+---Predicate to return if a value is starts with a prefix
+---@param prefix string
+---@return fun(value: string): boolean
+function Util.startswith(prefix)
+    return function(value)
+        return vim.startswith(value, prefix)
+    end
+end
+
+---Predicate to return if a string value is not empty
+---@param value string
+---@return boolean
+function Util.not_empty(value)
+    return vim.trim(value) ~= ""
+end
+
+---Predicate to return if a value is not nil
+---@param value any
+---@return boolean
+function Util.not_nil(value)
     return value ~= nil
 end
 
-function Util.trim(value)
-    return vim.trim(value)
+---@param str_a string
+---@param str_b string
+function Util.as_lower(str_a, str_b)
+    return string.lower(str_a) < string.lower(str_b)
 end
 
 return Util
