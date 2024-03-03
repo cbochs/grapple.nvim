@@ -77,6 +77,14 @@ function Util.with_suffix(suffix)
     end
 end
 
+---Transformer to pick the key out of a "key=value" string
+---@param value string
+---@return string | nil
+function Util.match_key(value)
+    local key, _ = string.match(value, "^(.*)=(.*)$")
+    return key
+end
+
 ---Predicate to return if a value is starts with a prefix
 ---@param prefix string
 ---@return fun(value: string): boolean

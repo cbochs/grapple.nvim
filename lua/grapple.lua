@@ -671,7 +671,8 @@ function Grapple.initialize()
 
                 local key, value = string.match(current, "^(.*)=(.*)$")
                 if not key then
-                    local kwarg_keys = completion.kwargs
+                    local input_keys = vim.tbl_map(Util.match_key, input_kwargs)
+                    local kwarg_keys = Util.subtract(completion.kwargs, input_keys)
 
                     -- stylua: ignore
                     local filtered = current == ""
