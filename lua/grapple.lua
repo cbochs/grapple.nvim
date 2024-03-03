@@ -596,7 +596,7 @@ function Grapple.initialize()
                     use_scope      = { args = { "scope" },     kwargs = {} },
                 }
 
-                -- Lookup table of known arguments and their known values
+                -- Lookup table of arguments and their known values
                 local argument_lookup = {
                     direction = { "forward", "backward" },
                     scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
