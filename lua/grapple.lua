@@ -528,7 +528,7 @@ function Grapple.initialize()
 
         ---@param opts grapple.vim.user_command
         function(opts)
-            local action = opts.fargs[1]
+            local action = opts.fargs[1] or "toggle"
             local args = {}
             local kwargs = {}
 
@@ -560,10 +560,132 @@ function Grapple.initialize()
             desc = "Grapple",
             nargs = "*",
             complete = function(current, command, index)
-                -- TODO: implement command completion
-                -- "current" gives the current argument the user is writing (can be partial)
-                -- "command" gives the entire command line
-                -- "index" gives the cursor location
+                local Util = require("grapple.util")
+                local App = require("grapple.app")
+                local app = App.get()
+
+                local tag_kwargs = { "buffer", "path", "name", "index", "cursor", "scope", "command" }
+                local use_kwargs = Util.subtract(tag_kwargs, { "cursor" })
+                local new_kwargs = Util.subtract(tag_kwargs, { "command" })
+                local scope_kwargs = { "scope", "id" }
+
+                -- stylua: ignore
+                -- Lookup table of API functions and their available arguments
+                local subcommand_lookup = {
+                    clear_cache    = { args = { "scope" },     kwargs = {} },
+                    cycle          = { args = { "direction" }, kwargs = use_kwargs },
+                    cycle_backward = { args = {},              kwargs = use_kwargs },
+                    cycle_forward  = { args = {},              kwargs = use_kwargs },
+                    open_loaded    = { args = {},              kwargs = {} },
+                    open_scopes    = { args = {},              kwargs = {} },
+                    open_tags      = { args = {},              kwargs = scope_kwargs },
+                    quickfix       = { args = {},              kwargs = scope_kwargs },
+                    reset          = { args = {},              kwargs = scope_kwargs },
+                    select         = { args = {},              kwargs = use_kwargs },
+                    tag            = { args = {},              kwargs = new_kwargs },
+                    toggle         = { args = {},              kwargs = tag_kwargs },
+                    toggle_loaded  = { args = {},              kwargs = {} },
+                    toggle_scopes  = { args = {},              kwargs = {} },
+                    toggle_tags    = { args = {},              kwargs = scope_kwargs },
+                    untag          = { args = {},              kwargs = use_kwargs },
+                    use_scope      = { args = { "scope" },     kwargs = {} },
+                }
+
+                -- Lookup table of known arguments and their known values
+                local argument_lookup = {
+                    direction = { "forward", "backward" },
+                    scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
+                }
+
+                -- API functions which are not actionable
+                local excluded_subcmds = {
+                    "define_scope",
+                    "exists",
+                    "initialize",
+                    "key",
+                    "name_or_index",
+                    "setup",
+                    "statusline",
+                    "tags",
+                }
+
+                -- Grab all actionable subcommands made available by Grapple
+                local subcmds = vim.tbl_keys(Grapple)
+                subcmds = Util.subtract(subcmds, excluded_subcmds)
+                table.sort(subcmds, Util.as_lower)
+
+                local check = vim.tbl_keys(subcommand_lookup)
+                check = Util.subtract(check, excluded_subcmds)
+                table.sort(check, Util.as_lower)
+
+                -- Ensure we aren't missing in the lookup table above
+                if not Util.same(subcmds, check) then
+                    local missing = Util.subtract(subcmds, check)
+                    error(string.format("missing lookup for subcommands: %s", table.concat(missing, ", ")))
+                end
+
+                -- Time to start processing the command
+                local input = vim.split(command, " ")
+                local input_subcmd = input[2]
+                local input_rem = { unpack(input, 3) }
+
+                -- "Grapple |"
+                -- "Grapple sub|"
+
+                if #input == 2 then
+                    -- stylua: ignore
+                    return current == ""
+                        and subcmds
+                        or vim.tbl_filter(Util.startswith(current), subcmds)
+                end
+
+                local completion = subcommand_lookup[input_subcmd]
+                if not completion then
+                    return
+                end
+
+                local input_args = { unpack(input_rem, 1, #completion.args) }
+                local input_kwargs = { unpack(input_rem, #completion.args + 1) }
+
+                -- "Grapple subcmd |"
+                -- "Grapple subcmd ar|"
+
+                if #input_kwargs == 0 then
+                    local arg_name = completion.args[#input_args]
+                    local arg_values = argument_lookup[arg_name] or {}
+
+                    -- stylua: ignore
+                    return current == ""
+                        and arg_values
+                        or vim.tbl_filter(Util.startswith(current), arg_values)
+                end
+
+                -- "Grapple subcmd arg |"
+                -- "Grapple subcmd arg k|"
+
+                local key, value = string.match(current, "^(.*)=(.*)$")
+                if not key then
+                    local kwarg_keys = completion.kwargs
+
+                    -- stylua: ignore
+                    local filtered = current == ""
+                        and kwarg_keys
+                        or vim.tbl_filter(Util.startswith(current), completion.kwargs)
+
+                    return vim.tbl_map(Util.with_suffix("="), filtered)
+                end
+
+                -- "Grapple subcmd arg key=|"
+                -- "Grapple subcmd arg key=val|"
+
+                local kwarg_values = argument_lookup[key] or {}
+
+                -- stylua: ignore
+                local filtered = value == ""
+                    and kwarg_values
+                    or vim.tbl_filter(Util.startswith(value), kwarg_values)
+
+                return vim.tbl_map(Util.with_prefix(key .. "="), filtered)
             end,
         }
     )
