@@ -36,7 +36,7 @@ local function create_finder()
                 ordinal = ordinal,
                 filename = filename,
                 lnum = lnum,
-                display = utils.transform_path({}, filename),
+                display = utils.transform_path({ path_display = {} }, filename),
             }
 
             return entry
