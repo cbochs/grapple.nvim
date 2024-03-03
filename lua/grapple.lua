@@ -569,10 +569,10 @@ function Grapple.initialize()
                 -- "new" kwargs refer to methods that create a new tag (i.e. tag)
                 -- "use" kwargs refer to methods that use an existing tag (i.e. select)
                 -- "scope" kwargs refer to methods that operate on a scope (i.e. quickfix)
-                -- TODO: allow "cursor" as a string argument
-                local tag_kwargs = { "buffer", "path", "name", "index", "cursor", "scope", "command" }
-                local new_kwargs = Util.subtract(tag_kwargs, { "cursor", "command" })
-                local use_kwargs = Util.subtract(tag_kwargs, { "cursor" })
+                -- TODO: allow "command" as a string argument for "use" kwargs
+                local tag_kwargs = { "buffer", "path", "name", "index", "scope", "command" }
+                local new_kwargs = Util.subtract(tag_kwargs, { "command" })
+                local use_kwargs = Util.subtract(tag_kwargs, { "command" })
                 local scope_kwargs = { "scope", "id" }
 
                 -- stylua: ignore
