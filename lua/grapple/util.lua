@@ -1,5 +1,16 @@
 local Util = {}
 
+---Sorts list elements in a given order, *not-in-place*, from `list[1]` to `list[#list]`.
+---@generic T
+---@param list T[]
+---@param fn fun(a: T, b: T): boolean
+---@return T[]
+function Util.sort(list, fn)
+    list = vim.deepcopy(list)
+    table.sort(list, fn)
+    return list
+end
+
 ---@param list table
 ---@param fn fun(acc: any, value: any, index?: integer): any
 ---@param init any
