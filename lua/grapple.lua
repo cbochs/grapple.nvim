@@ -546,6 +546,10 @@ function Grapple.initialize()
                 end
             end
 
+            if not Grapple[action] then
+                return vim.notify(string.format("invalid action: %s", action), vim.log.levels.WARN)
+            end
+
             if #args > 0 and not vim.tbl_isempty(kwargs) then
                 Grapple[action](unpack(args), kwargs)
             elseif #args > 0 and vim.tbl_isempty(kwargs) then
