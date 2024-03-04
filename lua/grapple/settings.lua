@@ -202,8 +202,8 @@ local DEFAULT_SETTINGS = {
         window:map("n", "<cr>", function()
             local entry = window:current_entry()
             local name = entry.data.name
-            window:perform(ScopeActions.select, { name = name })
-        end, { desc = "Change scope" })
+            window:perform(ScopeActions.open_tags, { name = name })
+        end, { desc = "Open scope" })
 
         -- Quick select
         for i = 1, 9 do
@@ -215,9 +215,16 @@ local DEFAULT_SETTINGS = {
                 end
 
                 local name = entry.data.name
-                window:perform(ScopeActions.select, { name = name })
-            end, { desc = string.format("Select %d", i) })
+                window:perform(ScopeActions.open_tags, { name = name })
+            end, { desc = string.format("Open %d", i) })
         end
+
+        -- Change
+        window:map("n", "<s-cr>", function()
+            local entry = window:current_entry()
+            local name = entry.data.name
+            window:perform(ScopeActions.change, { name = name })
+        end, { desc = "Change scope" })
 
         -- Navigate "up" to loaded scopes
         window:map("n", "-", function()

@@ -6,9 +6,14 @@ local ScopeActions = {}
 ---@field name? string
 
 ---@param opts grapple.action.scope_options
-function ScopeActions.select(opts)
+function ScopeActions.change(opts)
     require("grapple").use_scope(opts.name)
     require("grapple").open_tags()
+end
+
+---@param opts grapple.action.scope_options
+function ScopeActions.open_tags(opts)
+    require("grapple").open_tags({ scope = opts.name })
 end
 
 function ScopeActions.open_loaded()
