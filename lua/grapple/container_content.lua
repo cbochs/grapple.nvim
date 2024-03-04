@@ -73,6 +73,7 @@ function ContainerContent:entities()
         return string.lower(cont_a.id) < string.lower(cont_b.id)
     end
 
+    ---@type grapple.tag_container[]
     local containers = vim.tbl_values(self.tag_manager.containers)
     table.sort(containers, by_id)
 
@@ -102,7 +103,14 @@ function ContainerContent:create_entry(entity, index)
 
     -- A string representation of the index
     local id = string.format("/%03d", index)
-    local rel_id = vim.fn.fnamemodify(container.id, ":~")
+
+    -- Don't try to modify IDs which are not paths, like "global"
+    local rel_id
+    if Path.is_absolute(container.id) then
+        rel_id = vim.fn.fnamemodify(container.id, ":~")
+    else
+        rel_id = container.id
+    end
 
     -- In compliance with "grapple" syntax
     local line = string.format("%s %s", id, rel_id)
@@ -144,21 +152,18 @@ function ContainerContent:create_entry(entity, index)
     return entry
 end
 
+---Safety: assume that the content is unmodifiable and the ID
+---can always be parsed
 ---@param line string
+---@param original_entries grapple.window.entry[]
 ---@return grapple.window.parsed_entry
-function ContainerContent:parse_line(line)
-    local id, container_id = string.match(line, "^/(%d+) (%S*)")
-    local index = tonumber(id)
+function ContainerContent:parse_line(line, original_entries)
+    local id, _ = string.match(line, "^/(%d+) (%S+)")
+    local index = assert(tonumber(id))
 
     ---@type grapple.window.parsed_entry
-    local entry = {
-        ---@type grapple.scope_content.data
-        data = {
-            id = Path.fs_absolute(container_id),
-        },
-        index = index,
-        line = line,
-    }
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local entry = vim.deepcopy(original_entries[index])
 
     return entry
 end

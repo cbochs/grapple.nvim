@@ -309,11 +309,11 @@ end
 ---@param path string
 ---@return boolean
 function Path.is_joinable(path)
-    return vim.startswith(path, "./")
-        or vim.startswith(path, "../")
-        or vim.startswith(path, "~")
-        or Path.is_uri(path)
-        or Path.is_absolute(path)
+    return not vim.startswith(path, "./")
+        and not vim.startswith(path, "../")
+        and not vim.startswith(path, "~")
+        and not Path.is_uri(path)
+        and not Path.is_absolute(path)
 end
 
 ---@param ... string

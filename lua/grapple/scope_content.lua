@@ -148,20 +148,18 @@ function ScopeContent:create_entry(entity, index)
     return entry
 end
 
+---Safety: assume that the content is unmodifiable and the ID
+---can always be parsed
 ---@param line string
+---@param original_entries grapple.window.entry[]
 ---@return grapple.window.parsed_entry
-function ScopeContent:parse_line(line)
-    local id, name = string.match(line, "^/(%d+) (%S*)")
-    local index = tonumber(id)
+function ScopeContent:parse_line(line, original_entries)
+    local id, _ = string.match(line, "^/(%d+) (%S+) %S+")
+    local index = assert(tonumber(id))
 
     ---@type grapple.window.parsed_entry
-    local entry = {
-        data = {
-            name = name,
-        },
-        index = index,
-        line = line,
-    }
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local entry = vim.deepcopy(original_entries[index])
 
     return entry
 end

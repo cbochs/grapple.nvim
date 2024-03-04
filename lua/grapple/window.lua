@@ -216,6 +216,7 @@ end
 ---@class grapple.window.parsed_entry
 ---@field data any
 ---@field line string
+---@field modified boolean
 ---@field index? integer
 ---@field min_col? integer
 ---@field highlights? grapple.vim.highlight[]
@@ -234,7 +235,7 @@ function Window:parse_lines()
     local parsed_entries = {}
 
     for _, line in ipairs(lines) do
-        local entry = self.content:parse_line(line)
+        local entry = self.content:parse_line(line, self.entries)
         table.insert(parsed_entries, entry)
     end
 
@@ -244,7 +245,7 @@ end
 ---@param line string
 ---@return integer min_col
 function Window:minimum_column(line)
-    local parsed_entry = self.content:parse_line(line)
+    local parsed_entry = self.content:parse_line(line, self.entries)
 
     local index = parsed_entry.index
     if not index then
@@ -497,7 +498,7 @@ end
 ---@return grapple.window.parsed_entry
 function Window:current_entry()
     local current_line = self:current_line()
-    local entry = self.content:parse_line(current_line)
+    local entry = self.content:parse_line(current_line, self.entries)
     return entry
 end
 
@@ -513,7 +514,7 @@ function Window:entry(opts)
         return nil, string.format("no entry for index: %s", opts.index)
     end
 
-    local entry = self.content:parse_line(line)
+    local entry = self.content:parse_line(line, self.entries)
 
     return entry, nil
 end
