@@ -65,10 +65,10 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 
 ```lua
 {
-    "cbochs/grapple.nvim"
+    "cbochs/grapple.nvim",
     dependencies = {
         { "nvim-tree/nvim-web-devicons", lazy = true }
-    }
+    },
 
 }
 ```
@@ -80,7 +80,7 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 
 ```lua
 use {
-    "cbochs/grapple.nvim"
+    "cbochs/grapple.nvim",
     requires = { "nvim-tree/nvim-web-devicons" }
 }
 ```
