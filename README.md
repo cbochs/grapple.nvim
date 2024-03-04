@@ -625,8 +625,9 @@ require("grapple").open_tags("global")
 
 Open a floating window with all defined scopes. This buffer is not modifiable. Some basic actions are available by default:
 
-- **Selection** (`<cr>`): set the current scope to the one under the cursor
-- **Quick select** (`1-9`): select the scope at a given index
+- **Selection** (`<cr>`): open the [tags window](#tags-window) for the scope under the cursor
+- **Quick select** (`1-9`): open the tags window for the scope at a given index
+- **Change** (`<s-cr>`): change the current scope to the one under the cursor
 - **Go up** (`-`): navigate across to the [loaded scopes window](#loaded-scopes-window)
 
 **API**:
@@ -650,8 +651,8 @@ require("grapple").open_scopes()
 
 Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 
-- **Selection** (`<cr>`): open the tags window for the loaded scope under the cursor
-- **Quick select** (`1-9`): select the loaded scope at a given index
+- **Selection** (`<cr>`): open the [tags window](#tags-window) for the loaded scope under the cursor
+- **Quick select** (`1-9`): open tags window for the loaded scope at a given index
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 - **Go up** (`-`): navigate across to the [scopes window](#scopes-window)
 
