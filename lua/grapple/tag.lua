@@ -33,7 +33,7 @@ function Tag:select(command)
     if current_cursor[1] > 1 or current_cursor[2] > 0 then
         self.cursor = current_cursor
     else
-        vim.api.nvim_win_set_cursor(0, self.cursor)
+        pcall(vim.api.nvim_win_set_cursor, 0, self.cursor)
     end
 end
 
