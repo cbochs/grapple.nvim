@@ -9,7 +9,7 @@ Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
 <details>
 <summary>Showcase</summary>
 
-https://github.com/cbochs/grapple.nvim/assets/2467016/e223b0f3-376b-4537-a292-6244ca63c793
+![grapple-showcase](https://github.com/cbochs/grapple.nvim/assets/2467016/61cca5ae-26af-411f-904f-3eb7735a50c4)
 
 </details>
 
