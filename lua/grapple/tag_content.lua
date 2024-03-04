@@ -163,7 +163,7 @@ function TagContent:create_entry(entity, index)
 
     ---@type grapple.window.entry
     local entry = {
-        ---@class grapple.tag.content.data
+        ---@class grapple.tag_content.data
         data = {
             path = tag.path,
             name = tag.name,
@@ -196,72 +196,81 @@ function TagContent:create_entry(entity, index)
 end
 
 ---@param line string
+---@param original_entries grapple.window.entry[]
 ---@return grapple.window.parsed_entry
-function TagContent:parse_line(line)
+function TagContent:parse_line(line, original_entries)
     local App = require("grapple.app")
     local app = App.get()
 
     ---@diagnostic disable-next-line: unused-local
-    local id, icon, index, path
+    local icon
 
+    local id, index, path, original_entry
+
+    -- In compliance with "grapple" syntax
     if app.settings.icons then
         ---@diagnostic disable-next-line: unused-local
-        id, icon, path = string.match(line, "^/(%d+) (%S+)  (%S*)")
+        id, icon, path = string.match(line, "^/(%d+) (%S+)  %s*(%S*)")
     else
-        id, path = string.match(line, "^/(%d+) (%S*)")
+        id, path = string.match(line, "^/(%d+) %s*(%S*)")
     end
 
     if id then
         index = assert(tonumber(id))
         path = path
+        original_entry = original_entries[index]
     else
         -- Parse as a new entry when an ID is not present
         index = nil
-        path = line
+        path = vim.trim(line)
+        original_entry = nil
     end
 
-    -- Remove whitespace around path before parsing
-    path = vim.trim(path)
+    -- Create an empty parsed entry, assume modified
+    ---@type grapple.window.parsed_entry
+    local entry = {
+        ---@type grapple.tag_content.data
+        data = {
+            path = nil,
+            name = nil,
+            cursor = nil,
+        },
+        line = line,
+        modified = true,
+        index = index,
+    }
 
     -- Don't parse an empty path or line
     if path == "" then
-        ---@type grapple.window.parsed_entry
-        local entry = {
-            data = {
-                path = nil,
-            },
-            line = line,
-            index = index,
-        }
-
         return entry
     end
 
     -- We shouldn't try to join with the scope path if:
     -- 1. The path starts with "~", "./", or "../"
     -- 2. The path is absolute or a URI
-    if not Path.is_joinable(path) then
+    if Path.is_joinable(path) then
         path = Path.join(self.scope.path, path)
     end
 
     path = Path.fs_absolute(path)
 
-    ---@type grapple.window.parsed_entry
-    local entry = {
-        data = {
-            path = path,
-        },
-        line = line,
-        index = index,
-    }
+    if original_entry and original_entry.data.path == path then
+        ---@type grapple.window.parsed_entry
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        entry = vim.deepcopy(original_entries[index])
+        entry.modified = false
+
+        return entry
+    end
+
+    entry.data.path = path
 
     return entry
 end
 
 ---@class grapple.tag.content.change
 ---@field action "insert" | "move" | "remove"
----@field priority integer
----@field opts grapple.tag.container.insert | grapple.tag.container.move | grapple.tag.container.get
+---@field opts grapple.options
 
 ---@param original grapple.window.entry[]
 ---@param modified grapple.window.parsed_entry[]
@@ -281,37 +290,27 @@ function TagContent:diff(original, modified)
     end
 
     for i, entry in ipairs(vim.tbl_filter(has_path, modified)) do
-        ---@type grapple.tag.content.data
-        local data = entry.data
+        ---@type grapple.tag_content.data
+        local data
 
-        if not data.path then
-            goto continue
+        if not entry.modified then
+            data = original[entry.index].data
+        else
+            data = entry.data
         end
 
-        local name, cursor
-        if entry.index then
-            local original_entry = original[entry.index]
-
-            ---@type grapple.tag.content.data
-            local original_data = original_entry.data
-
-            if original_data.path == data.path then
-                name = original_data.name
-                cursor = original_data.cursor
-            end
-        end
-
-        table.insert(changes, {
+        ---@type grapple.tag.content.change
+        local change = {
             action = "insert",
             opts = {
-                path = entry.data.path,
-                name = name,
-                cursor = cursor,
+                path = data.path,
+                name = data.name,
+                cursor = data.cursor,
                 index = i,
             },
-        })
+        }
 
-        ::continue::
+        table.insert(changes, change)
     end
 
     return changes
