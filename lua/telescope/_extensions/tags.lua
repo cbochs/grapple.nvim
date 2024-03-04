@@ -27,16 +27,15 @@ local function create_finder()
         entry_maker = function(result)
             local utils = require("telescope.utils")
 
-            local ordinal = result[1]
             local filename = result[2]
             local lnum = result[3]
 
             local entry = {
                 value = result,
-                ordinal = ordinal,
+                ordinal = filename,
+                display = utils.transform_path({ path_display = {} }, filename),
                 filename = filename,
                 lnum = lnum,
-                display = utils.transform_path({ path_display = {} }, filename),
             }
 
             return entry
