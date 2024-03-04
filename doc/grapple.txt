@@ -76,10 +76,10 @@ lazy.nvim ~
 
 >lua
     {
-        "cbochs/grapple.nvim"
+        "cbochs/grapple.nvim",
         dependencies = {
             { "nvim-tree/nvim-web-devicons", lazy = true }
-        }
+        },
     
     }
 <
@@ -88,7 +88,7 @@ packer ~
 
 >lua
     use {
-        "cbochs/grapple.nvim"
+        "cbochs/grapple.nvim",
         requires = { "nvim-tree/nvim-web-devicons" }
     }
 <
