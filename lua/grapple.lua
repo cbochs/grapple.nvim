@@ -343,8 +343,10 @@ function Grapple.reset(opts)
 
     local err = app:reset(opts)
     if err then
-        vim.notify(err, vim.log.levels.ERROR)
+        return vim.notify(err, vim.log.levels.ERROR)
     end
+
+    vim.notify("Scope reset", vim.log.levels.INFO)
 end
 
 ---Create a user-defined scope
