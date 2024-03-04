@@ -84,6 +84,51 @@ function App:current_scope()
     return self.scope_manager:get_resolved(self.settings.scope)
 end
 
+---Reset tags for a given scope (name) or loaded scope (id)
+---By default, uses the current scope
+---@param opts? { scope?: string, id?: string }
+---@return string? error
+function App:reset(opts)
+    opts = vim.tbl_extend("keep", opts or {}, {
+        scope = self.settings.scope,
+    })
+
+    -- The loaded scope's ID and associated scope's name
+    ---@type string
+    local id, name
+
+    if opts.id then
+        local scope, err = app.scope_manager:lookup(opts.id)
+        if not scope then
+            ---@diagnostic disable-next-line: param-type-mismatch
+            return err
+        end
+
+        id = opts.id
+        name = scope.name
+    elseif opts.scope then
+        local scope, err = app.scope_manager:get_resolved(opts.scope)
+        if not scope then
+            return err
+        end
+
+        id = scope.id
+        name = scope.name
+    end
+
+    if not id or not name then
+        return string.format("must provide a valid scope or id: %s", vim.inspect(opts))
+    end
+
+    self.scope_manager.cache:unwatch(name)
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = self.tag_manager:reset(id)
+    if err then
+        return err
+    end
+end
+
 ---@param scope_name? string
 ---@param callback fun(container: grapple.tag_container): string?
 ---@param opts { sync: boolean }

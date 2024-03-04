@@ -140,8 +140,8 @@ function Grapple.select(opts)
     end)
 end
 
----Open the quickfix window populated with paths from a given scope
----By default, uses the current scope
+---Open the quickfix window populated with paths from a given (scope) name
+---or loaded scope (id). By default, uses the current scope
 ---@param opts? { scope?: string, id?: string }
 function Grapple.quickfix(opts)
     local App = require("grapple.app")
@@ -285,7 +285,6 @@ function Grapple.name_or_index(opts)
 end
 
 local deprecated_once = false
-
 ---Deprecated. Return the name or index of a tag. Same as Grapple.name_or_index
 ---@return string | integer | nil
 function Grapple.key()
@@ -335,35 +334,14 @@ function Grapple.tags(opts)
     return tags, nil
 end
 
----Clear all tags for a given scope
+---Reset tags for a given (scope) name or loaded scope (id)
 ---By default, uses the current scope
 ---@param opts? { scope?: string, id?: string }
 function Grapple.reset(opts)
     local App = require("grapple.app")
-
-    opts = opts or {}
-
     local app = App.get()
 
-    ---@type string
-    local id
-    if opts.id then
-        id = opts.id
-    else
-        local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
-        if not scope then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            return vim.notify(err, vim.log.levels.ERROR)
-        end
-
-        id = scope.id
-    end
-
-    if not id then
-        return vim.notify(string.format("must provide a valid scope or id: %s", vim.inspect(opts)))
-    end
-
-    local err = app.tag_manager:reset(id)
+    local err = app:reset(opts)
     if err then
         vim.notify(err, vim.log.levels.ERROR)
     end
@@ -432,15 +410,15 @@ local function toggle(open_fn, opts)
     end
 end
 
----Toggle a floating window populated with all tags for a given scope
----By default, uses the current scope
+---Toggle a floating window populated with all tags for a given (scope) name
+---or loaded scope (id). By default, uses the current scope
 ---@param opts? { scope?: string, id?: string }
 function Grapple.toggle_tags(opts)
     toggle(Grapple.open_tags, opts)
 end
 
----Open a floating window populated with all tags for a given scope
----By default, uses the current scope
+---Open a floating window populated with all tags for a given (scope) name
+---or loaded scope (id). By default, uses the current scope
 ---@param opts? { scope?: string, id?: string }
 function Grapple.open_tags(opts)
     local App = require("grapple.app")
