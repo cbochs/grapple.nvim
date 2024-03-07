@@ -208,7 +208,7 @@ function TagContent:create_entry(entity, index)
         name_highlight = {
             hl_group = "GrappleName",
             line = index - 1,
-            col_start = col_start,
+            col_start = col_start - 1,
             col_end = col_end,
         }
     end
