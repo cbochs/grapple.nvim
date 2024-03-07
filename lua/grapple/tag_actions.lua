@@ -30,6 +30,26 @@ end
 
 ---@param opts grapple.action.tag_options
 ---@return string? error
+function TagActions.rename(opts)
+    vim.ui.input({ prompt = string.format("Rename %s", opts.path) }, function(input_name)
+        if not input_name then
+            return
+        end
+
+        opts.scope:enter(function(container)
+            local index, err = container:find({ path = opts.path })
+            if not index then
+                return err
+            end
+
+            local tag = assert(container:get({ index = index }))
+            tag:rename(input_name)
+        end)
+    end)
+end
+
+---@param opts grapple.action.tag_options
+---@return string? error
 function TagActions.quickfix(opts)
     require("grapple").quickfix({ scope = opts.scope.name })
 end

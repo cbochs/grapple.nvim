@@ -21,6 +21,12 @@ function Deserializable.from_table(tbl) end
 ---@field col integer
 ---@field opts? table<string, any>
 
+---@class grapple.vim.mark
+---@field sign_hl_group? string
+---@field sign_text? string
+---@field virt_text? string[][]
+---@field virt_text_win_col? integer
+
 ---See :h nvim_buf_add_highlight
 ---@class grapple.vim.highlight
 ---@field hl_group string

@@ -302,6 +302,40 @@ function Path.relative(base, targ)
     return rel_path, nil
 end
 
+---@param path string
+---@return string basename
+function Path.base(path)
+    if path == "" then
+        return "."
+    end
+
+    -- Remove trailing slashes
+    if Path.is_separator(path, -1) then
+        path = string.sub(path, 1, -2)
+    end
+
+    return vim.fn.fnamemodify(path, ":t")
+end
+
+---@param path string
+---@param n? integer
+---@return string basename
+function Path.parent(path, n)
+    if path == "" then
+        return "."
+    end
+
+    -- Remove trailing slashes
+    if Path.is_separator(path, -1) then
+        path = string.sub(path, 1, -2)
+    end
+
+    n = n or 1
+    local mods = table.concat(Util.ntimes(":h", n), "")
+
+    return vim.fn.fnamemodify(path, mods)
+end
+
 ---Not from the Go filepath package
 ---Check to see if a path can be the tail end of a join
 ---1. The path is relative to known directory (i.e. CWD or HOME)
@@ -415,6 +449,10 @@ end
 ---@param path string
 ---@return boolean exists
 function Path.exists(path)
+    if Path.is_uri(path) then
+        return true
+    end
+
     return vim.loop.fs_stat(path) ~= nil
 end
 

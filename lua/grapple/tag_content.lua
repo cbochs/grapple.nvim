@@ -1,7 +1,9 @@
 local Path = require("grapple.path")
+local Util = require("grapple.util")
 
 ---@class grapple.tag_content
 ---@field scope grapple.resolved_scope
+---@field style_fn grapple.style_fn
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
 ---@field current_selection string | nil path of the current buffer
@@ -9,12 +11,14 @@ local TagContent = {}
 TagContent.__index = TagContent
 
 ---@param scope grapple.resolved_scope
+---@param style_fn grapple.style_fn
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
 ---@return grapple.tag_content
-function TagContent:new(scope, hook_fn, title_fn)
+function TagContent:new(scope, style_fn, hook_fn, title_fn)
     return setmetatable({
         scope = scope,
+        style_fn = style_fn,
         hook_fn = hook_fn,
         title_fn = title_fn,
         current_selection = nil,
@@ -79,6 +83,20 @@ function TagContent:entities()
         return nil, err
     end
 
+    local base_lookup = Util.reduce(
+        tags,
+        ---@param lookup table<string, integer>
+        ---@param tag grapple.tag
+        ---@return table<string, integer> lookup
+        function(lookup, tag)
+            local base = Path.base(tag.path)
+            lookup[base] = (lookup[base] or 0) + 1
+            return lookup
+        end,
+        {}
+    )
+
+    ---@type grapple.window.entity[]
     local entities = {}
 
     for _, tag in ipairs(tags) do
@@ -86,6 +104,7 @@ function TagContent:entities()
         local entity = {
             tag = tag,
             current = tag.path == self.current_selection,
+            base_unique = base_lookup[Path.base(tag.path)] == 1,
         }
 
         table.insert(entities, entity)
@@ -99,7 +118,11 @@ end
 local function get_icon(path)
     local ok, icons = pcall(require, "nvim-web-devicons")
     if not ok then
-        error('The plugin "nvim-tree/nvim-web-devicons" is required')
+        -- stylua: ignore
+        error(
+            'The plugin "nvim-tree/nvim-web-devicons" is required for icons in Grapple.nvim.' ..
+            ' To disable icons, change "icons" to false in the settings.'
+        )
     end
 
     local filename = vim.fn.fnamemodify(path, ":p:t")
@@ -127,14 +150,38 @@ function TagContent:create_entry(entity, index)
 
     -- A string representation of the index
     local id = string.format("/%03d", index)
-    local rel_path = Path.fs_relative(self.scope.path, tag.path)
+
+    -- Generate the display path
+    local stylized = self.style_fn(entity, self)
+
+    local icon, icon_group
+    if app.settings.icons then
+        icon, icon_group = get_icon(tag.path)
+        icon = icon .. " " -- add some right padding
+    end
 
     -- In compliance with "grapple" syntax
-    local line = string.format("%s %s", id, rel_path)
-    local min_col = assert(string.find(line, "%s")) -- width of id
+    local line_items = vim.tbl_filter(Util.not_nil, {
+        id,
+        icon,
 
-    local sign_highlight, icon_highlight
+        -- Neovim does not support defining extmarks that "push" some text
+        -- instead of just "overlay". Render the name ahead of the displayed
+        -- path instead of as an extmark when the user wants to show it at the
+        -- start of the line
+        app.settings.tag_name == "start" and tag.name or nil,
 
+        stylized.display,
+    })
+
+    local line = table.concat(line_items, " ")
+    local min_col = assert(string.find(line, stylized.display)) - 1
+
+    -- Define line highlights for display and extmarks
+    ---@type grapple.vim.highlight[]
+    local highlights = {}
+
+    local sign_highlight
     if not app.settings.status then
         -- Do not set highlight
     elseif entity.current then
@@ -143,28 +190,72 @@ function TagContent:create_entry(entity, index)
         sign_highlight = "GrappleNoExist"
     end
 
-    if app.settings.icons then
-        local icon, icon_group = get_icon(tag.path)
-
-        -- In compliance with "grapple" syntax
-        line = string.format("%s %s  %s", id, icon, rel_path)
-        min_col = assert(string.find(line, "%s%s")) + 1 -- width of id and icon
-
-        if icon_group then
-            ---@type grapple.vim.highlight
-            icon_highlight = {
-                hl_group = icon_group,
-                line = index - 1,
-                col_start = assert(string.find(line, "%s")),
-                col_end = assert(string.find(line, "%s%s")),
-            }
-        end
+    local icon_highlight
+    if icon_group then
+        local col_start, col_end = assert(string.find(line, icon))
+        ---@type grapple.vim.highlight
+        icon_highlight = {
+            hl_group = icon_group,
+            line = index - 1,
+            col_start = col_start,
+            col_end = col_end,
+        }
     end
+
+    local name_highlight
+    if app.settings.tag_name == "start" and tag.name then
+        local col_start, col_end = assert(string.find(line, tag.name))
+        name_highlight = {
+            hl_group = "GrappleName",
+            line = index - 1,
+            col_start = col_start,
+            col_end = col_end,
+        }
+    end
+
+    highlights = vim.tbl_filter(Util.not_nil, {
+        icon_highlight,
+        name_highlight,
+        unpack(stylized.highlights),
+    })
+
+    -- Define line extmarks
+    ---@type grapple.vim.extmark[]
+    local extmarks = {}
+
+    ---@type grapple.vim.mark
+    local sign_mark = {
+        sign_text = string.format("%d", index),
+        sign_hl_group = sign_highlight,
+    }
+
+    local name_mark
+    if app.settings.tag_name == "end" and tag.name then
+        name_mark = {
+            virt_text = { { tag.name, "GrappleName" } },
+            virt_text_pos = "eol",
+        }
+    end
+
+    extmarks = vim.tbl_filter(Util.not_nil, {
+        sign_mark,
+        unpack(stylized.marks),
+        name_mark,
+    })
+
+    extmarks = vim.tbl_map(function(mark)
+        return {
+            line = index - 1,
+            col = 0,
+            opts = mark,
+        }
+    end, extmarks)
 
     ---@type grapple.window.entry
     local entry = {
         ---@class grapple.tag_content.data
         data = {
+            display = stylized.display,
             path = tag.path,
             name = tag.name,
             cursor = tag.cursor,
@@ -175,21 +266,10 @@ function TagContent:create_entry(entity, index)
         min_col = min_col,
 
         ---@type grapple.vim.highlight[]
-        highlights = { icon_highlight },
+        highlights = highlights,
 
-        ---@type grapple.vim.extmark
-        mark = {
-            line = index - 1,
-            col = 0,
-            opts = {
-                sign_text = string.format("%d", index),
-                sign_hl_group = sign_highlight,
-                virt_text = tag.name and { { tag.name } },
-
-                -- TODO: requires nvim-0.10
-                -- invalidate = true,
-            },
-        },
+        ---@type grapple.vim.extmark[]
+        extmarks = extmarks,
     }
 
     return entry
@@ -199,31 +279,18 @@ end
 ---@param original_entries grapple.window.entry[]
 ---@return grapple.window.parsed_entry
 function TagContent:parse_line(line, original_entries)
-    local App = require("grapple.app")
-    local app = App.get()
+    local id = string.match(line, "^/(%d+)")
 
-    ---@diagnostic disable-next-line: unused-local
-    local icon
-
-    local id, index, path, original_entry
-
-    -- In compliance with "grapple" syntax
-    if app.settings.icons then
-        ---@diagnostic disable-next-line: unused-local
-        id, icon, path = string.match(line, "^/(%d+) (%S+)  %s*(%S*)")
-    else
-        id, path = string.match(line, "^/(%d+) %s*(%S*)")
-    end
-
+    local index, display, original_entry
     if id then
         index = assert(tonumber(id))
-        path = path
         original_entry = original_entries[index]
+        display = vim.trim(string.sub(line, original_entry.min_col))
     else
         -- Parse as a new entry when an ID is not present
         index = nil
-        path = vim.trim(line)
         original_entry = nil
+        display = vim.trim(line)
     end
 
     -- Create an empty parsed entry, assume modified
@@ -241,29 +308,29 @@ function TagContent:parse_line(line, original_entries)
     }
 
     -- Don't parse an empty path or line
-    if path == "" then
+    if display == "" then
         return entry
     end
 
-    -- We shouldn't try to join with the scope path if:
-    -- 1. The path starts with "~", "./", or "../"
-    -- 2. The path is absolute or a URI
-    if Path.is_joinable(path) then
-        path = Path.join(self.scope.path, path)
+    if original_entry then
+        ---@type grapple.tag_content.data
+        local data = original_entry.data
+
+        if data.display == display then
+            ---@type grapple.window.parsed_entry
+            ---@diagnostic disable-next-line: assign-type-mismatch
+            entry = vim.deepcopy(original_entries[index])
+            entry.modified = false
+
+            return entry
+        end
     end
 
-    path = Path.fs_absolute(path)
-
-    if original_entry and original_entry.data.path == path then
-        ---@type grapple.window.parsed_entry
-        ---@diagnostic disable-next-line: assign-type-mismatch
-        entry = vim.deepcopy(original_entries[index])
-        entry.modified = false
-
-        return entry
-    end
-
-    entry.data.path = path
+    -- TODO: could this be improved for display text that has only been
+    -- slightly modified?
+    --
+    -- Parse as a new entry when the display text has been modified
+    entry.data.path = Path.fs_absolute(display)
 
     return entry
 end

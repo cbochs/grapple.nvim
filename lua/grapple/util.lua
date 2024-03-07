@@ -48,6 +48,18 @@ function Util.subtract(tbl, removed)
 end
 
 ---@generic T
+---@param value T
+---@param n integer
+---@return T[]
+function Util.ntimes(value, n)
+    local result = {}
+    for _ = 1, n do
+        table.insert(result, value)
+    end
+    return result
+end
+
+---@generic T
 ---@param list_a T[]
 ---@param list_b T[]
 ---@return boolean

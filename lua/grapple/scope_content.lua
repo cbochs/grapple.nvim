@@ -131,16 +131,18 @@ function ScopeContent:create_entry(entity, index)
         ---@type grapple.vim.highlight[]
         highlights = { name_highlight },
 
-        ---@type grapple.vim.extmark
-        mark = {
-            line = index - 1,
-            col = 0,
-            opts = {
-                sign_text = string.format("%d", index),
-                sign_hl_group = sign_highlight,
+        ---@type grapple.vim.extmark[]
+        extmarks = {
+            {
+                line = index - 1,
+                col = 0,
+                opts = {
+                    sign_text = string.format("%d", index),
+                    sign_hl_group = sign_highlight,
 
-                -- TODO: requires nvim-0.10
-                -- invalidate = true,
+                    -- TODO: requires nvim-0.10
+                    -- invalidate = true,
+                },
             },
         },
     }

@@ -211,7 +211,7 @@ end
 ---@field index integer
 ---@field min_col integer
 ---@field highlights grapple.vim.highlight[]
----@field mark grapple.vim.extmark | nil
+---@field extmarks grapple.vim.extmark[]
 
 ---@class grapple.window.parsed_entry
 ---@field data any
@@ -220,7 +220,7 @@ end
 ---@field index? integer
 ---@field min_col? integer
 ---@field highlights? grapple.vim.highlight[]
----@field mark? grapple.vim.extmark | nil
+---@field extmarks? grapple.vim.extmark[]
 
 ---@return grapple.window.parsed_entry[] | nil, string? error
 function Window:parse_lines()
@@ -289,9 +289,9 @@ end
 
 ---Convenience function for getting the extmark for an entry
 ---@param entry grapple.window.entry
----@return grapple.vim.extmark?
-local function to_mark(entry)
-    return entry.mark
+---@return grapple.vim.extmark[]
+local function to_extmarks(entry)
+    return entry.extmarks
 end
 
 ---@return string? error
@@ -353,8 +353,10 @@ function Window:render()
         end
     end
 
-    for _, mark in ipairs(vim.tbl_map(to_mark, self.entries)) do
-        vim.api.nvim_buf_set_extmark(self.buf_id, self.ns_id, mark.line, mark.col, mark.opts)
+    for _, entry_extmarks in ipairs(vim.tbl_map(to_extmarks, self.entries)) do
+        for _, extmark in ipairs(entry_extmarks) do
+            vim.api.nvim_buf_set_extmark(self.buf_id, self.ns_id, extmark.line, extmark.col, extmark.opts)
+        end
     end
 
     -- Prevent undo after content has been rendered. Set undolevels to -1 when

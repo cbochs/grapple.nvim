@@ -2,12 +2,13 @@ local Path = require("grapple.path")
 
 ---@class grapple.tag
 ---@field path string absolute path
----@field name string tag name
+---@field name string | nil (optional) tag name
 ---@field cursor integer[] (1, 0)-indexed cursor position
 local Tag = {}
 Tag.__index = Tag
 
 ---@param path string
+---@param name? string
 ---@param cursor? integer[]
 function Tag:new(path, name, cursor)
     return setmetatable({
@@ -19,6 +20,15 @@ end
 
 function Tag:update()
     self.cursor = vim.api.nvim_win_get_cursor(0)
+end
+
+---@param name string | nil
+function Tag:rename(name)
+    if name == "" then
+        name = nil
+    end
+
+    self.name = name
 end
 
 ---@param command? function

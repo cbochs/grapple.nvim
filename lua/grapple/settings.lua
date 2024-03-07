@@ -131,6 +131,66 @@ local DEFAULT_SETTINGS = {
         },
     },
 
+    ---@type "start" | "end"
+    tag_name = "end",
+
+    ---@type "basename" | "relative"
+    tag_style = "relative",
+
+    ---@alias grapple.content grapple.tag_content| grapple.scope_content| grapple.container_content
+    ---@alias grapple.entity grapple.tag_content.entity | grapple.scope_content.entity | grapple.container_content.entity
+
+    ---@alias grapple.style_fn fun(entity: grapple.entity, content: grapple.content): grapple.stylized
+    ---@alias grapple.tag_style_fn fun(entity: grapple.tag_content.entity, content: grapple.tag_content): grapple.stylized
+
+    ---@class grapple.stylized
+    ---@field display string
+    ---@field highlights grapple.vim.highlight[]
+    ---@field marks grapple.vim.mark[]
+
+    ---Not user documented
+    ---@type table<string, grapple.tag_style_fn>
+    tag_styles = {
+        relative = function(entity, _)
+            local Path = require("grapple.path")
+
+            ---@type grapple.stylized
+            local line = {
+                display = assert(Path.fs_relative(assert(vim.loop.cwd()), entity.tag.path)),
+                highlights = {},
+                marks = {},
+            }
+
+            return line
+        end,
+        basename = function(entity, _)
+            local Path = require("grapple.path")
+
+            local parent_mark
+            if not entity.base_unique then
+                -- stylua: ignore
+                parent_mark = {
+                    virt_text = { {
+                        "."
+                            .. Path.separator
+                            .. Path.relative(Path.parent(entity.tag.path, 3), Path.parent(entity.tag.path, 1)),
+                        "GrappleParent",
+                    } },
+                    virt_text_pos = "eol",
+                }
+            end
+
+            ---@type grapple.stylized
+            local line = {
+                display = Path.base(entity.tag.path),
+                highlights = {},
+                marks = { parent_mark },
+            }
+
+            return line
+        end,
+    },
+
     ---User-defined tags title function for Grapple windows
     ---By default, uses the resolved scope's ID
     ---@type fun(scope: grapple.resolved_scope): string?
@@ -184,6 +244,13 @@ local DEFAULT_SETTINGS = {
         window:map("n", "-", function()
             window:perform(TagActions.open_scopes)
         end, { desc = "Go to scopes" })
+
+        -- Rename a tag
+        window:map("n", "<c-r>", function()
+            local entry = window:current_entry()
+            local path = entry.data.path
+            window:perform(TagActions.rename, { path = path, name = "bob" })
+        end)
     end,
 
     ---User-defined scopes title function for Grapple windows

@@ -135,17 +135,19 @@ function ContainerContent:create_entry(entity, index)
         ---@type grapple.vim.highlight[]
         highlights = {},
 
-        ---@type grapple.vim.extmark
-        mark = {
-            line = index - 1,
-            col = 0,
-            opts = {
-                sign_text = string.format("%d", index),
-                sign_hl_group = sign_highlight,
-                virt_text = { { string.format("[%d tags]", container:len()) } },
+        ---@type grapple.vim.extmark[]
+        extmarks = {
+            {
+                line = index - 1,
+                col = 0,
+                opts = {
+                    sign_text = string.format("%d", index),
+                    sign_hl_group = sign_highlight,
+                    virt_text = { { string.format("[%d tags]", container:len()) } },
 
-                -- TODO: requires nvim-0.10
-                -- invalidate = true,
+                    -- TODO: requires nvim-0.10
+                    -- invalidate = true,
+                },
             },
         },
     }
