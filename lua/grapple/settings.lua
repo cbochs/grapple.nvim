@@ -131,9 +131,17 @@ local DEFAULT_SETTINGS = {
         },
     },
 
+    ---Where a tag's name (if present) should be placed in the Tags Window
     ---@type "start" | "end"
     tag_name = "end",
 
+    ---How a tag's path should be displayed in the Tags Window
+    ---
+    ---Using "relative" will show the path relative to the user's current
+    ---working directory
+    ---
+    ---Using "basename" will show the path's basename with a directory hint
+    ---when more than one tag share the same basename
     ---@type "basename" | "relative"
     tag_style = "relative",
 
