@@ -228,6 +228,10 @@ function Window:parse_lines()
         return nil, "window is not rendered"
     end
 
+    if not vim.api.nvim_buf_is_valid(self.buf_id) then
+        return nil, "buffer is not valid"
+    end
+
     ---@diagnostic disable: redefined-local
     local lines = vim.tbl_filter(Util.not_empty, self:lines())
 
@@ -309,7 +313,7 @@ function Window:render()
 
     -- Prevent "BufLeave" from closing the window
     vim.api.nvim_clear_autocmds({
-        event = { "BufUnload", "BufLeave" },
+        event = { "BufLeave" },
         group = self.au_id,
         buffer = self.buf_id,
     })
@@ -464,8 +468,8 @@ function Window:map(mode, lhs, rhs, opts)
     )
 end
 
----Safety: used only inside a callback hook when a window is open
 ---See :h vim.api.nvim_create_autocmd
+---Safety: used only inside a callback hook when a window is open
 ---@param event any
 ---@param opts vim.api.keyset.create_autocmd
 function Window:autocmd(event, opts)
@@ -478,15 +482,17 @@ function Window:autocmd(event, opts)
     )
 end
 
+---Perform an action. Action may be sync or async. Prefer perform_close or
+---perform_retain to ensure window state is synced with the content state
+---before action is attempted.
 ---Safety: used only inside a callback hook when a window is open
 ---@param action grapple.action
 ---@param opts? grapple.action.options
 ---@return string? error
 function Window:perform(action, opts)
-    local err = self:close()
-    if err then
-        return err
-    end
+    opts = vim.tbl_extend("force", opts or {}, {
+        window = self,
+    })
 
     ---@diagnostic disable-next-line: redefined-local
     local err = self.content:perform(action, opts)
@@ -495,8 +501,43 @@ function Window:perform(action, opts)
     end
 end
 
+---Perform an action after closing the Grapple window
 ---Safety: used only inside a callback hook when a window is open
+---@param action grapple.action
+---@param opts? grapple.action.options
+---@return string? error
+function Window:perform_close(action, opts)
+    local err = self:close()
+    if err then
+        return err
+    end
+
+    return self:perform(action, opts)
+end
+
+---Perform an action, ensuring the Grapple window is not closed
+---Safety: used only inside a callback hook when a window is open
+---@param action grapple.action
+---@param opts? grapple.action.options
+---@return string? error
+function Window:perform_retain(action, opts)
+    local err = self:sync()
+    if err then
+        return err
+    end
+
+    -- Prevent "BufLeave" or "WinLeave" from closing the window
+    vim.api.nvim_clear_autocmds({
+        event = { "BufLeave", "WinLeave" },
+        group = self.au_id,
+        buffer = self.buf_id,
+    })
+
+    return self:perform(action, opts)
+end
+
 ---Returns a parsed entry for the current line
+---Safety: used only inside a callback hook when a window is open
 ---@return grapple.window.parsed_entry
 function Window:current_entry()
     local current_line = self:current_line()
@@ -504,8 +545,8 @@ function Window:current_entry()
     return entry
 end
 
----Safety: used only inside a callback hook when a window is open
 ---Returns a parsed entry for a line at a given index
+---Safety: used only inside a callback hook when a window is open
 ---@param opts { index: integer }
 ---@return grapple.window.parsed_entry | nil, string? error
 function Window:entry(opts)
@@ -539,9 +580,9 @@ function Window:cursor()
     return vim.api.nvim_win_get_cursor(self.win_id)
 end
 
----Safety: used only inside a callback hook when a window is open
 ---Returns the path for the buffer from current window before opening the
 ---Grapple window. In a sense, it's like vim's alternate file
+---Safety: used only inside a callback hook when a window is open
 ---@return string | nil
 function Window:alternate_path()
     -- It's possible that the alternate window is not valid after opening the

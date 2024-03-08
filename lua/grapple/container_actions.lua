@@ -2,6 +2,9 @@ local ContainerActions = {}
 
 ---@class grapple.action.container_options
 ---
+---Provided by Window
+---@field window grapple.window
+---
 ---User-provided information
 ---@field id? string
 

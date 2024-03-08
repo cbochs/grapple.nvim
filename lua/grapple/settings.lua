@@ -218,43 +218,43 @@ local DEFAULT_SETTINGS = {
         -- Select
         window:map("n", "<cr>", function()
             local cursor = window:cursor()
-            window:perform(TagActions.select, { index = cursor[1] })
+            window:perform_close(TagActions.select, { index = cursor[1] })
         end, { desc = "Select" })
 
         -- Select (horizontal split)
         window:map("n", "<c-s>", function()
             local cursor = window:cursor()
-            window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.split })
+            window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.split })
         end, { desc = "Select (split)" })
 
         -- Select (vertical split)
         window:map("n", "|", function()
             local cursor = window:cursor()
-            window:perform(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
+            window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
         end, { desc = "Select (vsplit)" })
 
         -- Quick select
         for i = 1, 9 do
             window:map("n", string.format("%s", i), function()
-                window:perform(TagActions.select, { index = i })
+                window:perform_close(TagActions.select, { index = i })
             end, { desc = string.format("Select %d", i) })
         end
 
         -- Quickfix list
         window:map("n", "<c-q>", function()
-            window:perform(TagActions.quickfix)
+            window:perform_close(TagActions.quickfix)
         end, { desc = "Quickfix" })
 
         -- Go "up" to scopes
         window:map("n", "-", function()
-            window:perform(TagActions.open_scopes)
+            window:perform_close(TagActions.open_scopes)
         end, { desc = "Go to scopes" })
 
         -- Rename a tag
         window:map("n", "<c-r>", function()
             local entry = window:current_entry()
             local path = entry.data.path
-            window:perform(TagActions.rename, { path = path, name = "bob" })
+            window:perform_retain(TagActions.rename, { path = path })
         end)
     end,
 
@@ -274,7 +274,7 @@ local DEFAULT_SETTINGS = {
         window:map("n", "<cr>", function()
             local entry = window:current_entry()
             local name = entry.data.name
-            window:perform(ScopeActions.open_tags, { name = name })
+            window:perform_close(ScopeActions.open_tags, { name = name })
         end, { desc = "Open scope" })
 
         -- Quick select
@@ -287,7 +287,7 @@ local DEFAULT_SETTINGS = {
                 end
 
                 local name = entry.data.name
-                window:perform(ScopeActions.open_tags, { name = name })
+                window:perform_close(ScopeActions.open_tags, { name = name })
             end, { desc = string.format("Open %d", i) })
         end
 
@@ -295,12 +295,12 @@ local DEFAULT_SETTINGS = {
         window:map("n", "<s-cr>", function()
             local entry = window:current_entry()
             local name = entry.data.name
-            window:perform(ScopeActions.change, { name = name })
+            window:perform_close(ScopeActions.change, { name = name })
         end, { desc = "Change scope" })
 
         -- Navigate "up" to loaded scopes
         window:map("n", "-", function()
-            window:perform(ScopeActions.open_loaded)
+            window:perform_close(ScopeActions.open_loaded)
         end, { desc = "Go to loaded scopes" })
     end,
 
@@ -320,7 +320,7 @@ local DEFAULT_SETTINGS = {
         window:map("n", "<cr>", function()
             local entry = window:current_entry()
             local id = entry.data.id
-            window:perform(ContainerActions.select, { id = id })
+            window:perform_close(ContainerActions.select, { id = id })
         end, { desc = "Open tags" })
 
         -- Quick select
@@ -333,7 +333,7 @@ local DEFAULT_SETTINGS = {
                 end
 
                 local name = entry and entry.data.name
-                window:perform(ContainerActions.select, { name = name })
+                window:perform_close(ContainerActions.select, { name = name })
             end, { desc = string.format("Select %d", i) })
         end
 
@@ -341,12 +341,12 @@ local DEFAULT_SETTINGS = {
         window:map("n", "x", function()
             local entry = window:current_entry()
             local id = entry.data.id
-            window:perform(ContainerActions.reset, { id = id })
+            window:perform_close(ContainerActions.reset, { id = id })
         end, { desc = "Reset scope" })
 
         -- Navigate "up" to scopes
         window:map("n", "-", function()
-            window:perform(ContainerActions.open_scopes)
+            window:perform_close(ContainerActions.open_scopes)
         end, { desc = "Go to scopes" })
     end,
 

@@ -1,11 +1,12 @@
-local Path = require("grapple.path")
-
 local TagActions = {}
 
 ---@alias grapple.action.options table
 ---@alias grapple.action fun(opts?: table): string?
 
 ---@class grapple.action.tag_options
+---
+---Provided by Window
+---@field window grapple.window
 ---
 ---Provided by TagContent
 ---@field scope grapple.resolved_scope
@@ -31,7 +32,9 @@ end
 ---@param opts grapple.action.tag_options
 ---@return string? error
 function TagActions.rename(opts)
-    vim.ui.input({ prompt = string.format("Rename %s", opts.path) }, function(input_name)
+    local Path = require("grapple.path")
+
+    vim.ui.input({ prompt = string.format("Rename %s", Path.fs_short(opts.path)) }, function(input_name)
         if not input_name then
             return
         end
@@ -43,6 +46,8 @@ function TagActions.rename(opts)
             end
             container:insert({ path = opts.path, name = input_name, index = index })
         end)
+
+        opts.window:render()
     end)
 end
 
