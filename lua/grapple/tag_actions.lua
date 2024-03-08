@@ -41,9 +41,7 @@ function TagActions.rename(opts)
             if not index then
                 return err
             end
-
-            local tag = assert(container:get({ index = index }))
-            tag:rename(input_name)
+            container:insert({ path = opts.path, name = input_name, index = index })
         end)
     end)
 end

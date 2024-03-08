@@ -22,15 +22,6 @@ function Tag:update()
     self.cursor = vim.api.nvim_win_get_cursor(0)
 end
 
----@param name string | nil
-function Tag:rename(name)
-    if name == "" then
-        name = nil
-    end
-
-    self.name = name
-end
-
 ---@param command? function
 function Tag:select(command)
     local short_path = Path.fs_short(self.path)
