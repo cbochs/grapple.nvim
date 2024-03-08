@@ -17,7 +17,18 @@ Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). Similar to [harpoon](https://github.com/ThePrimeagen/harpoon). See the [quickstart](#quickstart) section to get started.
+Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). See the [quickstart](#quickstart) section to get started.
+
+## Motivation
+
+Grapple began as a combined plugin of both [Harpoon](https://github.com/ThePrimeagen/harpoon) and [Portal](https://github.com/cbochs/portal.nvim). While Portal was split into its own plugin later, Grapple remained with the goal of improving it's file navigation model, which is similar to Harpoon's. However, Grapple aimed to improve in four main areas:
+
+1. **User setup**: provide a _frictionless_ experience for first-time setup, configuration, and usage
+1. **User command**: make the entire [Grapple API](#grapple-api) _easily accessible_ (via Lua or user command)
+1. **User experience**: provide a set of [windows](#grapple-windows) for managing tags and scopes
+1. **User-controlled tag scopes**: let the user _choose_ how their [tags](#tags) are grouped in a project
+
+In fact, at this point, Grapple can be used as an [almost perfect](#harpoon) drop-in replacement and do [even more](#usage).
 
 ## Features
 
@@ -49,6 +60,7 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 
 **Next steps**
 
+- Coming from Harpoon? Try out [this setup](#harpoon)
 - Check out the default [settings](#settings)
 - View your [tags](#tags-window) with `:Grapple toggle_tags`
 - Choose a [scope](#scopes-window) with `:Grapple toggle_scopes`
@@ -700,6 +712,33 @@ Grapple saves all scopes to a common directory. The default directory is named `
 By default, no scopes are loaded on startup. When `require("grapple").setup()` is called, the default scope will be loaded. Otherwise, scopes will be loaded on demand.
 
 ## Integrations
+
+### Harpoon
+
+Here is an example configuration to mimic Harpoon's UI and recommended keymaps (which are based off of this [example setup](https://github.com/ThePrimeagen/harpoon/tree/harpoon2?tab=readme-ov-file#basic-setup)). Note, this assumes you are using the [lazy.nvim](https://github.com/folke/lazy.nvim) package manager.
+
+```lua
+{
+    "cbochs/grapple.nvim",
+    keys = {
+        { "<leader>a", "<cmd>Grapple toggle<cr>", desc = "Tag a file" },
+        { "<c-e>", "<cmd>Grapple toggle_tags<cr>", desc = "Toggle tags menu" },
+
+        { "<c-h>", "<cmd>Grapple select index=1<cr>", desc = "Select first tag" },
+        { "<c-t>", "<cmd>Grapple select index=2<cr>", desc = "Select second tag" },
+        { "<c-n>", "<cmd>Grapple select index=3<cr>", desc = "Select third tag" },
+        { "<c-s>", "<cmd>Grapple select index=4<cr>", desc = "Select fourth tag" },
+
+        { "<c-s-p>", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
+        { "<c-s-n>", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
+    },
+    opts = {
+        scope = "git", -- also try out "git_branch"
+        icons = false, -- setting to "true" requires "nvim-web-devicons"
+        status = false,
+    }
+},
+```
 
 ### Telescope
 
