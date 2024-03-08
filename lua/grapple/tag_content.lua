@@ -169,7 +169,7 @@ function TagContent:create_entry(entity, index)
         -- instead of just "overlay". Render the name ahead of the displayed
         -- path instead of as an extmark when the user wants to show it at the
         -- start of the line
-        app.settings.tag_name == "start" and tag.name or nil,
+        app.settings.name_pos == "start" and tag.name or nil,
 
         stylized.display,
     })
@@ -203,7 +203,7 @@ function TagContent:create_entry(entity, index)
     end
 
     local name_highlight
-    if app.settings.tag_name == "start" and tag.name then
+    if app.settings.name_pos == "start" and tag.name then
         local col_start, col_end = assert(string.find(line, tag.name))
         name_highlight = {
             hl_group = "GrappleName",
@@ -230,7 +230,7 @@ function TagContent:create_entry(entity, index)
 
     ---@type grapple.vim.mark
     local name_mark
-    if app.settings.tag_name == "end" and tag.name then
+    if app.settings.name_pos == "end" and tag.name then
         name_mark = {
             virt_text = { { tag.name, "GrappleName" } },
             virt_text_pos = "eol",

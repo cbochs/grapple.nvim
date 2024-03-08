@@ -442,9 +442,10 @@ function Grapple.open_tags(opts)
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
+    -- stylua: ignore
     local content = TagContent:new(
         scope,
-        app.settings.tag_styles[app.settings.tag_style],
+        app.settings.styles[app.settings.style],
         app.settings.tag_hook,
         app.settings.tag_title
     )

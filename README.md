@@ -67,7 +67,6 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
     dependencies = {
         { "nvim-tree/nvim-web-devicons", lazy = true }
     },
-
 }
 ```
 
@@ -118,12 +117,23 @@ require("grapple").setup({
     ---@type boolean
     status = true,
 
+    ---Position a tag's name should be shown in Grapple windows
+    ---@type "start" | "end"
+    name_pos = "end",
+
+    ---How a tag's path should be rendered in Grapple windows
+    ---  "relative": show tag path relative to the scope's resolved path
+    ---  "basename": show tag path basename and directory hint
+    ---@type "basename" | "relative"
+    style = "relative",
+
     ---Default scope to use when managing Grapple tags
+    ---For more information, please see the Scopes section
     ---@type string
     scope = "git",
 
     ---User-defined scopes or overrides
-    ---For more information, please see the Scopes section
+    ---For more information, please see the Scope API section
     ---@type grapple.scope_definition[]
     scopes = {},
 

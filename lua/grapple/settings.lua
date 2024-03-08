@@ -18,7 +18,19 @@ local DEFAULT_SETTINGS = {
     ---@type boolean
     status = true,
 
+    ---Position a tag's name should be shown in Grapple windows
+    ---@type "start" | "end"
+    name_pos = "end",
+
+    ---How a tag's path should be rendered in Grapple windows
+    ---  "relative": show tag path relative to the scope's resolved path
+    ---  "basename": show tag path basename and directory hint
+    ---See: settings.styles
+    ---@type "basename" | "relative"
+    style = "relative",
+
     ---Default scope to use when managing Grapple tags
+    ---For more information, please see the Scopes section
     ---@type string
     scope = "git",
 
@@ -31,7 +43,7 @@ local DEFAULT_SETTINGS = {
     ---@field resolver grapple.scope_resolver
 
     ---User-defined scopes or overrides
-    ---For more information, please see the Scopes section
+    ---For more information, please see the Scope API section
     ---@type grapple.scope_definition[]
     scopes = {},
 
@@ -129,71 +141,6 @@ local DEFAULT_SETTINGS = {
                 return path, path
             end,
         },
-    },
-
-    ---Where a tag's name (if present) should be placed in the Tags Window
-    ---@type "start" | "end"
-    tag_name = "end",
-
-    ---How a tag's path should be displayed in the Tags Window
-    ---
-    ---Using "relative" will show the path relative to the user's current
-    ---working directory
-    ---
-    ---Using "basename" will show the path's basename with a directory hint
-    ---when more than one tag share the same basename
-    ---@type "basename" | "relative"
-    tag_style = "relative",
-
-    ---@alias grapple.content grapple.tag_content| grapple.scope_content| grapple.container_content
-    ---@alias grapple.entity grapple.tag_content.entity | grapple.scope_content.entity | grapple.container_content.entity
-
-    ---@alias grapple.style_fn fun(entity: grapple.entity, content: grapple.content): grapple.stylized
-    ---@alias grapple.tag_style_fn fun(entity: grapple.tag_content.entity, content: grapple.tag_content): grapple.stylized
-
-    ---@class grapple.stylized
-    ---@field display string
-    ---@field marks grapple.vim.mark[]
-
-    ---Not user documented
-    ---@type table<string, grapple.tag_style_fn>
-    tag_styles = {
-        relative = function(entity, content)
-            local Path = require("grapple.path")
-
-            ---@type grapple.stylized
-            local line = {
-                display = assert(Path.fs_relative(content.scope.path, entity.tag.path)),
-                marks = {},
-            }
-
-            return line
-        end,
-        basename = function(entity, _)
-            local Path = require("grapple.path")
-
-            local parent_mark
-            if not entity.base_unique then
-                -- stylua: ignore
-                parent_mark = {
-                    virt_text = { {
-                        "."
-                            .. Path.separator
-                            .. Path.relative(Path.parent(entity.tag.path, 3), Path.parent(entity.tag.path, 1)),
-                        "GrappleHint",
-                    } },
-                    virt_text_pos = "eol",
-                }
-            end
-
-            ---@type grapple.stylized
-            local line = {
-                display = Path.base(entity.tag.path),
-                marks = { parent_mark },
-            }
-
-            return line
-        end,
     },
 
     ---User-defined tags title function for Grapple windows
@@ -349,6 +296,55 @@ local DEFAULT_SETTINGS = {
             window:perform_close(ContainerActions.open_scopes)
         end, { desc = "Go to scopes" })
     end,
+
+    ---@alias grapple.content grapple.tag_content| grapple.scope_content| grapple.container_content
+    ---@alias grapple.entity grapple.tag_content.entity | grapple.scope_content.entity | grapple.container_content.entity
+    ---@alias grapple.style_fn fun(entity: grapple.entity, content: grapple.content): grapple.stylized
+
+    ---@class grapple.stylized
+    ---@field display string
+    ---@field marks grapple.vim.mark[]
+
+    ---Not user documented
+    ---@type table<string, grapple.style_fn>
+    styles = {
+        relative = function(entity, content)
+            local Path = require("grapple.path")
+
+            ---@type grapple.stylized
+            local line = {
+                display = assert(Path.fs_relative(content.scope.path, entity.tag.path)),
+                marks = {},
+            }
+
+            return line
+        end,
+        basename = function(entity, _)
+            local Path = require("grapple.path")
+
+            local parent_mark
+            if not entity.base_unique then
+                -- stylua: ignore
+                parent_mark = {
+                    virt_text = { {
+                        "."
+                            .. Path.separator
+                            .. Path.relative(Path.parent(entity.tag.path, 3), Path.parent(entity.tag.path, 1)),
+                        "GrappleHint",
+                    } },
+                    virt_text_pos = "eol",
+                }
+            end
+
+            ---@type grapple.stylized
+            local line = {
+                display = Path.base(entity.tag.path),
+                marks = { parent_mark },
+            }
+
+            return line
+        end,
+    },
 
     ---Additional window options for Grapple windows
     ---@type grapple.vim.win_opts
