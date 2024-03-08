@@ -23,6 +23,11 @@ local function extract_path(opts)
     local App = require("grapple.app")
     local app = App.get()
 
+    -- Special case: get the path under the cursor
+    if opts.path and opts.path == "<cfile>" then
+        return vim.fn.expand("<cfile>")
+    end
+
     if opts.path then
         return opts.path
     end
