@@ -153,7 +153,6 @@ local DEFAULT_SETTINGS = {
 
     ---@class grapple.stylized
     ---@field display string
-    ---@field highlights grapple.vim.highlight[]
     ---@field marks grapple.vim.mark[]
 
     ---Not user documented
@@ -165,7 +164,6 @@ local DEFAULT_SETTINGS = {
             ---@type grapple.stylized
             local line = {
                 display = assert(Path.fs_relative(assert(vim.loop.cwd()), entity.tag.path)),
-                highlights = {},
                 marks = {},
             }
 
@@ -191,7 +189,6 @@ local DEFAULT_SETTINGS = {
             ---@type grapple.stylized
             local line = {
                 display = Path.base(entity.tag.path),
-                highlights = {},
                 marks = { parent_mark },
             }
 
