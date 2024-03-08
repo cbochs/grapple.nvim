@@ -158,12 +158,12 @@ local DEFAULT_SETTINGS = {
     ---Not user documented
     ---@type table<string, grapple.tag_style_fn>
     tag_styles = {
-        relative = function(entity, _)
+        relative = function(entity, content)
             local Path = require("grapple.path")
 
             ---@type grapple.stylized
             local line = {
-                display = assert(Path.fs_relative(assert(vim.loop.cwd()), entity.tag.path)),
+                display = assert(Path.fs_relative(content.scope.path, entity.tag.path)),
                 marks = {},
             }
 
