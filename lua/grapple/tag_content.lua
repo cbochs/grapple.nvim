@@ -83,18 +83,11 @@ function TagContent:entities()
         return nil, err
     end
 
-    local base_lookup = Util.reduce(
-        tags,
-        ---@param lookup table<string, integer>
-        ---@param tag grapple.tag
-        ---@return table<string, integer> lookup
-        function(lookup, tag)
-            local base = Path.base(tag.path)
-            lookup[base] = (lookup[base] or 0) + 1
-            return lookup
-        end,
-        {}
-    )
+    local base_lookup = Util.reduce(tags, function(lookup, tag)
+        local base = Path.base(tag.path)
+        lookup[base] = (lookup[base] or 0) + 1
+        return lookup
+    end, {})
 
     ---@type grapple.window.entity[]
     local entities = {}
