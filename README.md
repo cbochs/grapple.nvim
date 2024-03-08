@@ -217,7 +217,7 @@ Create a grapple tag.
 - **`buffer?`**: `integer` (default: `0`)
 - **`path?`**: `string`
 - **`index?`**: `integer`
-- **`name?`**: `string` **not implemented**
+- **`name?`**: `string`
 - **`scope?`**: `string`
 
 **Note**: only one tag can be created _per scope per file_. If a tag already exists for the given file or buffer, it will be overridden with the new tag.
@@ -234,6 +234,9 @@ require("grapple").tag({ path = "some_file.lua" })
 
 -- Tag the current buffer in a different scope
 require("grapple").tag({ scope = "global" })
+
+-- Tag the file path under the cursor
+require("grapple").tag({ path = "<cfile>" })
 ```
 
 </details>
@@ -745,7 +748,7 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 **Type**: `table`
 
 - **`buffer`**: `integer` (default: `0`)
-- **`path`**: `string` file path or URI (overrides `buffer`)
+- **`path`**: `string` file path or `<cfile>` (overrides `buffer`)
 - **`name`**: `string` tag name
 - **`index`**: `integer` tag insertion or deletion index (default: end of list)
 - **`scope`**: `string` scope name (default `settings.scope`)
