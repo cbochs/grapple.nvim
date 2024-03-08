@@ -679,6 +679,16 @@ require("grapple").open_loaded()
 
 </details>
 
+### Window Highlights
+
+| Highlight        | Default Link      | Style      | Used in                         |
+| ---------------- | ----------------- | ---------- | ------------------------------- |
+| `GrappleBold`    | N/A               | `gui=bold` | Scopes window for scope names   |
+| `GrappleHint`    | `Comment`         | N/A        | Tags window for directory hints |
+| `GrappleName`    | `DiagnosticHint`  | N/A        | Tags window for tag name        |
+| `GrappleNoExist` | `DiagnosticError` | N/A        | Tags window for tag status      |
+| `GrappleCurrent` | `SpecialChar`     | `gui=bold` | All windows for current status  |
+
 ## Persistent State
 
 Grapple saves all scopes to a common directory. The default directory is named `grapple` and lives in Neovim's `"data"` directory ([`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each scope will be saved as its own individually serialized JSON blob.
