@@ -120,8 +120,8 @@ local function get_icon(path)
     if not ok then
         -- stylua: ignore
         error(
-            'The plugin "nvim-tree/nvim-web-devicons" is required for icons in Grapple.nvim.' ..
-            ' To disable icons, change "icons" to false in the settings.'
+            'The plugin "nvim-tree/nvim-web-devicons" is required for icons in Grapple.nvim. ' ..
+            'To disable icons, change "icons" to false in the settings.'
         )
     end
 
@@ -298,6 +298,7 @@ function TagContent:parse_line(line, original_entries)
     local entry = {
         ---@type grapple.tag_content.data
         data = {
+            display = display,
             path = nil,
             name = nil,
             cursor = nil,
@@ -329,11 +330,16 @@ function TagContent:parse_line(line, original_entries)
         end
     end
 
-    -- TODO: could this be improved for display text that has only been
-    -- slightly modified?
-    --
+    local path = display
+
+    -- The display path has been modified. Only join if it is not explicitly
+    -- relative to another known directory (i.e. starts with "./" or "~")
+    if Path.is_joinable(path) then
+        path = Path.join(self.scope.path, path)
+    end
+
     -- Parse as a new entry when the display text has been modified
-    entry.data.path = Path.fs_absolute(display)
+    entry.data.path = Path.fs_absolute(path)
 
     return entry
 end
