@@ -392,8 +392,14 @@ function Path.fs_relative(base, targ)
         return nil, err
     end
 
+    -- Add leading "./" to relative paths for better autocompletion
+    if not vim.startswith(path, "..") then
+        path = "." .. Path.separator .. path
+    end
+
+    -- Add trailing slash to directories
     if vim.fn.isdirectory(targ) == 1 then
-        path = path .. "/"
+        path = path .. Path.separator
     end
 
     return path
