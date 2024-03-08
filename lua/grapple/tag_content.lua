@@ -167,7 +167,6 @@ function TagContent:create_entry(entity, index)
         stylized.display,
     })
 
-    vim.print(line_items)
     local line = table.concat(line_items, " ")
     local min_col = assert(string.find(line, Util.escape(stylized.display))) - 1
 
