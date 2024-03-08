@@ -601,6 +601,7 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 - **Quick select** (`1-9`): select the tag at a given index
 - **Deletion**: delete a line to delete the tag
 - **Reordering**: move a line to move a tag
+- **Renaming** (`R`): rename the tag under the cursor
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 - **Go up** (`-`): navigate up to the [scopes window](#scopes-window)
 
