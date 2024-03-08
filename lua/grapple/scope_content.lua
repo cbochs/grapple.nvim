@@ -105,7 +105,7 @@ function ScopeContent:create_entry(entity, index)
 
     if app.settings.status and entity.current then
         sign_highlight = "GrappleCurrent"
-        name_group = "GrappleCurrentBold"
+        name_group = "GrappleCurrent"
     end
 
     local col_start = string.find(line, "%s")

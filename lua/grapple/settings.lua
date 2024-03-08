@@ -180,7 +180,7 @@ local DEFAULT_SETTINGS = {
                         "."
                             .. Path.separator
                             .. Path.relative(Path.parent(entity.tag.path, 3), Path.parent(entity.tag.path, 1)),
-                        "GrappleParent",
+                        "GrappleHint",
                     } },
                     virt_text_pos = "eol",
                 }
