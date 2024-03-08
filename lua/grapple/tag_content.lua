@@ -216,7 +216,6 @@ function TagContent:create_entry(entity, index)
     highlights = vim.tbl_filter(Util.not_nil, {
         icon_highlight,
         name_highlight,
-        unpack(stylized.highlights),
     })
 
     -- Define line extmarks
@@ -229,6 +228,7 @@ function TagContent:create_entry(entity, index)
         sign_hl_group = sign_highlight,
     }
 
+    ---@type grapple.vim.mark
     local name_mark
     if app.settings.tag_name == "end" and tag.name then
         name_mark = {
@@ -323,6 +323,9 @@ function TagContent:parse_line(line, original_entries)
             entry.modified = false
 
             return entry
+        else
+            -- Keep the name associated with the original entry
+            entry.data.name = data.name
         end
     end
 
