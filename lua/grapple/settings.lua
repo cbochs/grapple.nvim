@@ -197,8 +197,8 @@ local DEFAULT_SETTINGS = {
             window:perform_close(TagActions.open_scopes)
         end, { desc = "Go to scopes" })
 
-        -- Rename a tag
-        window:map("n", "<c-r>", function()
+        -- Rename
+        window:map("n", "R", function()
             local entry = window:current_entry()
             local path = entry.data.path
             window:perform_retain(TagActions.rename, { path = path })
