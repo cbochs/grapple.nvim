@@ -56,6 +56,23 @@ function State:exists(name)
     return Path.exists(path)
 end
 
+---@return string[]
+function State:list()
+    local files = {}
+    for name, type in vim.fs.dir(self.save_dir) do
+        if type ~= "file" then
+            goto continue
+        end
+
+        name = path_decode(name)
+        name = string.gsub(name, "%.json", "")
+        table.insert(files, name)
+
+        ::continue::
+    end
+    return files
+end
+
 ---@return string? error, string? error_kind
 function State:remove(name)
     local path = self:save_path(name)

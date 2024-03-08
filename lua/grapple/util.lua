@@ -36,6 +36,21 @@ function Util.reduce(list, fn, init)
 end
 
 ---@generic T
+---@param tbl_a T[]
+---@param tbl_b T[]
+---@return T[]
+function Util.add(tbl_a, tbl_b)
+    local added = {}
+    for _, value in ipairs(tbl_a) do
+        table.insert(added, value)
+    end
+    for _, value in ipairs(tbl_b) do
+        table.insert(added, value)
+    end
+    return added
+end
+
+---@generic T
 ---@param tbl T[]
 ---@param removed T[]
 ---@return T[]
