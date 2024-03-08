@@ -121,6 +121,27 @@ function ContainerContent:create_entry(entity, index)
         sign_highlight = "GrappleCurrent"
     end
 
+    ---@type grapple.vim.mark
+    local sign_mark = {
+        sign_text = string.format("%d", index),
+        sign_hl_group = sign_highlight,
+    }
+
+    local count = container:len()
+    local count_text = count == 1 and "tag" or "tags"
+    local count_mark = {
+        virt_text = { { string.format("[%d %s]", count, count_text) } },
+        virt_text_pos = "eol",
+    }
+
+    local extmarks = vim.tbl_map(function(mark)
+        return {
+            line = index - 1,
+            col = 0,
+            opts = mark,
+        }
+    end, { sign_mark, count_mark })
+
     ---@type grapple.window.entry
     local entry = {
         ---@class grapple.scope_content.data
@@ -136,20 +157,7 @@ function ContainerContent:create_entry(entity, index)
         highlights = {},
 
         ---@type grapple.vim.extmark[]
-        extmarks = {
-            {
-                line = index - 1,
-                col = 0,
-                opts = {
-                    sign_text = string.format("%d", index),
-                    sign_hl_group = sign_highlight,
-                    virt_text = { { string.format("[%d tags]", container:len()) } },
-
-                    -- TODO: requires nvim-0.10
-                    -- invalidate = true,
-                },
-            },
-        },
+        extmarks = extmarks,
     }
 
     return entry
