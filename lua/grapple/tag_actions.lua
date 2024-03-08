@@ -47,6 +47,8 @@ function TagActions.rename(opts)
             container:insert({ path = opts.path, name = input_name, index = index })
         end)
 
+        -- Re-render window once tag has been renamed, regardless of whether
+        -- the renaming was successful
         opts.window:render()
     end)
 end
