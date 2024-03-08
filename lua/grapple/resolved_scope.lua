@@ -15,7 +15,7 @@ function ResolvedScope:new(name, id, path, tag_manager)
     return setmetatable({
         name = name,
         id = id,
-        path = path,
+        path = path or vim.loop.cwd(),
         tag_manager = tag_manager,
     }, self)
 end

@@ -442,7 +442,13 @@ function Grapple.open_tags(opts)
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
-    local content = TagContent:new(scope, app.settings.tag_hook, app.settings.tag_title)
+    -- stylua: ignore
+    local content = TagContent:new(
+        scope,
+        app.settings.styles[app.settings.style],
+        app.settings.tag_hook,
+        app.settings.tag_title
+    )
 
     open(content)
 end
@@ -484,11 +490,12 @@ end
 function Grapple.initialize()
     -- Create highlights for Grapple windows
     vim.cmd("highlight default GrappleBold gui=bold cterm=bold")
-    vim.cmd("highlight default GrappleCurrentBold gui=bold cterm=bold")
-
+    vim.cmd("highlight default link GrappleHint Comment")
+    vim.cmd("highlight default link GrappleName DiagnosticHint")
     vim.cmd("highlight default link GrappleNoExist DiagnosticError")
-    vim.cmd("highlight default link GrappleCurrent SpecialChar")
-    vim.cmd("highlight! link GrappleCurrentBold GrappleCurrent")
+
+    vim.cmd("highlight default GrappleCurrent gui=bold cterm=bold")
+    vim.cmd("highlight! link GrappleCurrent SpecialChar")
 
     -- Create autocommand to keep Grapple state up-to-date
     vim.api.nvim_create_augroup("Grapple", { clear = true })

@@ -67,7 +67,6 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
     dependencies = {
         { "nvim-tree/nvim-web-devicons", lazy = true }
     },
-
 }
 ```
 
@@ -118,12 +117,23 @@ require("grapple").setup({
     ---@type boolean
     status = true,
 
+    ---Position a tag's name should be shown in Grapple windows
+    ---@type "start" | "end"
+    name_pos = "end",
+
+    ---How a tag's path should be rendered in Grapple windows
+    ---  "relative": show tag path relative to the scope's resolved path
+    ---  "basename": show tag path basename and directory hint
+    ---@type "basename" | "relative"
+    style = "relative",
+
     ---Default scope to use when managing Grapple tags
+    ---For more information, please see the Scopes section
     ---@type string
     scope = "git",
 
     ---User-defined scopes or overrides
-    ---For more information, please see the Scopes section
+    ---For more information, please see the Scope API section
     ---@type grapple.scope_definition[]
     scopes = {},
 
@@ -591,6 +601,7 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 - **Quick select** (`1-9`): select the tag at a given index
 - **Deletion**: delete a line to delete the tag
 - **Reordering**: move a line to move a tag
+- **Renaming** (`R`): rename the tag under the cursor
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 - **Go up** (`-`): navigate up to the [scopes window](#scopes-window)
 
@@ -668,6 +679,16 @@ require("grapple").open_loaded()
 ```
 
 </details>
+
+### Window Highlights
+
+| Highlight        | Default Link      | Style      | Used in                         |
+| ---------------- | ----------------- | ---------- | ------------------------------- |
+| `GrappleBold`    | N/A               | `gui=bold` | Scopes window for scope names   |
+| `GrappleHint`    | `Comment`         | N/A        | Tags window for directory hints |
+| `GrappleName`    | `DiagnosticHint`  | N/A        | Tags window for tag name        |
+| `GrappleNoExist` | `DiagnosticError` | N/A        | Tags window for tag status      |
+| `GrappleCurrent` | `SpecialChar`     | `gui=bold` | All windows for current status  |
 
 ## Persistent State
 

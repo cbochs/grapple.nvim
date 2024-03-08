@@ -2,6 +2,9 @@ local ScopeActions = {}
 
 ---@class grapple.action.scope_options
 ---
+---Provided by Window
+---@field window grapple.window
+---
 ---User-provided information
 ---@field name? string
 
