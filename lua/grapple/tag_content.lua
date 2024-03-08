@@ -168,7 +168,7 @@ function TagContent:create_entry(entity, index)
     })
 
     local line = table.concat(line_items, " ")
-    local min_col = assert(string.find(line, stylized.display)) - 1
+    local min_col = assert(string.find(line, Util.escape(stylized.display))) - 1
 
     -- Define line highlights for display and extmarks
     ---@type grapple.vim.highlight[]
@@ -197,7 +197,7 @@ function TagContent:create_entry(entity, index)
 
     local name_highlight
     if app.settings.name_pos == "start" and tag.name then
-        local col_start, col_end = assert(string.find(line, tag.name))
+        local col_start, col_end = assert(string.find(line, Util.escape(tag.name)))
         name_highlight = {
             hl_group = "GrappleName",
             line = index - 1,

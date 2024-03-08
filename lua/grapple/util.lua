@@ -1,5 +1,13 @@
 local Util = {}
 
+---Escapes a string so it can be used as a string pattern
+---@param str string
+---@return string escaped string
+function Util.escape(str)
+    local escaped = string.gsub(str, "%p", "%%%1")
+    return escaped
+end
+
 ---Sorts list elements in a given order, *not-in-place*, from `list[1]` to `list[#list]`.
 ---@generic T
 ---@param list T[]
