@@ -344,7 +344,6 @@ end
 ---@return boolean
 function Path.is_joinable(path)
     return not vim.startswith(path, "./")
-        and not vim.startswith(path, "../")
         and not vim.startswith(path, "~")
         and not Path.is_uri(path)
         and not Path.is_absolute(path)
@@ -390,11 +389,6 @@ function Path.fs_relative(base, targ)
     local path, err = Path.relative(base, targ)
     if not path then
         return nil, err
-    end
-
-    -- Add leading "./" to relative paths for better autocompletion
-    if not vim.startswith(path, "..") then
-        path = "." .. Path.separator .. path
     end
 
     -- Add trailing slash to directories
