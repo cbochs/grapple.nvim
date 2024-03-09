@@ -5,3 +5,6 @@ indent_type = "Spaces"
 indent_width = 4
 line_endings = "Unix"
 quote_style = "AutoPreferDouble"
+
+[sort_requires]
+enabled = true
