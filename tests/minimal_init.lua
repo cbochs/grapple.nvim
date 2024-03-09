@@ -1,3 +1,11 @@
+-- TODO: Don't use vim.fs.joinpath, it's a nvim-0.10 feature
+vim.fs.joinpath = vim.fs.joinpath
+    or function(...)
+        local path = table.concat({ ... }, "/")
+        path = string.gsub(path, "//", "/")
+        return path
+    end
+
 local root_path = vim.fn.fnamemodify(".", ":p")
 local temp_path = vim.fs.joinpath(root_path, ".tests")
 
