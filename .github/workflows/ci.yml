@@ -1,3 +1,5 @@
+name: continuous integration
+
 on:
   push:
     branches:
@@ -6,7 +8,9 @@ on:
     branches:
       - main
 
-name: continuous integration
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.actor }}
+  cancel-in-progress: true
 
 jobs:
   style:
@@ -19,8 +23,23 @@ jobs:
           version: latest
           args: --check .
 
-  linting:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: lunarmodules/luacheck@v1
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim_version: ["v0.9.5", "nightly"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matric.neovim_version }}
+      - run: make test

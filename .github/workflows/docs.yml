@@ -1,11 +1,11 @@
+name: generate panvimdocs
+
 on:
   push:
     branches:
       - main
     paths:
       - README.md
-
-name: generate panvimdocs
 
 jobs:
   docs:
