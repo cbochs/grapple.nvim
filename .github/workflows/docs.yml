@@ -10,7 +10,7 @@ name: generate panvimdocs
 jobs:
   docs:
     runs-on: ubuntu-latest
-    name: pandoc to vimdoc
+    name: generate vimdoc
     steps:
       - uses: actions/checkout@v4
       - name: panvimdoc
