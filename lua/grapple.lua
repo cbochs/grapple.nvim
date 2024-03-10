@@ -269,13 +269,13 @@ end
 ---@return string | integer | nil
 function Grapple.name_or_index(opts)
     local App = require("grapple.app")
+    local app = App.get()
 
     opts = opts or {}
 
     ---@type string | integer | nil
     local name_or_index
 
-    local app = App.get()
     app:enter_without_save(opts.scope, function(container)
         local path, _ = extract_path(opts)
         opts.path = path
@@ -308,6 +308,7 @@ end
 function Grapple.statusline()
     local App = require("grapple.app")
     local app = App.get()
+
     local icon = app.settings.icons and "󰛢 " or ""
 
     local key = Grapple.name_or_index()
@@ -316,15 +317,42 @@ function Grapple.statusline()
     end
 end
 
+---Return the tag for a given
+---@param opts grapple.options
+---@return grapple.tag | nil, string? error
+function Grapple.find(opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    opts = opts or {}
+
+    ---@type grapple.tag | nil
+    local tag
+
+    local err = app:enter_without_save(opts.scope, function(container)
+        local index, err = container:find(opts)
+        if not index then
+            return err
+        end
+        tag = assert(container:get({ index = index }))
+    end, { notify = false })
+
+    if err then
+        return nil, err
+    end
+
+    return tag, nil
+end
+
 ---Return the tags for a given scope. Used for integrations
 ---@param opts? { scope?: string }
 ---@return grapple.tag[] | nil, string? error
 function Grapple.tags(opts)
     local App = require("grapple.app")
+    local app = App.get()
 
     opts = opts or {}
 
-    local app = App.get()
     local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
     if not scope then
         return nil, err

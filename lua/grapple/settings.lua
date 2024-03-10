@@ -1,5 +1,4 @@
 ---@class grapple.settings
----@field inner grapple.settings
 local Settings = {}
 
 ---@class grapple.settings
