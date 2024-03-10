@@ -216,10 +216,14 @@ function TagContent:create_entry(entity, index)
     local extmarks = {}
 
     ---@type grapple.vim.mark
-    local sign_mark = {
-        sign_text = string.format("%d", index),
-        sign_hl_group = sign_highlight,
-    }
+    local sign_mark
+    local quick_select = app.settings:quick_select()[index]
+    if quick_select then
+        sign_mark = {
+            sign_text = string.format("%s", quick_select),
+            sign_hl_group = sign_highlight,
+        }
+    end
 
     ---@type grapple.vim.mark
     local name_mark
