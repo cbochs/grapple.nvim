@@ -10,6 +10,7 @@ Table of Contents                                  *grapple-table-of-contents*
   - Requirements                           |grapple-grapple.nvim-requirements|
   - Quickstart                               |grapple-grapple.nvim-quickstart|
   - Installation                           |grapple-grapple.nvim-installation|
+  - Example Setups                       |grapple-grapple.nvim-example-setups|
   - Settings                                   |grapple-grapple.nvim-settings|
   - Usage                                         |grapple-grapple.nvim-usage|
   - Tags                                           |grapple-grapple.nvim-tags|
@@ -36,8 +37,8 @@ Grapple began as a combined plugin of both Harpoon
 <https://github.com/ThePrimeagen/harpoon> and Portal
 <https://github.com/cbochs/portal.nvim>. While Portal was split into its own
 plugin later, Grapple remained with the goal of improving it’s file
-navigation model, which is similar to Harpoon’s. However, Grapple aimed to
-improve in four main areas:
+navigation model. However, Grapple aimed to improve over existing plugins (like
+Harpoon) in four main areas:
 
 1. **User setup**provide a _frictionless_ experience for first-time setup, configuration, and usage
 2. **User command**make the entire |grapple-grapple-api| _easily accessible_ (via Lua or user command)
@@ -80,7 +81,7 @@ QUICKSTART                                   *grapple-grapple.nvim-quickstart*
 
 **Next steps**
 
-- Coming from Harpoon? Try out |grapple-this-setup|
+- Coming from Harpoon? Check out the |grapple-example-setups|
 - Check out the default |grapple-settings|
 - View your |grapple-tags| with `:Grapple toggle_tags`
 - Choose a |grapple-scope| with `:Grapple toggle_scopes`
@@ -116,6 +117,91 @@ vim-plug ~
 >vim
     Plug "nvim-tree/nvim-web-devicons"
     Plug "cbochs/grapple.nvim"
+<
+
+
+EXAMPLE SETUPS                           *grapple-grapple.nvim-example-setups*
+
+Note, these examples assume you are using the lazy.nvim
+<https://github.com/folke/lazy.nvim> package manager.
+
+Recommended ~
+
+>lua
+    {
+        "cbochs/grapple.nvim",
+        opts = {
+            scope = "git", -- also try out "git_branch"
+        },
+        event = { "BufReadPost", "BufNewFile" },
+        cmd = "Grapple",
+        keys = {
+            { "<leader>m", "<cmd>Grapple toggle<cr>", desc = "Grapple toggle tag" },
+            { "<leader>k", "<cmd>Grapple toggle_tags<cr>", desc = "Grapple toggle tags" },
+            { "<leader>K", "<cmd>Grapple toggle_scopes<cr>", desc = "Grapple toggle scopes" },
+            { "<leader>j", "<cmd>Grapple cycle forward<cr>", desc = "Grapple cycle forward" },
+            { "<leader>J", "<cmd>Grapple cycle backward<cr>", desc = "Grapple cycle backward" },
+            { "<leader>1", "<cmd>Grapple select index=1<cr>", desc = "Grapple select 1" },
+            { "<leader>2", "<cmd>Grapple select index=2<cr>", desc = "Grapple select 2" },
+            { "<leader>3", "<cmd>Grapple select index=3<cr>", desc = "Grapple select 3" },
+            { "<leader>4", "<cmd>Grapple select index=3<cr>", desc = "Grapple select 4" },
+        },
+    },
+<
+
+Harpoon ~
+
+Example configuration similar to harpoon.nvim
+<https://github.com/ThePrimeagen/harpoon> (based off of this example setup
+<https://github.com/ThePrimeagen/harpoon/tree/harpoon2?tab=readme-ov-file#basic-setup>).
+
+>lua
+    {
+        "cbochs/grapple.nvim",
+        opts = {
+            scope = "git", -- also try out "git_branch"
+            icons = false, -- setting to "true" requires "nvim-web-devicons"
+            status = false,
+        },
+        keys = {
+            { "<leader>a", "<cmd>Grapple toggle<cr>", desc = "Tag a file" },
+            { "<c-e>", "<cmd>Grapple toggle_tags<cr>", desc = "Toggle tags menu" },
+    
+            { "<c-h>", "<cmd>Grapple select index=1<cr>", desc = "Select first tag" },
+            { "<c-t>", "<cmd>Grapple select index=2<cr>", desc = "Select second tag" },
+            { "<c-n>", "<cmd>Grapple select index=3<cr>", desc = "Select third tag" },
+            { "<c-s>", "<cmd>Grapple select index=4<cr>", desc = "Select fourth tag" },
+    
+            { "<c-s-p>", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
+            { "<c-s-n>", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
+        },
+    },
+<
+
+Arrow ~
+
+Example configuration similar to arrow.nvim
+<https://github.com/otavioschwanck/arrow.nvim/tree/master>.
+
+>lua
+    {
+        "cbochs/grapple.nvim",
+        dependencies = {
+            { "nvim-tree/nvim-web-devicons" }
+        },
+        opts = {
+            scope = "git_branch",
+            icons = true,
+            quick_select = "123456789",
+        },
+        keys = {
+            { ";", "<cmd>Grapple toggle_tags<cr>", desc = "Toggle tags menu" },
+    
+            { "<c-s>", "<cmd>Grapple toggle<cr>", desc = "Toggle tag" },
+            { "H", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
+            { "L", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
+        },
+    },
 <
 
 
@@ -738,38 +824,6 @@ on demand.
 
 
 INTEGRATIONS                               *grapple-grapple.nvim-integrations*
-
-
-HARPOON ~
-
-Here is an example configuration to mimic Harpoon’s UI and recommended
-keymaps (which are based off of this example setup
-<https://github.com/ThePrimeagen/harpoon/tree/harpoon2?tab=readme-ov-file#basic-setup>).
-Note, this assumes you are using the lazy.nvim
-<https://github.com/folke/lazy.nvim> package manager.
-
->lua
-    {
-        "cbochs/grapple.nvim",
-        keys = {
-            { "<leader>a", "<cmd>Grapple toggle<cr>", desc = "Tag a file" },
-            { "<c-e>", "<cmd>Grapple toggle_tags<cr>", desc = "Toggle tags menu" },
-    
-            { "<c-h>", "<cmd>Grapple select index=1<cr>", desc = "Select first tag" },
-            { "<c-t>", "<cmd>Grapple select index=2<cr>", desc = "Select second tag" },
-            { "<c-n>", "<cmd>Grapple select index=3<cr>", desc = "Select third tag" },
-            { "<c-s>", "<cmd>Grapple select index=4<cr>", desc = "Select fourth tag" },
-    
-            { "<c-s-p>", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
-            { "<c-s-n>", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
-        },
-        opts = {
-            scope = "git", -- also try out "git_branch"
-            icons = false, -- setting to "true" requires "nvim-web-devicons"
-            status = false,
-        }
-    },
-<
 
 
 TELESCOPE ~
