@@ -1,4 +1,5 @@
 ---@class grapple.settings
+---@field inner grapple.settings
 local Settings = {}
 
 ---@class grapple.settings
@@ -7,6 +8,16 @@ local DEFAULT_SETTINGS = {
     ---@type string
     ---@diagnostic disable-next-line: param-type-mismatch
     save_path = vim.fn.stdpath("data") .. "/" .. "grapple",
+
+    ---Default scope to use when managing Grapple tags
+    ---For more information, please see the Scopes section
+    ---@type string
+    scope = "git",
+
+    ---User-defined scopes or overrides
+    ---For more information, please see the Scope API section
+    ---@type grapple.scope_definition[]
+    scopes = {},
 
     ---Show icons next to tags in Grapple windows
     ---Requires "nvim-tree/nvim-web-devicons"
@@ -29,10 +40,10 @@ local DEFAULT_SETTINGS = {
     ---@type "basename" | "relative"
     style = "relative",
 
-    ---Default scope to use when managing Grapple tags
-    ---For more information, please see the Scopes section
-    ---@type string
-    scope = "git",
+    ---A string of characters used for quick selecting in Grapple windows
+    ---An empty string or nil will disable quick select
+    ---@type string | nil
+    quick_select = "123456789",
 
     ---@class grapple.scope_definition
     ---@field name string
@@ -41,11 +52,6 @@ local DEFAULT_SETTINGS = {
     ---@field fallback? string name of scope to fall back on
     ---@field cache? grapple.cache.options | boolean
     ---@field resolver grapple.scope_resolver
-
-    ---User-defined scopes or overrides
-    ---For more information, please see the Scope API section
-    ---@type grapple.scope_definition[]
-    scopes = {},
 
     ---Default scopes provided by Grapple
     ---@type grapple.scope_definition[]
@@ -161,6 +167,8 @@ local DEFAULT_SETTINGS = {
     ---@type grapple.hook_fn
     tag_hook = function(window)
         local TagActions = require("grapple.tag_actions")
+        local App = require("grapple.app")
+        local app = App.get()
 
         -- Select
         window:map("n", "<cr>", function()
@@ -181,10 +189,10 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Select (vsplit)" })
 
         -- Quick select
-        for i = 1, 9 do
-            window:map("n", string.format("%s", i), function()
+        for i, quick in ipairs(app.settings:quick_select()) do
+            window:map("n", string.format("%s", quick), function()
                 window:perform_close(TagActions.select, { index = i })
-            end, { desc = string.format("Select %d", i) })
+            end, { desc = string.format("Quick select %d", i) })
         end
 
         -- Quickfix list
@@ -216,6 +224,8 @@ local DEFAULT_SETTINGS = {
     ---@type grapple.hook_fn
     scope_hook = function(window)
         local ScopeActions = require("grapple.scope_actions")
+        local App = require("grapple.app")
+        local app = App.get()
 
         -- Select
         window:map("n", "<cr>", function()
@@ -225,8 +235,8 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Open scope" })
 
         -- Quick select
-        for i = 1, 9 do
-            window:map("n", string.format("%s", i), function()
+        for i, quick in ipairs(app.settings:quick_select()) do
+            window:map("n", string.format("%s", quick), function()
                 local entry, err = window:entry({ index = i })
                 if not entry then
                     ---@diagnostic disable-next-line: param-type-mismatch
@@ -235,7 +245,7 @@ local DEFAULT_SETTINGS = {
 
                 local name = entry.data.name
                 window:perform_close(ScopeActions.open_tags, { name = name })
-            end, { desc = string.format("Open %d", i) })
+            end, { desc = string.format("Quick open %d", i) })
         end
 
         -- Change
@@ -262,6 +272,8 @@ local DEFAULT_SETTINGS = {
     ---@type grapple.hook_fn
     loaded_hook = function(window)
         local ContainerActions = require("grapple.container_actions")
+        local App = require("grapple.app")
+        local app = App.get()
 
         -- Select
         window:map("n", "<cr>", function()
@@ -271,8 +283,8 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Open tags" })
 
         -- Quick select
-        for i = 1, 9 do
-            window:map("n", string.format("%s", i), function()
+        for i, quick in ipairs(app.settings:quick_select()) do
+            window:map("n", string.format("%s", quick), function()
                 local entry, err = window:entry({ index = i })
                 if not entry then
                     ---@diagnostic disable-next-line: param-type-mismatch
@@ -281,7 +293,7 @@ local DEFAULT_SETTINGS = {
 
                 local name = entry and entry.data.name
                 window:perform_close(ContainerActions.select, { name = name })
-            end, { desc = string.format("Select %d", i) })
+            end, { desc = string.format("Quick select %d", i) })
         end
 
         -- Reset
@@ -347,6 +359,7 @@ local DEFAULT_SETTINGS = {
     },
 
     ---Additional window options for Grapple windows
+    ---See :h nvim_open_win
     ---@type grapple.vim.win_opts
     win_opts = {
         -- Can be fractional
@@ -360,8 +373,6 @@ local DEFAULT_SETTINGS = {
         focusable = false,
         style = "minimal",
         title_pos = "center",
-
-        -- Custom: fallback title for Grapple windows
         title = "Grapple",
 
         -- Custom: adds padding around window title
@@ -392,6 +403,19 @@ function Settings:new()
     return setmetatable({
         inner = vim.deepcopy(DEFAULT_SETTINGS),
     }, self)
+end
+
+---Override quick_select to ensure a string table is always returned
+---@return string[]
+---@diagnostic disable-next-line: assign-type-mismatch
+function Settings:quick_select()
+    local Util = require("grapple.util")
+
+    if not self.inner.quick_select then
+        return {}
+    end
+
+    return vim.tbl_filter(Util.not_empty, vim.split(self.inner.quick_select, ""))
 end
 
 -- Update settings in-place

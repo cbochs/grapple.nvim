@@ -1,4 +1,5 @@
 local Path = require("grapple.path")
+local Util = require("grapple.util")
 
 ---@class grapple.container_content
 ---@field tag_manager grapple.tag_manager
@@ -121,11 +122,19 @@ function ContainerContent:create_entry(entity, index)
         sign_highlight = "GrappleCurrent"
     end
 
+    -- Define line extmarks
+    ---@type grapple.vim.extmark[]
+    local extmarks = {}
+
     ---@type grapple.vim.mark
-    local sign_mark = {
-        sign_text = string.format("%d", index),
-        sign_hl_group = sign_highlight,
-    }
+    local sign_mark
+    local quick_select = app.settings:quick_select()[index]
+    if quick_select then
+        sign_mark = {
+            sign_text = string.format("%s", quick_select),
+            sign_hl_group = sign_highlight,
+        }
+    end
 
     local count = container:len()
     local count_text = count == 1 and "tag" or "tags"
@@ -134,13 +143,14 @@ function ContainerContent:create_entry(entity, index)
         virt_text_pos = "eol",
     }
 
-    local extmarks = vim.tbl_map(function(mark)
+    extmarks = vim.tbl_filter(Util.not_nil, { sign_mark, count_mark })
+    extmarks = vim.tbl_map(function(mark)
         return {
             line = index - 1,
             col = 0,
             opts = mark,
         }
-    end, { sign_mark, count_mark })
+    end, extmarks)
 
     ---@type grapple.window.entry
     local entry = {

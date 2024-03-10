@@ -119,6 +119,16 @@ require("grapple").setup({
     ---@type string
     save_path = vim.fs.joinpath(vim.fn.stdpath("data"), "grapple"),
 
+    ---Default scope to use when managing Grapple tags
+    ---For more information, please see the Scopes section
+    ---@type string
+    scope = "git",
+
+    ---User-defined scopes or overrides
+    ---For more information, please see the Scope API section
+    ---@type grapple.scope_definition[]
+    scopes = {},
+
     ---Show icons next to tags or scopes in Grapple windows
     ---Requires "nvim-tree/nvim-web-devicons"
     ---@type boolean
@@ -139,15 +149,10 @@ require("grapple").setup({
     ---@type "basename" | "relative"
     style = "relative",
 
-    ---Default scope to use when managing Grapple tags
-    ---For more information, please see the Scopes section
-    ---@type string
-    scope = "git",
-
-    ---User-defined scopes or overrides
-    ---For more information, please see the Scope API section
-    ---@type grapple.scope_definition[]
-    scopes = {},
+    ---A string of characters used for quick selecting in Grapple windows
+    ---An empty string or nil will disable quick select
+    ---@type string | nil
+    quick_select = "123456789",
 
     ---User-defined tags title function for Grapple windows
     ---By default, uses the resolved scope's ID
@@ -613,7 +618,7 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 - **Selection** (`<cr>`): select the tag under the cursor
 - **Split (horizontal)** (`<c-s>`): select the tag under the cursor (`split`)
 - **Split (vertical)** (`|`): select the tag under the cursor (`vsplit`)
-- **Quick select** (`1-9`): select the tag at a given index
+- **Quick select** (default: `1-9`): select the tag at a given index
 - **Deletion**: delete a line to delete the tag
 - **Reordering**: move a line to move a tag
 - **Renaming** (`R`): rename the tag under the cursor
@@ -650,7 +655,7 @@ require("grapple").open_tags("global")
 Open a floating window with all defined scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the [tags window](#tags-window) for the scope under the cursor
-- **Quick select** (`1-9`): open the tags window for the scope at a given index
+- **Quick select** (default: `1-9`): open the tags window for the scope at a given index
 - **Change** (`<s-cr>`): change the current scope to the one under the cursor
 - **Go up** (`-`): navigate across to the [loaded scopes window](#loaded-scopes-window)
 
@@ -676,7 +681,7 @@ require("grapple").open_scopes()
 Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the [tags window](#tags-window) for the loaded scope under the cursor
-- **Quick select** (`1-9`): open tags window for the loaded scope at a given index
+- **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 - **Go up** (`-`): navigate across to the [scopes window](#scopes-window)
 

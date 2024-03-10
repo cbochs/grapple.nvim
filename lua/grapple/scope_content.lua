@@ -1,3 +1,5 @@
+local Util = require("grapple.util")
+
 ---@class grapple.scope_content
 ---@field scope_manager grapple.scope_manager
 ---@field hook_fn grapple.hook_fn
@@ -117,6 +119,29 @@ function ScopeContent:create_entry(entity, index)
         col_end = col_end,
     }
 
+    -- Define line extmarks
+    ---@type grapple.vim.extmark[]
+    local extmarks = {}
+
+    ---@type grapple.vim.mark
+    local sign_mark
+    local quick_select = app.settings:quick_select()[index]
+    if quick_select then
+        sign_mark = {
+            sign_text = string.format("%s", quick_select),
+            sign_hl_group = sign_highlight,
+        }
+    end
+
+    extmarks = vim.tbl_filter(Util.not_nil, { sign_mark })
+    extmarks = vim.tbl_map(function(mark)
+        return {
+            line = index - 1,
+            col = 0,
+            opts = mark,
+        }
+    end, extmarks)
+
     ---@type grapple.window.entry
     local entry = {
         ---@class grapple.scope_content.data
@@ -132,19 +157,7 @@ function ScopeContent:create_entry(entity, index)
         highlights = { name_highlight },
 
         ---@type grapple.vim.extmark[]
-        extmarks = {
-            {
-                line = index - 1,
-                col = 0,
-                opts = {
-                    sign_text = string.format("%d", index),
-                    sign_hl_group = sign_highlight,
-
-                    -- TODO: requires nvim-0.10
-                    -- invalidate = true,
-                },
-            },
-        },
+        extmarks = extmarks,
     }
 
     return entry
