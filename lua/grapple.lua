@@ -245,23 +245,41 @@ function Grapple.cycle(direction, opts)
     end)
 end
 
----Return if a tag exists. Used for statusline components
+---Search for a tag in a given scope
 ---@param opts? grapple.options
-function Grapple.exists(opts)
+---@return grapple.tag | nil, string? error
+function Grapple.find(opts)
     local App = require("grapple.app")
+    local app = App.get()
 
     opts = opts or {}
 
-    local exists = false
-    local app = App.get()
-    app:enter_without_save(opts.scope, function(container)
+    ---@type grapple.tag | nil
+    local tag
+
+    local err = app:enter_without_save(opts.scope, function(container)
         local path, _ = extract_path(opts)
         opts.path = path
 
-        exists = container:has(opts)
-    end)
+        local index, err = container:find(opts)
+        if not index then
+            return err
+        end
 
-    return exists
+        tag = assert(container:get({ index = index }))
+    end, { notify = false })
+
+    if err then
+        return nil, err
+    end
+
+    return tag, nil
+end
+
+---Return if a tag exists. Used for statusline components
+---@param opts? grapple.options
+function Grapple.exists(opts)
+    return Grapple.find(opts) ~= nil
 end
 
 ---Return the name or index of a tag. Used for statusline components
@@ -269,13 +287,13 @@ end
 ---@return string | integer | nil
 function Grapple.name_or_index(opts)
     local App = require("grapple.app")
+    local app = App.get()
 
     opts = opts or {}
 
     ---@type string | integer | nil
     local name_or_index
 
-    local app = App.get()
     app:enter_without_save(opts.scope, function(container)
         local path, _ = extract_path(opts)
         opts.path = path
@@ -308,6 +326,7 @@ end
 function Grapple.statusline()
     local App = require("grapple.app")
     local app = App.get()
+
     local icon = app.settings.icons and "󰛢 " or ""
 
     local key = Grapple.name_or_index()
@@ -321,10 +340,10 @@ end
 ---@return grapple.tag[] | nil, string? error
 function Grapple.tags(opts)
     local App = require("grapple.app")
+    local app = App.get()
 
     opts = opts or {}
 
-    local app = App.get()
     local scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
     if not scope then
         return nil, err
@@ -603,6 +622,7 @@ function Grapple.initialize()
                 local excluded_subcmds = {
                     "define_scope",
                     "exists",
+                    "find",
                     "initialize",
                     "key",
                     "name_or_index",

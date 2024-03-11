@@ -111,7 +111,7 @@ Plug "cbochs/grapple.nvim"
 Note, these examples assume you are using the [lazy.nvim](https://github.com/folke/lazy.nvim) package manager.
 
 <details>
-<summary>Recommended</summary>
+<summary><b>Recommended</b></summary>
 
 ```lua
 {
@@ -138,7 +138,7 @@ Note, these examples assume you are using the [lazy.nvim](https://github.com/fol
 </details>
 
 <details>
-<summary>Harpoon</summary>
+<summary><b>Harpoon</b></summary>
 
 Example configuration similar to [harpoon.nvim](https://github.com/ThePrimeagen/harpoon) (based off of this [example setup](https://github.com/ThePrimeagen/harpoon/tree/harpoon2?tab=readme-ov-file#basic-setup)).
 
@@ -168,7 +168,7 @@ Example configuration similar to [harpoon.nvim](https://github.com/ThePrimeagen/
 </details>
 
 <details>
-<summary>Arrow</summary>
+<summary><b>Arrow</b></summary>
 
 Example configuration similar to [arrow.nvim](https://github.com/otavioschwanck/arrow.nvim/tree/master).
 
@@ -411,31 +411,6 @@ require("grapple").select({ index = 3 })
 
 </details>
 
-#### `Grapple.exists`
-
-Return if a tag exists. Used for statusline components
-
-**API**: `require("grapple").exists(opts)`
-
-**`returns`**: `boolean`
-
-**`opts?`**: [`grapple.options`](#grappleoptions) (one of)
-
-**Note**: Tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
-
-<details>
-<summary><b>Examples</b></summary>
-
-```lua
--- Check whether the current buffer is tagged or not
-require("grapple").exists()
-
--- Check for a tag in a different scope
-require("grapple").exists({ scope = "global" })
-```
-
-</details>
-
 #### `Grapple.cycle`
 
 Cycle through and select the next or previous available tag for a given scope.
@@ -515,6 +490,56 @@ require("grapple").quickfix()
 
 -- Open the quickfix window for a specified scope
 require("grapple").quickfix("global")
+```
+
+</details>
+
+#### `Grapple.exists`
+
+Return if a tag exists. Used for statusline components
+
+**API**: `require("grapple").exists(opts)`
+
+**`returns`**: `boolean`
+
+**`opts?`**: [`grapple.options`](#grappleoptions) (one of)
+
+**Note**: Tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Check whether the current buffer is tagged or not
+require("grapple").exists()
+
+-- Check for a tag in a different scope
+require("grapple").exists({ scope = "global" })
+```
+
+</details>
+
+#### `Grapple.find`
+
+Search for a tag in a given scope.
+
+**API**: `require("grapple").find(opts)`
+
+**`returns`**: [`grapple.tag`](#grapple-tag) | `nil`, `string?` error
+
+**`opts?`**: [`grapple.options`](#grappleoptions) (one of)
+
+**Note**: Tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Search for a tag by index in the current scope
+require("grapple").find({ index = 1 })
+
+-- Search for a named tag in a different scope
+require("grapple").find({ name = "bob", scope = "global" })
 ```
 
 </details>

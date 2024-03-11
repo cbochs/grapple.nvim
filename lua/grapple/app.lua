@@ -130,32 +130,50 @@ function App:reset(opts)
 end
 
 ---@param scope_name? string
----@param callback fun(container: grapple.tag_container): string?
----@param opts { sync: boolean }
+---@param callback fun(container: grapple.tag_container): string? error
+---@param opts { sync?: boolean, notify?: boolean }
+---@return string? error
 function App:enter(scope_name, callback, opts)
+    opts = vim.tbl_extend("keep", opts or {}, {
+        sync = true,
+        notify = true,
+    })
+
     local scope, err = self.scope_manager:get_resolved(scope_name or self.settings.scope)
     if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
+        if opts.notify then
+            ---@diagnostic disable-next-line: param-type-mismatch
+            vim.notify(err, vim.log.levels.ERROR)
+        end
+        return err
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(callback, opts)
+    local err = scope:enter(callback, { sync = opts.sync })
     if err then
-        vim.notify(err, vim.log.levels.WARN)
+        if opts.notify then
+            vim.notify(err, vim.log.levels.WARN)
+        end
+        return err
     end
+
+    return nil
 end
 
----@return grapple.resolved_scope | nil, string? error
----@param callback fun(container: grapple.tag_container): string?
-function App:enter_with_save(scope_name, callback)
-    self:enter(scope_name, callback, { sync = true })
+---@param scope_name? string
+---@param callback fun(container: grapple.tag_container): string? error
+---@param opts? { notify?: boolean }
+---@return string? error
+function App:enter_with_save(scope_name, callback, opts)
+    return self:enter(scope_name, callback, { sync = true, notify = opts and opts.notify })
 end
 
----@return grapple.resolved_scope | nil, string? error
----@param callback fun(container: grapple.tag_container): string?
-function App:enter_without_save(scope_name, callback)
-    self:enter(scope_name, callback, { sync = false })
+---@param scope_name? string
+---@param callback fun(container: grapple.tag_container): string? error
+---@param opts? { notify?: boolean }
+---@return string? error
+function App:enter_without_save(scope_name, callback, opts)
+    return self:enter(scope_name, callback, { sync = false, notify = opts and opts.notify })
 end
 
 return App
