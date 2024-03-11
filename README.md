@@ -525,7 +525,7 @@ Search for a tag in a given scope.
 
 **API**: `require("grapple").find(opts)`
 
-**`returns`**: [`grapple.tag`](#grapple-tag) | `nil`, `string?` error
+**`returns`**: [`grapple.tag`](#grappletag) | `nil`, `string?` error
 
 **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
 
