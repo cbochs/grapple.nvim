@@ -622,6 +622,7 @@ function Grapple.initialize()
                 local excluded_subcmds = {
                     "define_scope",
                     "exists",
+                    "find",
                     "initialize",
                     "key",
                     "name_or_index",
