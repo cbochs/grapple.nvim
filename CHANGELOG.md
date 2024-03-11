@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.18.0](https://github.com/cbochs/grapple.nvim/compare/v0.17.2...v0.18.0) (2024-03-11)
+
+
+### Features
+
+* add `Grapple.find` ([#114](https://github.com/cbochs/grapple.nvim/issues/114)) ([fbacb20](https://github.com/cbochs/grapple.nvim/commit/fbacb204370594a1bc9d28677c179928adb0d834))
+* make quick select configurable ([#112](https://github.com/cbochs/grapple.nvim/issues/112)) ([e2e7fea](https://github.com/cbochs/grapple.nvim/commit/e2e7feab1285e04da42f1af7d04627b5f65d0624))
+
+
+### Bug Fixes
+
+* **docs:** update link to grapple.tag ([ce47f12](https://github.com/cbochs/grapple.nvim/commit/ce47f12e47c00dd633af1168d25365bd60cb7df3))
+
 ## [0.17.2](https://github.com/cbochs/grapple.nvim/compare/v0.17.1...v0.17.2) (2024-03-09)
 
 
