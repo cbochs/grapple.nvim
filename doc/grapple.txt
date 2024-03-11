@@ -908,6 +908,17 @@ toggle, etc).
 - **scope**`string` scope name (default `settings.scope`)
 
 
+GRAPPLE.TAG ~
+
+Data object for a tagged file.
+
+**Type**`table`
+
+- **path**`string` absolute file path
+- **name**`string` (optional) tag name
+- **cursor**`integer[]` (1, 0)-indexed cursor position
+
+
 GRAPPLE.CACHE.OPTIONS ~
 
 Options available for defining how a scope should be cached. Using the value of
