@@ -245,23 +245,41 @@ function Grapple.cycle(direction, opts)
     end)
 end
 
----Return if a tag exists. Used for statusline components
+---Search for a tag in a given scope
 ---@param opts? grapple.options
-function Grapple.exists(opts)
+---@return grapple.tag | nil, string? error
+function Grapple.find(opts)
     local App = require("grapple.app")
+    local app = App.get()
 
     opts = opts or {}
 
-    local exists = false
-    local app = App.get()
-    app:enter_without_save(opts.scope, function(container)
+    ---@type grapple.tag | nil
+    local tag
+
+    local err = app:enter_without_save(opts.scope, function(container)
         local path, _ = extract_path(opts)
         opts.path = path
 
-        exists = container:has(opts)
-    end)
+        local index, err = container:find(opts)
+        if not index then
+            return err
+        end
 
-    return exists
+        tag = assert(container:get({ index = index }))
+    end, { notify = false })
+
+    if err then
+        return nil, err
+    end
+
+    return tag, nil
+end
+
+---Return if a tag exists. Used for statusline components
+---@param opts? grapple.options
+function Grapple.exists(opts)
+    return Grapple.find(opts) ~= nil
 end
 
 ---Return the name or index of a tag. Used for statusline components
@@ -315,33 +333,6 @@ function Grapple.statusline()
     if key then
         return icon .. key
     end
-end
-
----Return the tag for a given
----@param opts grapple.options
----@return grapple.tag | nil, string? error
-function Grapple.find(opts)
-    local App = require("grapple.app")
-    local app = App.get()
-
-    opts = opts or {}
-
-    ---@type grapple.tag | nil
-    local tag
-
-    local err = app:enter_without_save(opts.scope, function(container)
-        local index, err = container:find(opts)
-        if not index then
-            return err
-        end
-        tag = assert(container:get({ index = index }))
-    end, { notify = false })
-
-    if err then
-        return nil, err
-    end
-
-    return tag, nil
 end
 
 ---Return the tags for a given scope. Used for integrations
