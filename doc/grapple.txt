@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 10
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 11
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -418,30 +418,6 @@ Examples ~
 <
 
 
-GRAPPLE.EXISTS
-
-Return if a tag exists. Used for statusline components
-
-**API**`require("grapple").exists(opts)`
-
-**returns**`boolean`
-
-**opts?**|grapple-`grapple.options`| (one of)
-
-**Note**Tag is searched based on one of (in order): `index`, `name`, `path`,
-`buffer`
-
-Examples ~
-
->lua
-    -- Check whether the current buffer is tagged or not
-    require("grapple").exists()
-    
-    -- Check for a tag in a different scope
-    require("grapple").exists({ scope = "global" })
-<
-
-
 GRAPPLE.CYCLE
 
 Cycle through and select the next or previous available tag for a given scope.
@@ -517,6 +493,54 @@ Examples ~
     
     -- Open the quickfix window for a specified scope
     require("grapple").quickfix("global")
+<
+
+
+GRAPPLE.EXISTS
+
+Return if a tag exists. Used for statusline components
+
+**API**`require("grapple").exists(opts)`
+
+**returns**`boolean`
+
+**opts?**|grapple-`grapple.options`| (one of)
+
+**Note**Tag is searched based on one of (in order): `index`, `name`, `path`,
+`buffer`
+
+Examples ~
+
+>lua
+    -- Check whether the current buffer is tagged or not
+    require("grapple").exists()
+    
+    -- Check for a tag in a different scope
+    require("grapple").exists({ scope = "global" })
+<
+
+
+GRAPPLE.FIND
+
+Search for a tag in a given scope.
+
+**API**`require("grapple").find(opts)`
+
+**returns**|grapple-`grapple.tag`| | `nil`, `string?` error
+
+**opts?**|grapple-`grapple.options`| (one of)
+
+**Note**Tag is searched based on one of (in order): `index`, `name`, `path`,
+`buffer`
+
+Examples ~
+
+>lua
+    -- Search for a tag by index in the current scope
+    require("grapple").find({ index = 1 })
+    
+    -- Search for a named tag in a different scope
+    require("grapple").find({ name = "bob", scope = "global" })
 <
 
 
