@@ -884,6 +884,16 @@ Options available for most top-level tagging actions (e.g. tag, untag, select, t
 - **`index`**: `integer` tag insertion or deletion index (default: end of list)
 - **`scope`**: `string` scope name (default `settings.scope`)
 
+### `grapple.tag`
+
+Data object for a tagged file.
+
+**Type**: `table`
+
+- **`path`**: `string` absolute file path
+- **`name`**: `string` (optional) tag name
+- **`cursor`**: `integer[]` (1, 0)-indexed cursor position
+
 ### `grapple.cache.options`
 
 Options available for defining how a scope should be cached. Using the value of `true` will indicate a value should be cached indefinitely and is equivalent to providing an empty set of options (`{}`).
