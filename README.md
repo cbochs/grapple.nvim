@@ -535,11 +535,11 @@ Search for a tag in a given scope.
 <summary><b>Examples</b></summary>
 
 ```lua
--- Check whether the current buffer is tagged or not
-require("grapple").exists()
+-- Search for a tag by index in the current scope
+require("grapple").find({ index = 1 })
 
--- Check for a tag in a different scope
-require("grapple").exists({ scope = "global" })
+-- Search for a named tag in a different scope
+require("grapple").find({ name = "bob", scope = "global" })
 ```
 
 </details>
