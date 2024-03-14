@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/cbochs/grapple.nvim/compare/v0.18.0...v0.18.1) (2024-03-14)
+
+
+### Bug Fixes
+
+* use correct byte indexes for highlights in nvim 0.10 ([02bcc88](https://github.com/cbochs/grapple.nvim/commit/02bcc8845c1b78c2f22b52798806add4973fc67a))
+
 ## [0.18.0](https://github.com/cbochs/grapple.nvim/compare/v0.17.2...v0.18.0) (2024-03-11)
 
 
