@@ -110,12 +110,11 @@ function ScopeContent:create_entry(entity, index)
         name_group = "GrappleCurrent"
     end
 
-    local col_start = string.find(line, "%s")
-    local col_end = col_start + string.len(scope.name)
+    local col_start, col_end = string.find(line, scope.name)
     local name_highlight = {
         hl_group = name_group,
         line = index - 1,
-        col_start = col_start,
+        col_start = col_start - 1,
         col_end = col_end,
     }
 

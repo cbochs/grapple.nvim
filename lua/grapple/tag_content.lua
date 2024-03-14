@@ -150,7 +150,6 @@ function TagContent:create_entry(entity, index)
     local icon, icon_group
     if app.settings.icons then
         icon, icon_group = get_icon(tag.path)
-        icon = icon .. " " -- add some right padding
     end
 
     -- In compliance with "grapple" syntax
@@ -183,18 +182,19 @@ function TagContent:create_entry(entity, index)
         sign_highlight = "GrappleNoExist"
     end
 
+    ---@type grapple.vim.highlight | nil
     local icon_highlight
-    if icon_group then
+    if icon and icon_group then
         local col_start, col_end = assert(string.find(line, icon))
-        ---@type grapple.vim.highlight
         icon_highlight = {
             hl_group = icon_group,
             line = index - 1,
-            col_start = col_start,
+            col_start = col_start - 1,
             col_end = col_end,
         }
     end
 
+    ---@type grapple.vim.highlight | nil
     local name_highlight
     if app.settings.name_pos == "start" and tag.name then
         local col_start, col_end = assert(string.find(line, Util.escape(tag.name)))
