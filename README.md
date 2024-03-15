@@ -854,6 +854,30 @@ A statusline component can be easily added to show whether a buffer is tagged.
 
 **[lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
 
+<table>
+<tr>
+<td> Snippet </td>
+<td> Screenshot </td>
+</tr>
+
+<tr>
+<td>
+
+```lua
+require("lualine").setup({
+    sections = {
+        lualine_b = { "grapple" }
+    }
+})
+```
+
+</td>
+<td><img width="300" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/3b875b99-1a39-43f9-88c7-37814db86184"></td>
+</tr>
+
+<tr>
+<td>
+
 ```lua
 require("lualine").setup({
     sections = {
@@ -866,6 +890,11 @@ require("lualine").setup({
     }
 })
 ```
+
+</td>
+<td><img width="300" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/d10f4359-9463-4fb8-b131-f7867e4c8fcc"></td>
+</tr>
+</table>
 
 ## Grapple Types
 
