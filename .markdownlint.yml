@@ -9,3 +9,6 @@ MD033:
     - "details"
     - "img"
     - "summary"
+    - "table"
+    - "td"
+    - "tr"
