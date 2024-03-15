@@ -3,7 +3,7 @@ local Grapple = {}
 ---@param opts? grapple.settings
 function Grapple.setup(opts)
     local app = require("grapple.app").get()
-    app.settings:update(opts)
+    app:update(opts)
     app:load_current_scope()
 end
 
