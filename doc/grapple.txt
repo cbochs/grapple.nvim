@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 11
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 15
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -874,6 +874,14 @@ STATUSLINE ~
 A statusline component can be easily added to show whether a buffer is tagged.
 
 **lualine.nvim statusline**
+
+SnippetScreenshot>lua
+    require("lualine").setup({
+        sections = {
+            lualine_b = { "grapple" }
+        }
+    })
+<
 
 >lua
     require("lualine").setup({
