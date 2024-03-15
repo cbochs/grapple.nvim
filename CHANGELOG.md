@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.19.0](https://github.com/cbochs/grapple.nvim/compare/v0.18.1...v0.19.0) (2024-03-15)
+
+
+### Features
+
+* dedicated lualine component ([#120](https://github.com/cbochs/grapple.nvim/issues/120)) ([b07efce](https://github.com/cbochs/grapple.nvim/commit/b07efce782ed47a20f9272598bc5a37216f33b4a))
+
+
+### Bug Fixes
+
+* don't allow empty tag names ([79fef01](https://github.com/cbochs/grapple.nvim/commit/79fef012fc2129865ac6612537835cb322ca2c74))
+* use App.update instead of Settings.update during Grapple.setup ([c2c6cbf](https://github.com/cbochs/grapple.nvim/commit/c2c6cbf160cbf54e11af29eee3319162910045b6))
+* use correct starting cycle position when not on a tagged file ([e4d2031](https://github.com/cbochs/grapple.nvim/commit/e4d20319d34ff717cb2bbad4556454fd477476d3))
+
 ## [0.18.1](https://github.com/cbochs/grapple.nvim/compare/v0.18.0...v0.18.1) (2024-03-14)
 
 
