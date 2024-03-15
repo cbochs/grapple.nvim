@@ -227,7 +227,11 @@ function Grapple.cycle(direction, opts)
         -- 1. Change to 0-based indexing
         -- 2. Perform index % container length, being careful of negative values
         -- 3. Change back to 1-based indexing
-        local index = (container:find(opts) or 1) - 1
+        local index = (
+            container:find(opts)
+            or direction == "forward" and container:len()
+            or direction == "backward" and 1
+        ) - 1
         local next_direction = direction == "forward" and 1 or -1
         local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
 
