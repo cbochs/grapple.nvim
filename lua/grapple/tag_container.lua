@@ -58,8 +58,13 @@ function TagContainer:insert(opts)
     local path_tag = self:get({ path = path })
     local cursor = opts.cursor or path_tag and path_tag.cursor
     local name = opts.name or path_tag and path_tag.name
-    local tag = Tag:new(path, name, cursor)
 
+    -- Don't allow empty names
+    if name == "" then
+        name = nil
+    end
+
+    local tag = Tag:new(path, name, cursor)
     local index = opts.index or self:index({ path = path }) or (#self.tags + 1)
 
     -- It's possible the "path" tag and "name" tag are different.
