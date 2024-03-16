@@ -25,7 +25,11 @@ function Component:update_status()
         return
     end
 
-    local tags = grapple.tags()
+    local tags, err = grapple.tags()
+    if not tags then
+        return err
+    end
+
     local current = grapple.find({ buffer = 0 })
 
     local output = {}
