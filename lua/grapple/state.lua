@@ -85,6 +85,7 @@ end
 ---@param name string
 ---@return any decoded, string? error, string? error_kind
 function State:read(name)
+    self:ensure_created()
     local path = self:save_path(name)
 
     local fd, err, err_kind = vim.loop.fs_open(path, "r", 438)
@@ -122,6 +123,7 @@ end
 ---@param obj any
 ---@return string? error, string? error_kind
 function State:write(name, obj)
+    self:ensure_created()
     local path = self:save_path(name)
 
     local ok, encoded = pcall(vim.json.encode, obj)
