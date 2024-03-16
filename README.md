@@ -214,9 +214,15 @@ require("grapple").setup({
     scope = "git",
 
     ---User-defined scopes or overrides
-    ---For more information, please see the Scope API section
+    ---For more information about scopes, please see the Scope API section
     ---@type grapple.scope_definition[]
     scopes = {},
+
+    ---Default scopes provided by Grapple
+    ---For more information about default scopes, please see the Scopes section
+    ---Disable by setting scope to "false". For example, { lsp = false }
+    ---@type table<string, grapple.scope_definition | boolean>
+    default_scopes = { ... }
 
     ---Show icons next to tags or scopes in Grapple windows
     ---Requires "nvim-tree/nvim-web-devicons"
@@ -630,6 +636,16 @@ require("grapple").use_scope("projects")
 
 </details>
 
+#### `Grapple.delete_scope`
+
+Delete a default or user-defined scope.
+
+**API**: `require("grapple").delete_scope(scope)`
+
+**`returns`**: `string?` error
+
+**`scope`**: `string` scope name
+
 #### `Grapple.use_scope`
 
 Change the currently selected scope.
@@ -713,6 +729,14 @@ require("grapple").setup({
             local id = path
             return id, path
         end
+    }
+})
+
+-- Disable a default scope
+-- Note: be careful to disable default scopes that are used as fallbacks
+require("grapple").setup({
+    default_scopes = {
+        lsp = false
     }
 })
 ```
