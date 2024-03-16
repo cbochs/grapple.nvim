@@ -3,8 +3,16 @@ local Grapple = {}
 ---@param opts? grapple.settings
 function Grapple.setup(opts)
     local app = require("grapple.app").get()
-    app:update(opts)
-    app:load_current_scope()
+
+    local err = app:update(opts)
+    if err then
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
+
+    local err = app:load_current_scope()
+    if err then
+        return vim.notify(err, vim.log.levels.ERROR)
+    end
 end
 
 ---@class grapple.options
@@ -379,10 +387,20 @@ end
 
 ---Create a user-defined scope
 ---@param definition grapple.scope_definition
+---@return string? error
 function Grapple.define_scope(definition)
     local App = require("grapple.app")
     local app = App.get()
-    app:define_scope(definition)
+    return app:define_scope(definition)
+end
+
+---Delete a user-defined or default scope
+---@param scope string
+---@return string? error
+function Grapple.delete_scope(scope)
+    local App = require("grapple.app")
+    local app = App.get()
+    return app:delete_scope(scope)
 end
 
 ---Change the currently selected scope
@@ -625,6 +643,7 @@ function Grapple.initialize()
                 -- API methods which are not actionable
                 local excluded_subcmds = {
                     "define_scope",
+                    "delete_scope",
                     "exists",
                     "find",
                     "initialize",

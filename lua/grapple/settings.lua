@@ -40,8 +40,8 @@ local DEFAULT_SETTINGS = {
     style = "relative",
 
     ---A string of characters used for quick selecting in Grapple windows
-    ---An empty string or nil will disable quick select
-    ---@type string | nil
+    ---An empty string will disable quick select
+    ---@type string
     quick_select = "123456789",
 
     ---@class grapple.scope_definition
@@ -53,16 +53,16 @@ local DEFAULT_SETTINGS = {
     ---@field resolver grapple.scope_resolver
 
     ---Default scopes provided by Grapple
-    ---@type grapple.scope_definition[]
+    ---@type table<string, grapple.scope_definition | boolean>
     default_scopes = {
-        {
+        global = {
             name = "global",
             desc = "Global scope",
             resolver = function()
                 return "global", vim.loop.cwd()
             end,
         },
-        {
+        static = {
             name = "static",
             desc = "Initial working directory",
             cache = true,
@@ -70,7 +70,7 @@ local DEFAULT_SETTINGS = {
                 return vim.loop.cwd(), vim.loop.cwd()
             end,
         },
-        {
+        cwd = {
             name = "cwd",
             desc = "Current working directory",
             cache = { event = "DirChanged" },
@@ -78,7 +78,7 @@ local DEFAULT_SETTINGS = {
                 return vim.loop.cwd(), vim.loop.cwd()
             end,
         },
-        {
+        git = {
             name = "git",
             desc = "Git root directory",
             fallback = "cwd",
@@ -98,10 +98,10 @@ local DEFAULT_SETTINGS = {
                 return root, root
             end,
         },
-        {
+        git_branch = {
             name = "git_branch",
             desc = "Git root directory and branch",
-            fallback = "git",
+            fallback = "cwd",
             cache = {
                 event = { "BufEnter", "FocusGained" },
                 debounce = 1000, -- ms
@@ -126,7 +126,7 @@ local DEFAULT_SETTINGS = {
                 return id, path
             end,
         },
-        {
+        lsp = {
             name = "lsp",
             desc = "LSP root directory",
             fallback = "git",
@@ -415,6 +415,38 @@ function Settings:quick_select()
     end
 
     return vim.tbl_filter(Util.not_empty, vim.split(self.inner.quick_select, ""))
+end
+
+---Override scopes to combine both the default scopes and user-defined scopes
+---@return grapple.scope_definition[]
+function Settings:scopes()
+    -- HACK: Define the order so that fallbacks are defined first
+    local default_order = {
+        "global",
+        "cwd",
+        "git",
+        "git_branch",
+        "lsp",
+    }
+
+    local scopes = {}
+
+    for _, name in ipairs(default_order) do
+        local definition = self.inner.default_scopes[name]
+        if definition == false then
+            table.insert(scopes, { name = name, delete = true })
+        elseif type(definition) == "table" then
+            table.insert(scopes, self.inner.default_scopes[name])
+        else
+            error(string.format("invalid default scope: %s", vim.inspect(definition)))
+        end
+    end
+
+    for _, definition in ipairs(self.inner.scopes) do
+        table.insert(scopes, definition)
+    end
+
+    return scopes
 end
 
 -- Update settings in-place
