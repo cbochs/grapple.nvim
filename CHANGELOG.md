@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.20.0](https://github.com/cbochs/grapple.nvim/compare/v0.19.0...v0.20.0) (2024-03-16)
+
+
+### Features
+
+* configure default scopes ([#123](https://github.com/cbochs/grapple.nvim/issues/123)) ([f06f13a](https://github.com/cbochs/grapple.nvim/commit/f06f13acccca7e0433dc5a259a85e39376ed2d28))
+
+
+### Bug Fixes
+
+* don't break lualine if Grapple.tags returns an error ([7f6edfe](https://github.com/cbochs/grapple.nvim/commit/7f6edfefd80fb25cbe790be1fd77d2c72045ce36))
+
 ## [0.19.0](https://github.com/cbochs/grapple.nvim/compare/v0.18.1...v0.19.0) (2024-03-15)
 
 
