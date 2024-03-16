@@ -14,7 +14,7 @@ local DEFAULT_SETTINGS = {
     scope = "git",
 
     ---User-defined scopes or overrides
-    ---For more information, please see the Scope API section
+    ---For more information about scopes, please see the Scope API section
     ---@type grapple.scope_definition[]
     scopes = {},
 
@@ -53,6 +53,8 @@ local DEFAULT_SETTINGS = {
     ---@field resolver grapple.scope_resolver
 
     ---Default scopes provided by Grapple
+    ---For more information about default scopes, please see the Scopes section
+    ---Disable by setting scope to "false". For example, { lsp = false }
     ---@type table<string, grapple.scope_definition | boolean>
     default_scopes = {
         global = {
