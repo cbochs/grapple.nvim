@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 15
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 16
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -225,9 +225,15 @@ Default Settings ~
         scope = "git",
     
         ---User-defined scopes or overrides
-        ---For more information, please see the Scope API section
+        ---For more information about scopes, please see the Scope API section
         ---@type grapple.scope_definition[]
         scopes = {},
+    
+        ---Default scopes provided by Grapple
+        ---For more information about default scopes, please see the Scopes section
+        ---Disable by setting scope to "false". For example, { lsp = false }
+        ---@type table<string, grapple.scope_definition | boolean>
+        default_scopes = { ... }
     
         ---Show icons next to tags or scopes in Grapple windows
         ---Requires "nvim-tree/nvim-web-devicons"
@@ -626,6 +632,17 @@ For more examples, see settings.lua <./lua/grapple/settings.lua>
 <
 
 
+GRAPPLE.DELETE_SCOPE
+
+Delete a default or user-defined scope.
+
+**API**`require("grapple").delete_scope(scope)`
+
+**returns**`string?` error
+
+**scope**`string` scope name
+
+
 GRAPPLE.USE_SCOPE
 
 Change the currently selected scope.
@@ -716,6 +733,14 @@ Examples ~
                 local id = path
                 return id, path
             end
+        }
+    })
+    
+    -- Disable a default scope
+    -- Note: be careful to disable default scopes that are used as fallbacks
+    require("grapple").setup({
+        default_scopes = {
+            lsp = false
         }
     })
 <
