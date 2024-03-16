@@ -45,28 +45,37 @@ function App:new()
 end
 
 ---@param opts? grapple.settings
+---@return string? error
 function App:update(opts)
     self.settings:update(opts)
 
-    -- Define default scopes, if not already defined
-    for _, definition in ipairs(self.settings.default_scopes) do
-        self:define_scope(vim.tbl_extend("force", definition, { force = false }))
-    end
-
-    -- Define user scopes, force recreation
-    for _, definition in ipairs(self.settings.scopes) do
-        self:define_scope(vim.tbl_extend("force", definition, { force = true }))
+    for _, definition in ipairs(self.settings:scopes()) do
+        if definition.delete then
+            self:delete_scope(definition.name)
+        else
+            local err = self:define_scope(vim.tbl_extend("force", definition, { force = true }))
+            if err then
+                return err
+            end
+        end
     end
 end
 
 ---@param definition grapple.scope_definition
+---@return string? error
 function App:define_scope(definition)
-    self.scope_manager:define(definition.name, definition.resolver, {
+    return self.scope_manager:define(definition.name, definition.resolver, {
         force = definition.force,
         desc = definition.desc,
         fallback = definition.fallback,
         cache = definition.cache,
     })
+end
+
+---@param scope_name string
+---@return string? error
+function App:delete_scope(scope_name)
+    return self.scope_manager:delete(scope_name)
 end
 
 ---@return string? error

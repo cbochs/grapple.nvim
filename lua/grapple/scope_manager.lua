@@ -89,7 +89,7 @@ function ScopeManager:define(name, resolver, opts)
     if opts.fallback then
         fallback, err = self:get(opts.fallback)
         if not fallback then
-            return err
+            return string.format("could not create scope: %s, error: %s", name, err)
         end
     end
 
@@ -106,6 +106,17 @@ function ScopeManager:define(name, resolver, opts)
     self.scopes[name] = scope
 
     return nil
+end
+
+---@param name string
+---@return string? error
+function ScopeManager:delete(name)
+    if not self:exists(name) then
+        return
+    end
+
+    self.cache:close(name)
+    self.scopes[name] = nil
 end
 
 return ScopeManager
