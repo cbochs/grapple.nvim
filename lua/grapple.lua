@@ -137,7 +137,7 @@ function Grapple.select(opts)
     opts = opts or {}
 
     local app = App.get()
-    app:enter_with_save(opts.scope, function(container)
+    app:enter_without_save(opts.scope, function(container)
         local path, _ = extract_path(opts)
         opts.path = path
 
@@ -223,7 +223,7 @@ function Grapple.cycle(direction, opts)
     opts = opts or {}
 
     local app = require("grapple.app").get()
-    app:enter_with_save(opts.scope, function(container)
+    app:enter_without_save(opts.scope, function(container)
         if container:is_empty() then
             return
         end
