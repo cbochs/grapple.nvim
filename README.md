@@ -19,16 +19,14 @@ Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
 
 Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). See the [quickstart](#quickstart) section to get started.
 
-## Motivation
+## Goals
 
-Grapple began as a combined plugin of both [Harpoon](https://github.com/ThePrimeagen/harpoon) and [Portal](https://github.com/cbochs/portal.nvim). While Portal was split into its own plugin later, Grapple remained with the goal of improving it's file navigation model. However, Grapple aimed to improve over existing plugins (like Harpoon) in four main areas:
+While Grapple shares similarities to Harpoon (and other file navigation plugins), it aims to differentiate itself with a four key goals:
 
-1. **User setup**: provide a _frictionless_ experience for first-time setup, configuration, and usage
-1. **User command**: make the entire [Grapple API](#grapple-api) _easily accessible_ (via Lua or user command)
-1. **User experience**: provide a set of [windows](#grapple-windows) for managing tags and scopes
-1. **User-controlled tag scopes**: let the user _choose_ how their [tags](#tags) are grouped in a project
-
-In fact, at this point, Grapple can be used as an [almost perfect](#example-setups) drop-in replacement and do [even more](#usage).
+- Frictionless first time configuration and usage (no setup, just define your keymaps and go)
+- Fine-grained customization of project spaces in the form of project [scopes](#scopes), with sane defaults
+- Improved tag and scope management UI to compliment Grapple's tagging and selection navigation model
+- Ensure the Grapple's public API is well-documented
 
 ## Features
 
@@ -60,7 +58,7 @@ vim.keymap.set("n", "<leader>1", "<cmd>Grapple select index=1<cr>")
 
 **Next steps**
 
-- Coming from Harpoon? Check out the [example setups](#example-setups)
+- Check out the [example setups](#example-setups)
 - Check out the default [settings](#settings)
 - View your [tags](#tags-window) with `:Grapple toggle_tags`
 - Choose a [scope](#scopes-window) with `:Grapple toggle_scopes`
@@ -686,9 +684,9 @@ require("grapple").clear_cache("static")
 
 ## Tags
 
-A **tag** is a persistent tag on a path or buffer. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks ([`:h mark`](https://neovim.io/doc/user/motion.html#mark-motions)).
+A **tag** is a persistent tag on a file path or URL. It is a means of indicating a file you want to return to. When a file is tagged, Grapple will save your cursor location so that when you jump back, your cursor is placed right where you left off. In a sense, tags are like file-level marks ([`:h mark`](https://neovim.io/doc/user/motion.html#mark-motions)).
 
-Once a tag has been added to a [scope](#scopes), it may be selected by index, cycled through, or jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
+Once a tag has been added to a [scope](#scopes), it may be selected by index or name, cycled through, or even jumped to using plugins such as [portal.nvim](https://github.com/cbochs/portal.nvim).
 
 ## Scopes
 
