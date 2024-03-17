@@ -34,9 +34,13 @@ end
 ---@param line string
 ---@return integer min_col
 function TagContent:minimum_column(line)
+    local id = string.match(line, "^/(%d+)")
+    if not id then
+        return 0
+    end
+
     -- Assume: editable content is always at the end of the line
     -- Assume: name can be part of the line if "name_pos" is set to "start"
-    -- new:            1 split:  (path)
     -- base:           2 splits: (id, path)
     -- w/ name:        3 splits: (id, name, path)
     -- w/ icon:        3 splits: (id, icon, path)
