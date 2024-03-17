@@ -209,16 +209,16 @@ end
 ---@field data table
 ---@field line string
 ---@field index integer
----@field min_col integer
+---@field min_col integer unused now
 ---@field highlights grapple.vim.highlight[]
 ---@field extmarks grapple.vim.extmark[]
 
 ---@class grapple.window.parsed_entry
 ---@field data any
 ---@field line string
----@field modified boolean
+---@field modified boolean unused (for now)
 ---@field index? integer
----@field min_col? integer
+---@field min_col? integer unused now
 ---@field highlights? grapple.vim.highlight[]
 ---@field extmarks? grapple.vim.extmark[]
 
@@ -249,14 +249,7 @@ end
 ---@param line string
 ---@return integer min_col
 function Window:minimum_column(line)
-    local parsed_entry = self.content:parse_line(line, self.entries)
-
-    local index = parsed_entry.index
-    if not index then
-        return 0
-    end
-
-    return self.entries[index].min_col
+    return self.content:minimum_column(line)
 end
 
 ---@return string? error

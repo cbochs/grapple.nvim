@@ -25,6 +25,15 @@ function ContainerContent:modifiable()
     return false
 end
 
+---Return the first editable cursor column for a line (0-indexed)
+---@param _ string line
+function ContainerContent:minimum_column(_)
+    -- Assume: buffer is unmodifiable line contains two items: an id and path
+    -- The id is in the form "/000" and followed by a space. Therefore the
+    -- minimum column should be at 5 (0-indexed)
+    return 5
+end
+
 ---@return string | nil title
 function ContainerContent:title()
     if not self.title_fn then
@@ -179,7 +188,7 @@ end
 ---@param original_entries grapple.window.entry[]
 ---@return grapple.window.parsed_entry
 function ContainerContent:parse_line(line, original_entries)
-    local id, _ = string.match(line, "^/(%d+) (%S+)")
+    local id = string.match(line, "^/(%d+)")
     local index = assert(tonumber(id))
 
     ---@type grapple.window.parsed_entry
