@@ -22,7 +22,7 @@ function Tag:update()
     self.cursor = vim.api.nvim_win_get_cursor(0)
 end
 
----@param command? function
+---@param command? fun(path: string)
 function Tag:select(command)
     local short_path = Path.fs_short(self.path)
 
