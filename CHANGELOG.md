@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/cbochs/grapple.nvim/compare/v0.20.0...v0.20.1) (2024-03-17)
+
+
+### Bug Fixes
+
+* minimum column ([#125](https://github.com/cbochs/grapple.nvim/issues/125)) ([42a150d](https://github.com/cbochs/grapple.nvim/commit/42a150d0f4674010cf7bee95bdd1648da0b1142d))
+
 ## [0.20.0](https://github.com/cbochs/grapple.nvim/compare/v0.19.0...v0.20.0) (2024-03-16)
 
 
