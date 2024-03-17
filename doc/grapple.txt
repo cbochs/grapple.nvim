@@ -34,12 +34,12 @@ section to get started.
 GOALS                                             *grapple-grapple.nvim-goals*
 
 While Grapple shares similarities to Harpoon (and other file navigation
-plugins), it aims to differentiate itself with a four key goals:
+plugins), it aims to differentiate itself in the following ways:
 
 - Frictionless first time configuration and usage (no setup, just define your keymaps and go)
-- Fine-grained customization of project spaces in the form of project |grapple-scopes|, with sane defaults
-- Improved tag and scope management UI to compliment Grapple’s tagging and selection navigation model
-- Ensure the Grapple’s public API is well-documented
+- Fine-grained customization of project spaces in the form of project |grapple-scopes|
+- Improved tag and scope management UI to compliment Grapple’s tag/select navigation model
+- Ensure Grapple’s public API is well-documented
 
 
 FEATURES                                       *grapple-grapple.nvim-features*
