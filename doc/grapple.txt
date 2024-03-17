@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 16
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 17
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -144,7 +144,7 @@ Recommended ~
             { "<leader>1", "<cmd>Grapple select index=1<cr>", desc = "Grapple select 1" },
             { "<leader>2", "<cmd>Grapple select index=2<cr>", desc = "Grapple select 2" },
             { "<leader>3", "<cmd>Grapple select index=3<cr>", desc = "Grapple select 3" },
-            { "<leader>4", "<cmd>Grapple select index=3<cr>", desc = "Grapple select 4" },
+            { "<leader>4", "<cmd>Grapple select index=4<cr>", desc = "Grapple select 4" },
         },
     },
 <
