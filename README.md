@@ -21,12 +21,12 @@ Grapple is a plugin that aims to provide immediate navigation to important files
 
 ## Goals
 
-While Grapple shares similarities to Harpoon (and other file navigation plugins), it aims to differentiate itself with a four key goals:
+While Grapple shares similarities to Harpoon (and other file navigation plugins), it aims to differentiate itself in the following ways:
 
 - Frictionless first time configuration and usage (no setup, just define your keymaps and go)
-- Fine-grained customization of project spaces in the form of project [scopes](#scopes), with sane defaults
-- Improved tag and scope management UI to compliment Grapple's tagging and selection navigation model
-- Ensure the Grapple's public API is well-documented
+- Fine-grained customization of project spaces in the form of project [scopes](#scopes)
+- Improved tag and scope management UI to compliment Grapple's tag/select navigation model
+- Ensure Grapple's public API is well-documented
 
 ## Features
 
