@@ -36,6 +36,7 @@ end
 function TagContent:minimum_column(line)
     -- Assume: editable content is always at the end of the line
     -- Assume: name can be part of the line if "name_pos" is set to "start"
+    -- new:            1 split:  (path)
     -- base:           2 splits: (id, path)
     -- w/ name:        3 splits: (id, name, path)
     -- w/ icon:        3 splits: (id, icon, path)
@@ -44,13 +45,8 @@ function TagContent:minimum_column(line)
     if #split <= 1 then
         return 0
     else
-        if split[#split] == "" then
-            local _, e = string.find(line, split[#split - 1])
-            return e + 1
-        else
-            local s, _ = string.find(line, split[#split])
-            return s - 1
-        end
+        local _, e = string.find(line, split[#split - 1])
+        return e + 1
     end
 end
 

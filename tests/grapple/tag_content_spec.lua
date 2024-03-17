@@ -7,9 +7,12 @@ describe("TagContent", function()
             { 5, "/000 /some_path" },
             { 5, "/000 " },
             { 5, "/000           " },
+            { 5, "/000           /some_path" },
 
             -- ID + name
             { 9, "/001 bob /some_path" },
+            { 9, "/001 bob bob" },
+            { 9, "/001 bob      bob  " },
             { 9, "/001 bob " },
             { 7, "/001 a /some_path" },
             { 7, "/001 a " },
@@ -28,6 +31,9 @@ describe("TagContent", function()
             { 11, "/001  c /some_path" },
             { 11, "/001  c " },
             { 11, "/001  c           " },
+
+            -- Assumed behaviour (last part editable)
+            { 16, "/000 /some_path /another_path" },
         }
 
         for _, test_case in ipairs(test_cases) do
