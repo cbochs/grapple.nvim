@@ -30,6 +30,30 @@ function TagContent:modifiable()
     return true
 end
 
+---Return the first editable cursor column for a line (0-indexed)
+---@param line string
+---@return integer min_col
+function TagContent:minimum_column(line)
+    local id = string.match(line, "^/(%d+)")
+    if not id then
+        return 0
+    end
+
+    -- Assume: editable content is always at the end of the line
+    -- Assume: name can be part of the line if "name_pos" is set to "start"
+    -- base:           2 splits: (id, path)
+    -- w/ name:        3 splits: (id, name, path)
+    -- w/ icon:        3 splits: (id, icon, path)
+    -- w/ icon + name: 4 splits: (id, icon, name, path)
+    local split = vim.split(line, "%s+")
+    if #split <= 1 then
+        return 0
+    else
+        local _, e = string.find(line, split[#split - 1])
+        return e + 1
+    end
+end
+
 ---@return string | nil title
 function TagContent:title()
     if not self.title_fn then
@@ -278,17 +302,18 @@ end
 function TagContent:parse_line(line, original_entries)
     local id = string.match(line, "^/(%d+)")
 
-    local index, display, original_entry
+    local index, display
     if id then
         index = assert(tonumber(id))
-        original_entry = original_entries[index]
-        display = vim.trim(string.sub(line, original_entry.min_col))
     else
         -- Parse as a new entry when an ID is not present
         index = nil
-        original_entry = nil
-        display = vim.trim(line)
     end
+
+    -- Minimum column returns the 0-indexed cursor column, convert to
+    -- 1-indexed before using it
+    local min_col = self:minimum_column(line) + 1
+    display = vim.trim(string.sub(line, min_col))
 
     -- Create an empty parsed entry, assume modified
     ---@type grapple.window.parsed_entry
@@ -310,9 +335,13 @@ function TagContent:parse_line(line, original_entries)
         return entry
     end
 
-    if original_entry then
+    -- TODO: parsing probably shouldn't need access to the original entries.
+    -- I do think it might be valuable to provide the line and extmarks linewise
+    -- extmarks, but likely this logic to get the original entry should be
+    -- pushed to the "diff" function
+    if original_entries[index] then
         ---@type grapple.tag_content.data
-        local data = original_entry.data
+        local data = original_entries[index].data
 
         if data.display == display then
             ---@type grapple.window.parsed_entry
