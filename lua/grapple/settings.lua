@@ -215,7 +215,13 @@ local DEFAULT_SETTINGS = {
             local entry = window:current_entry()
             local path = entry.data.path
             window:perform_retain(TagActions.rename, { path = path })
-        end)
+        end, { desc = "Rename" })
+
+        -- Help
+        window:map("n", "?", function()
+            local WindowActions = require("grapple.window_actions")
+            window:perform_retain(WindowActions.help)
+        end, { desc = "Help" })
     end,
 
     ---User-defined scopes title function for Grapple windows
@@ -264,6 +270,12 @@ local DEFAULT_SETTINGS = {
         window:map("n", "-", function()
             window:perform_close(ScopeActions.open_loaded)
         end, { desc = "Go to loaded scopes" })
+
+        -- Help
+        window:map("n", "?", function()
+            local WindowActions = require("grapple.window_actions")
+            window:perform_retain(WindowActions.help)
+        end, { desc = "Help" })
     end,
 
     ---User-defined loaded scopes title function for Grapple windows
@@ -312,6 +324,12 @@ local DEFAULT_SETTINGS = {
         window:map("n", "-", function()
             window:perform_close(ContainerActions.open_scopes)
         end, { desc = "Go to scopes" })
+
+        -- Help
+        window:map("n", "?", function()
+            local WindowActions = require("grapple.window_actions")
+            window:perform_retain(WindowActions.help)
+        end, { desc = "Help" })
     end,
 
     ---@alias grapple.content grapple.tag_content| grapple.scope_content| grapple.container_content

@@ -34,6 +34,11 @@ function Deserializable.from_table(tbl) end
 ---@field col_start integer
 ---@field col_end integer
 
+---See :h nvim_buf_get_keymap
+---@class grapple.vim.keymap
+---@field lhs string
+---@field desc? string
+
 ---See :h nvim_buf_set_lines
 ---@class grapple.vim.line
 ---@field index integer
