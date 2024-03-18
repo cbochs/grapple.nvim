@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/cbochs/grapple.nvim/compare/v0.20.1...v0.21.0) (2024-03-18)
+
+
+### Features
+
+* configure default command ([#127](https://github.com/cbochs/grapple.nvim/issues/127)) ([7a0a727](https://github.com/cbochs/grapple.nvim/commit/7a0a7273002c6ad0c02185b7d2d0f414dfdb06ad))
+
 ## [0.20.1](https://github.com/cbochs/grapple.nvim/compare/v0.20.0...v0.20.1) (2024-03-17)
 
 
