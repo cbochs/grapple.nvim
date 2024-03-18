@@ -32,12 +32,9 @@ function Component:update_status()
 
     local current = grapple.find({ buffer = 0 })
 
-    local app_ok, app = pcall(require, "grapple.app")
-    local quick_select = nil
-    if app_ok then
-        quick_select = app.get().settings:quick_select()
-    end
-
+    local App = require("grapple.app")
+    local app = App.get()
+    local quick_select = app.settings:quick_select()
     local output = {}
     for i, tag in ipairs(tags) do
         local tag_str = tostring(i)
