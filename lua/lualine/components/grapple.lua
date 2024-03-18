@@ -37,12 +37,10 @@ function Component:update_status()
     local quick_select = app.settings:quick_select()
     local output = {}
     for i, tag in ipairs(tags) do
-        local tag_str = tostring(i)
-        if tag.name then
-            tag_str = tag.name
-        elseif quick_select and quick_select[i] then
-            tag_str = quick_select[i]
-        end
+        -- stylus: ignore
+        local tag_str = tag.name and tag.name
+            or quick_select[i] and quick_select[i]
+            or i
 
         local tag_fmt = self.options.inactive
         if current and current.path == tag.path then
