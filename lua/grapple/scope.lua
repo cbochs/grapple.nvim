@@ -8,7 +8,7 @@ local ResolvedScope = require("grapple.resolved_scope")
 local Scope = {}
 Scope.__index = Scope
 
----@alias grapple.scope_resolver fun(): string?, string?, string?
+---@alias grapple.scope_resolver fun(): string?, string?, string? (id, path, error)
 
 ---@param name string
 ---@param resolver grapple.scope_resolver
@@ -33,9 +33,9 @@ function Scope:resolve(tag_manager)
     if not id then
         if self.fallback then
             return self.fallback:resolve(tag_manager)
+        else
+            return nil, err
         end
-
-        return nil, err
     end
 
     return ResolvedScope:new(self.name, id, path, tag_manager), nil
