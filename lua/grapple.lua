@@ -467,7 +467,7 @@ end
 
 ---Open a floating window populated with all tags for a given (scope) name
 ---or loaded scope (id). By default, uses the current scope
----@param opts? { scope?: string, id?: string }
+---@param opts? { scope?: string, id?: string, style?: string }
 function Grapple.open_tags(opts)
     local App = require("grapple.app")
     local TagContent = require("grapple.tag_content")
@@ -491,7 +491,7 @@ function Grapple.open_tags(opts)
     -- stylua: ignore
     local content = TagContent:new(
         scope,
-        app.settings.styles[app.settings.style],
+        app.settings.styles[opts.style or app.settings.style],
         app.settings.tag_hook,
         app.settings.tag_title
     )
@@ -602,14 +602,16 @@ function Grapple.initialize()
                 local app = App.get()
 
                 -- Keyword argument names permitted by Grapple
-                -- "tag" kwargs refer to methods that accept all keyword argument (i.e. toggle)
+                -- "tag" kwargs refer to methods that accept all keyword arguments (i.e. toggle)
                 -- "new" kwargs refer to methods that create a new tag (i.e. tag)
                 -- "use" kwargs refer to methods that use an existing tag (i.e. select)
                 -- "scope" kwargs refer to methods that operate on a scope (i.e. quickfix)
+                -- "window" kwargs refer to methods that open a window (i.e. toggle_tags)
                 local tag_kwargs = { "buffer", "path", "name", "index", "scope", "command" }
                 local new_kwargs = Util.subtract(tag_kwargs, { "command" })
                 local use_kwargs = Util.subtract(tag_kwargs, { "command" })
                 local scope_kwargs = { "scope", "id" }
+                local window_kwargs = { "style", unpack(scope_kwargs) }
 
                 -- stylua: ignore
                 -- Lookup table of API functions and their available arguments
@@ -620,7 +622,7 @@ function Grapple.initialize()
                     cycle_forward  = { args = {},              kwargs = use_kwargs },
                     open_loaded    = { args = {},              kwargs = {} },
                     open_scopes    = { args = {},              kwargs = {} },
-                    open_tags      = { args = {},              kwargs = scope_kwargs },
+                    open_tags      = { args = {},              kwargs = window_kwargs },
                     quickfix       = { args = {},              kwargs = scope_kwargs },
                     reset          = { args = {},              kwargs = scope_kwargs },
                     select         = { args = {},              kwargs = use_kwargs },
@@ -628,7 +630,7 @@ function Grapple.initialize()
                     toggle         = { args = {},              kwargs = tag_kwargs },
                     toggle_loaded  = { args = {},              kwargs = {} },
                     toggle_scopes  = { args = {},              kwargs = {} },
-                    toggle_tags    = { args = {},              kwargs = scope_kwargs },
+                    toggle_tags    = { args = {},              kwargs = window_kwargs },
                     untag          = { args = {},              kwargs = use_kwargs },
                     use_scope      = { args = { "scope" },     kwargs = {} },
                 }
@@ -637,6 +639,7 @@ function Grapple.initialize()
                 local argument_lookup = {
                     direction = { "forward", "backward" },
                     scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
+                    style = Util.sort(vim.tbl_keys(app.settings.styles), Util.as_lower),
                 }
 
                 -- API methods which are not actionable

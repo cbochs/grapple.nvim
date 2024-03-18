@@ -774,6 +774,7 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 
 - **`scope?`**: `string` scope name
 - **`id?`**: `string` the ID of a resolved scope
+- **`style?`**: the [style](#settings) to use for the tags window
 
 <details>
 <summary><b>Examples</b></summary>
