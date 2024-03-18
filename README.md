@@ -243,9 +243,13 @@ require("grapple").setup({
     style = "relative",
 
     ---A string of characters used for quick selecting in Grapple windows
-    ---An empty string or nil will disable quick select
+    ---An empty string or false will disable quick select
     ---@type string | nil
     quick_select = "123456789",
+
+    ---Default command to use when selecting a tag
+    ---@type fun(path: string)
+    command = vim.cmd.edit,
 
     ---User-defined tags title function for Grapple windows
     ---By default, uses the resolved scope's ID
