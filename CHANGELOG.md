@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/cbochs/grapple.nvim/compare/v0.21.0...v0.22.0) (2024-03-18)
+
+
+### Features
+
+* use quick_select for statusline ([#129](https://github.com/cbochs/grapple.nvim/issues/129)) ([9cb1749](https://github.com/cbochs/grapple.nvim/commit/9cb17495546f0f7839b16f4b1e0285d893232127))
+
 ## [0.21.0](https://github.com/cbochs/grapple.nvim/compare/v0.20.1...v0.21.0) (2024-03-18)
 
 
