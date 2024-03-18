@@ -769,6 +769,7 @@ modifiable. Several actions are available by default:
 - **Renaming** (`R`): rename the tag under the cursor
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list (||quickfix||)
 - **Go up** (`-`): navigate up to the |grapple-scopes-window|
+- Help (`?`): Open the help window
 
 **API**
 
@@ -803,6 +804,7 @@ Some basic actions are available by default:
 - **Quick select** (default: `1-9`): open the tags window for the scope at a given index
 - **Change** (`<s-cr>`): change the current scope to the one under the cursor
 - **Go up** (`-`): navigate across to the |grapple-loaded-scopes-window|
+- Help (`?`): Open the help window
 
 **API**
 
@@ -828,6 +830,7 @@ Some basic actions are available by default:
 - **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
 - **Deletion (x)**reset the tags for the loaded scope under the cursor
 - **Go up** (`-`): navigate across to the |grapple-scopes-window|
+- Help (`?`): Open the help window
 
 **API**
 
