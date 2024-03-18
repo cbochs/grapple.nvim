@@ -32,9 +32,21 @@ function Component:update_status()
 
     local current = grapple.find({ buffer = 0 })
 
+    local app_ok, app = pcall(require, "grapple.app")
+    local quick_select = nil
+    if app_ok then
+        quick_select = app.get().settings:quick_select()
+    end
+
     local output = {}
     for i, tag in ipairs(tags) do
-        local tag_str = tag.name and tag.name or i
+        local tag_str = tostring(i)
+        if tag.name then
+            tag_str = tag.name
+        elseif quick_select and quick_select[i] then
+            tag_str = quick_select[i]
+        end
+
         local tag_fmt = self.options.inactive
         if current and current.path == tag.path then
             tag_fmt = self.options.active
