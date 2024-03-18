@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.23.0](https://github.com/cbochs/grapple.nvim/compare/v0.22.0...v0.23.0) (2024-03-18)
+
+
+### Features
+
+* add "?" to open the help window ([be3cff9](https://github.com/cbochs/grapple.nvim/commit/be3cff9d08bb426f0c6bcf300667851f1f9bff3b))
+* allow window style to be passed as an argument ([7456b74](https://github.com/cbochs/grapple.nvim/commit/7456b74db6b9474b6b2bba6b755bcb10a45c6550))
+
+
+### Bug Fixes
+
+* help window should handle non-consecutive quick select mappings ([5720f81](https://github.com/cbochs/grapple.nvim/commit/5720f81718db14a831c8b4a822c24c70d0ef8795))
+
 ## [0.22.0](https://github.com/cbochs/grapple.nvim/compare/v0.21.0...v0.22.0) (2024-03-18)
 
 
