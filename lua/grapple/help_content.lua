@@ -41,10 +41,6 @@ function HelpContent:entities()
     local App = require("grapple.app")
     local app = App.get()
 
-    local function by_lhs(map_a, map_b)
-        return map_a.lhs < map_b.lhs
-    end
-
     ---@type grapple.vim.keymap[]
     local keymaps = vim.api.nvim_buf_get_keymap(self.buf_id, "n")
 
@@ -91,10 +87,17 @@ function HelpContent:entities()
 
     -- Add compressed quick-select keymaps
     for _, quick_select in ipairs(quick_selects) do
-        table.insert(entities, {
-            lhs = string.format("%s-%s", quick_select[1], quick_select[2]),
-            desc = string.format("Quick select (%s-%s)", quick_select[1], quick_select[2]),
-        })
+        if quick_select[1] == quick_select[2] then
+            table.insert(entities, {
+                lhs = string.format("%s", quick_select[1]),
+                desc = string.format("Quick select %s", quick_select[1]),
+            })
+        else
+            table.insert(entities, {
+                lhs = string.format("%s-%s", quick_select[1], quick_select[2]),
+                desc = string.format("Quick select (%s-%s)", quick_select[1], quick_select[2]),
+            })
+        end
     end
 
     -- Determine lhs padding for left-alighment
@@ -110,7 +113,11 @@ function HelpContent:entities()
         entity.padding = padding
     end
 
-    table.sort(entities, by_lhs)
+    local function by_desc(map_a, map_b)
+        return map_a.desc < map_b.desc
+    end
+
+    table.sort(entities, by_desc)
 
     return entities
 end
