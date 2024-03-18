@@ -779,6 +779,7 @@ modifiable. Several actions are available by default:
 
 - **scope?**`string` scope name
 - **id?**`string` the ID of a resolved scope
+- **style?**the |grapple-style| to use for the tags window
 
 Examples ~
 
