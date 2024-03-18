@@ -32,9 +32,16 @@ function Component:update_status()
 
     local current = grapple.find({ buffer = 0 })
 
+    local App = require("grapple.app")
+    local app = App.get()
+    local quick_select = app.settings:quick_select()
     local output = {}
     for i, tag in ipairs(tags) do
-        local tag_str = tag.name and tag.name or i
+        -- stylua: ignore
+        local tag_str = tag.name and tag.name
+            or quick_select[i] and quick_select[i]
+            or i
+
         local tag_fmt = self.options.inactive
         if current and current.path == tag.path then
             tag_fmt = self.options.active
