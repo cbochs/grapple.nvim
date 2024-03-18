@@ -37,7 +37,7 @@ function Component:update_status()
     local quick_select = app.settings:quick_select()
     local output = {}
     for i, tag in ipairs(tags) do
-        -- stylus: ignore
+        -- stylua: ignore
         local tag_str = tag.name and tag.name
             or quick_select[i] and quick_select[i]
             or i
