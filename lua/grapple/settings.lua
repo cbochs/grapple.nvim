@@ -40,9 +40,13 @@ local DEFAULT_SETTINGS = {
     style = "relative",
 
     ---A string of characters used for quick selecting in Grapple windows
-    ---An empty string will disable quick select
+    ---An empty string or false will disable quick select
     ---@type string
     quick_select = "123456789",
+
+    ---Default command to use when selecting a tag
+    ---@type fun(path: string)
+    command = vim.cmd.edit,
 
     ---@class grapple.scope_definition
     ---@field name string

@@ -22,7 +22,7 @@ end
 ---@field index? integer
 ---@field cursor? integer[]
 ---@field scope? string
----@field command? fun(path: string) undocumented
+---@field command? fun(path: string)
 
 ---Extract a valid path from the provided path or buffer options.
 ---@param opts grapple.options
