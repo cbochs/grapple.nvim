@@ -15,7 +15,8 @@ function Component:init(opts)
     Component.super:init(opts)
 end
 
-function Component:update_status()
+---@param opts? grapple.options
+function Component:update_status(opts)
     if package.loaded["grapple"] == nil then
         return
     end
@@ -25,12 +26,14 @@ function Component:update_status()
         return
     end
 
-    local tags, err = grapple.tags()
+    opts = opts or {}
+    local merged = vim.tbl_deep_extend("force", opts, { buffer = 0 })
+    local tags, err = grapple.tags(merged)
     if not tags then
         return err
     end
 
-    local current = grapple.find({ buffer = 0 })
+    local current = grapple.find(merged)
 
     local App = require("grapple.app")
     local app = App.get()
