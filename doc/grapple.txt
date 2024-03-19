@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 18
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 19
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -900,7 +900,43 @@ STATUSLINE ~
 
 A statusline component can be easily added to show whether a buffer is tagged.
 
-**lualine.nvim statusline**
+**API**
+
+- `require("grapple").statusline(opts)`
+
+**opts?**`grapple.statusline.options` (default: `settings.statusline`)
+
+- **icon**`string` (default: `"󰛢"`)
+- **active**`string` (default: `[%s]`)
+- **inactive**`string` (default: `" %s"`)
+- **include_icon**`boolean` (default: `true`)
+
+**Also available**
+
+- `require("grapple").name_or_index()`
+- `require("grapple").exists()`
+
+Examples ~
+
+>lua
+    require("grapple").statusline()
+    -- Returns "󰛢 [1] 2  3  4"
+    
+    require("grapple").name_or_index()
+    -- Returns "1" or "bob"
+    
+    -- Modify the statusline options
+    require("grapple").setup({
+        statusline = {
+            icon = "G",
+            active = "|%s|",
+            inactive = " %s "
+        }
+    })
+<
+
+
+LUALINECOMPONENT
 
 SnippetScreenshot>lua
     require("lualine").setup({
@@ -915,7 +951,7 @@ SnippetScreenshot>lua
         sections = {
             lualine_b = {
                 {
-                    require("grapple").statusline,
+                    require("grapple").name_or_index,
                     cond = require("grapple").exists
                 }
             }
