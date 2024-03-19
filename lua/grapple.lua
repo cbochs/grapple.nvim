@@ -319,20 +319,6 @@ function Grapple.name_or_index(opts)
     return name_or_index
 end
 
-local deprecated_once = false
----Deprecated. Return the name or index of a tag. Same as Grapple.name_or_index
----@return string | integer | nil
-function Grapple.key()
-    if not deprecated_once then
-        deprecated_once = true
-        vim.notify(
-            "Grapple.key is deprecated. Use Grapple.name_or_index or Grapple.statusline instead",
-            vim.log.levels.WARN
-        )
-    end
-    return Grapple.name_or_index()
-end
-
 ---Return a formatted string to be displayed on the statusline
 ---@return string | nil
 function Grapple.statusline()
@@ -737,42 +723,6 @@ function Grapple.initialize()
             end,
         }
     )
-
-    -- Add deprecated commands
-    vim.api.nvim_create_user_command("GrappleTag", function(_)
-        vim.notify('GrappleTag is deprecated. Use "Grapple tag" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) Tag a buffer", nargs = "*" })
-
-    vim.api.nvim_create_user_command("GrappleUntag", function(_)
-        vim.notify('GrappleUntag is deprecated. Use "Grapple untag" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) Untag a buffer", nargs = "*" })
-
-    vim.api.nvim_create_user_command("GrappleToggle", function(_)
-        vim.notify('GrappleToggle is deprecated. Use "Grapple toggle" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) toggle a buffer", nargs = "*" })
-
-    vim.api.nvim_create_user_command("GrappleSelect", function(_)
-        vim.notify('GrappleSelect is deprecated. Use "Grapple select" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) Select a tag", nargs = "*" })
-
-    vim.api.nvim_create_user_command("GrappleCycle", function(_)
-        vim.notify('GrappleCycle is deprecated. Use "Grapple cycle" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) Cycles through scoped tags", nargs = "*" })
-
-    vim.api.nvim_create_user_command("GrappleTags", function(_)
-        vim.notify('GrappleTags is deprecated. Use "Grapple open_tags" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) Get all scoped tags" })
-
-    vim.api.nvim_create_user_command("GrappleReset", function(_)
-        vim.notify('GrappleReset is deprecated. Use "Grapple reset" instead', vim.log.levels.WARN)
-    end, { desc = "(Deprecated) Reset scoped tags" })
-
-    vim.api.nvim_create_user_command("GrapplePopup", function(_)
-        vim.notify(
-            'GrapplePopup is deprecated. Use "Grapple open_tags", "Grapple open_scopes", or "Grapple open_containers" instead',
-            vim.log.levels.WARN
-        )
-    end, { desc = "(Deprecated) Opens the grapple popup menu", nargs = "*" })
 end
 
 return Grapple
