@@ -1,20 +1,13 @@
 ---@class grapple.lualine.component
----@field options grapple.lualine.options
+---@field options grapple.statusline.options
 local Component = require("lualine.component"):extend()
 
----@class grapple.lualine.options
-local defaults = {
-    icon = "󰛢",
-    inactive = " %s ",
-    active = "[%s]",
-}
-
----@class grapple.lualine.options
+---@param opts? grapple.statusline.options
 function Component:init(opts)
-    opts = vim.tbl_deep_extend("keep", opts or {}, defaults)
     Component.super:init(opts)
 end
 
+---@return string | nil
 function Component:update_status()
     if package.loaded["grapple"] == nil then
         return
@@ -25,59 +18,20 @@ function Component:update_status()
         return
     end
 
-    local tags, err = grapple.tags()
-    if not tags then
-        return err
-    end
+    -- Lazyily add statusline options to the component
+    if not self.options.icon or not self.options.active or not self.options.inactive then
+        local App = require("grapple.app")
+        local app = App.get()
 
-    local current = grapple.find({ buffer = 0 })
-
-    local App = require("grapple.app")
-    local app = App.get()
-    local quick_select = app.settings:quick_select()
-    local output = {}
-    for i, tag in ipairs(tags) do
         -- stylua: ignore
-        local tag_str = tag.name and tag.name
-            or quick_select[i] and quick_select[i]
-            or i
-
-        local tag_fmt = self.options.inactive
-        if current and current.path == tag.path then
-            tag_fmt = self.options.active
-        end
-        table.insert(output, string.format(tag_fmt, tag_str))
+        self.options = vim.tbl_deep_extend("keep",
+            self.options,
+            { include_icon = false },
+            app.settings.statusline
+        )
     end
 
-    return table.concat(output)
+    return grapple.statusline(self.options)
 end
 
 return Component
-
---[[
-local lualine_require = require("lualine_require")
-local M = lualine_require.require("lualine.component"):extend()
-
-local hl = require("harpoon-lualine")
-
-local default_options = {
-    icon = "󰀱 ",
-    indicators = { "1", "2", "3", "4" },
-    active_indicators = { "[1]", "[2]", "[3]", "[4]" },
-}
-
-function M:init(options)
-    M.super.init(self, options)
-    self.options = vim.tbl_deep_extend("keep", self.options or {}, default_options)
-end
-
-function M:update_status()
-    local harpoon_loaded = package.loaded["harpoon"] ~= nil
-    if not harpoon_loaded then
-        return "Harpoon not loaded"
-    end
-
-    return hl.status(self.options)
-end
-
-return M--]]

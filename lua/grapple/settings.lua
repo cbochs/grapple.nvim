@@ -416,6 +416,19 @@ local DEFAULT_SETTINGS = {
             "",
         },
     },
+
+    ---Not user documented
+    ---Default statusline options
+    ---@class grapple.statusline.options
+    statusline = {
+        icon = "󰛢",
+        inactive = " %s ",
+        active = "[%s]",
+
+        -- Mostly for lualine integration. Lualine will automatically prepend
+        -- the icon to the returned output
+        include_icon = true,
+    },
 }
 
 Settings.__index = function(tbl, key)

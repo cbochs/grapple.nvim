@@ -882,7 +882,45 @@ Then use this command to see the grapple tags for the project in a telescope win
 
 A statusline component can be easily added to show whether a buffer is tagged.
 
-**[lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) statusline**
+**API**:
+
+- `require("grapple").statusline(opts)`
+
+**`opts?`**: `grapple.statusline.options` (default: `settings.statusline`)
+
+- **`icon`**: `string` (default: `"󰛢"`)
+- **`active`**: `string` (default: `[%s]`)
+- **`inactive`**: `string` (default: `" %s"`)
+- **`include_icon`**: `boolean` (default: `true`)
+
+**Also available**:
+
+- `require("grapple").name_or_index()`
+- `require("grapple").exists()`
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+require("grapple").statusline()
+-- Returns "󰛢 [1] 2  3  4"
+
+require("grapple").name_or_index()
+-- Returns "1" or "bob"
+
+-- Modify the statusline options
+require("grapple").setup({
+    statusline = {
+        icon = "G",
+        active = "|%s|",
+        inactive = " %s "
+    }
+})
+```
+
+</details>
+
+#### Lualine Component
 
 <table>
 <tr>
@@ -913,7 +951,7 @@ require("lualine").setup({
     sections = {
         lualine_b = {
             {
-                require("grapple").statusline,
+                require("grapple").name_or_index,
                 cond = require("grapple").exists
             }
         }

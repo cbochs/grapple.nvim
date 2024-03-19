@@ -4,22 +4,27 @@ local Path = require("grapple.path")
 ---@field path string absolute path
 ---@field name string | nil (optional) tag name
 ---@field cursor integer[] | nil (optional) (1, 0)-indexed cursor position
+---@field frozen boolean
 local Tag = {}
 Tag.__index = Tag
 
 ---@param path string
 ---@param name? string
 ---@param cursor? integer[]
-function Tag:new(path, name, cursor)
+---@param frozen? boolean
+function Tag:new(path, name, cursor, frozen)
     return setmetatable({
         path = path,
         name = name,
         cursor = cursor,
+        frozen = frozen,
     }, self)
 end
 
 function Tag:update()
-    self.cursor = vim.api.nvim_win_get_cursor(0)
+    if not self.frozen then
+        self.cursor = vim.api.nvim_win_get_cursor(0)
+    end
 end
 
 ---@param command? fun(path: string)
@@ -43,7 +48,7 @@ function Tag:select(command)
         }
 
         -- If the cursor has already been set, don't set again
-        if current_cursor[1] == 1 or current_cursor[2] == 0 then
+        if self.frozen or (current_cursor[1] == 1 and current_cursor[2] == 0) then
             pcall(vim.api.nvim_win_set_cursor, 0, cursor)
         end
     end
