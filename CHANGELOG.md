@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.1](https://github.com/cbochs/grapple.nvim/compare/v0.24.0...v0.24.1) (2024-03-19)
+
+
+### Bug Fixes
+
+* remove extra space in help footer ([9fb7660](https://github.com/cbochs/grapple.nvim/commit/9fb766082ebb908a8d89448f6aa50a593145c6a4))
+
 ## [0.24.0](https://github.com/cbochs/grapple.nvim/compare/v0.23.0...v0.24.0) (2024-03-19)
 
 
