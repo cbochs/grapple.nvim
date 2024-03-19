@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/cbochs/grapple.nvim/compare/v0.23.0...v0.24.0) (2024-03-19)
+
+
+### Features
+
+* add "help" footer for nvim-0.10 ([2545605](https://github.com/cbochs/grapple.nvim/commit/254560564779096cf646f78e585e4fd982da3924))
+
 ## [0.23.0](https://github.com/cbochs/grapple.nvim/compare/v0.22.0...v0.23.0) (2024-03-18)
 
 
