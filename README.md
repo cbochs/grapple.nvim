@@ -764,7 +764,7 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 - **Renaming** (`R`): rename the tag under the cursor
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 - **Go up** (`-`): navigate up to the [scopes window](#scopes-window)
-- Help (`?`): Open the help window
+- **Help** (`?`): open the help window
 
 **API**:
 
@@ -800,7 +800,7 @@ Open a floating window with all defined scopes. This buffer is not modifiable. S
 - **Quick select** (default: `1-9`): open the tags window for the scope at a given index
 - **Change** (`<s-cr>`): change the current scope to the one under the cursor
 - **Go up** (`-`): navigate across to the [loaded scopes window](#loaded-scopes-window)
-- Help (`?`): Open the help window
+- **Help** (`?`): open the help window
 
 **API**:
 
@@ -827,7 +827,7 @@ Open a floating window with all loaded scopes. This buffer is not modifiable. So
 - **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
 - **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
 - **Go up** (`-`): navigate across to the [scopes window](#scopes-window)
-- Help (`?`): Open the help window
+- **Help** (`?`): open the help window
 
 **API**:
 
