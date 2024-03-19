@@ -62,6 +62,12 @@ function Window:window_options()
         opts.title_padding = nil
     end
 
+    -- Add "help" footer for nvim-0.10
+    if vim.fn.has("nvim-0.10") == 1 then
+        opts.footer = " Press '?' to toggle Help"
+        opts.footer_pos = "center"
+    end
+
     -- Window size
     if opts.width and opts.width < 1 then
         opts.width = math.max(1, math.floor(vim.o.columns * opts.width))
