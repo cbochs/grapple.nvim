@@ -317,7 +317,7 @@ local DEFAULT_SETTINGS = {
         window:map("n", "x", function()
             local entry = window:current_entry()
             local id = entry.data.id
-            window:perform_close(ContainerActions.reset, { id = id })
+            window:perform_retain(ContainerActions.reset, { id = id })
         end, { desc = "Reset scope" })
 
         -- Navigate "up" to scopes
