@@ -1,19 +1,19 @@
 local Scope = require("grapple.scope")
 
 ---@class grapple.scope_manager
----@field tag_manager grapple.tag_manager
+---@field app grapple.app
 ---@field cache grapple.cache
 ---@field scopes table<string, grapple.scope>
 ---@field resolved_lookup table<string, grapple.resolved_scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
----@param tag_manager grapple.tag_manager
+---@param app grapple.app
 ---@param cache grapple.cache
 ---@return grapple.scope_manager
-function ScopeManager:new(tag_manager, cache)
+function ScopeManager:new(app, cache)
     return setmetatable({
-        tag_manager = tag_manager,
+        app = app,
         cache = cache,
         scopes = {},
         resolved_lookup = {},
@@ -48,7 +48,7 @@ function ScopeManager:get_resolved(name)
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local resolved, err = scope:resolve(self.tag_manager)
+    local resolved, err = scope:resolve()
     if not resolved then
         return nil, err
     end
@@ -98,7 +98,7 @@ function ScopeManager:define(name, resolver, opts)
         self.cache:open(name, opts.cache == true and {} or opts.cache)
     end
 
-    local scope = Scope:new(name, resolver, {
+    local scope = Scope:new(self.app, name, resolver, {
         desc = opts.desc,
         fallback = fallback,
     })

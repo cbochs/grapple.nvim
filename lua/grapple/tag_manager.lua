@@ -7,10 +7,12 @@ local Util = require("grapple.util")
 local TagManager = {}
 TagManager.__index = TagManager
 
+---@param app grapple.app
 ---@param state grapple.state
 ---@return grapple.tag_manager
-function TagManager:new(state)
+function TagManager:new(app, state)
     return setmetatable({
+        app = app,
         state = state,
         containers = {},
     }, self)

@@ -29,19 +29,25 @@ function App:new()
     local State = require("grapple.state")
     local TagManager = require("grapple.tag_manager")
 
+    local app = setmetatable({
+        settings = nil,
+        scope_manager = nil,
+        tag_manager = nil,
+    }, self)
+
     local settings = Settings:new()
 
-    local state = State:new(settings.save_path)
-    local tag_manager = TagManager:new(state)
-
     local cache = Cache:new()
-    local scope_manager = ScopeManager:new(tag_manager, cache)
+    local scope_manager = ScopeManager:new(app, cache)
 
-    return setmetatable({
-        settings = settings,
-        scope_manager = scope_manager,
-        tag_manager = tag_manager,
-    }, self)
+    local state = State:new(settings.save_path)
+    local tag_manager = TagManager:new(app, state)
+
+    app.settings = settings
+    app.scope_manager = scope_manager
+    app.tag_manager = tag_manager
+
+    return app
 end
 
 ---@param opts? grapple.settings
