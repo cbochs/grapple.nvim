@@ -1,21 +1,6 @@
 local Path = require("grapple.path")
 local Tag = require("grapple.tag")
 
----@class grapple.tag.container.insert
----@field path string rquired, must be unique
----@field name? string optional, but must be unique
----@field cursor? integer[]
----@field index? integer
-
----@class grapple.tag.container.get
----@field index? integer
----@field name? string
----@field path? string
-
----@class grapple.tag.container.move
----@field path string
----@field index integer
-
 ---@class grapple.tag_container
 ---@field id string
 ---@field tags grapple.tag[]
@@ -224,7 +209,7 @@ function TagContainer:into_table()
         return tag:into_table()
     end
 
-    ---@class grapple.tag.container.format
+    ---@class grapple.tag_container.format
     return {
         id = self.id,
         tags = vim.tbl_map(into_table, self.tags),
@@ -232,7 +217,7 @@ function TagContainer:into_table()
 end
 
 -- Implements Deserialize
----@param tbl grapple.tag.container.format
+---@param tbl grapple.tag_container.format
 ---@return grapple.tag_container | nil, string? error
 function TagContainer.from_table(tbl)
     local container = TagContainer:new(tbl.id)
@@ -254,7 +239,7 @@ function TagContainer.from_table(tbl)
 end
 
 ---Unused
----@param opts grapple.tag.container.move
+---@param opts grapple.options
 ---@return string? error
 function TagContainer:move(opts)
     local index = self:index({ path = opts.path })
