@@ -109,21 +109,20 @@ function App:reset(opts)
     })
 
     -- The loaded scope's ID and associated scope's name
-    ---@type string
+    ---@type string, string | nil
     local id, name
 
     if opts.id then
-        local scope, err = app.scope_manager:lookup(opts.id)
-        if not scope then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            return err
-        end
+        -- Case: reset by id: scope may be or may not be loaded
+        local scope, _ = app.scope_manager:lookup(opts.id)
 
         id = opts.id
-        name = scope.name
+        name = scope and scope.name
     elseif opts.scope then
+        -- Case: reset by name: scope id and name must be available
         local scope, err = app.scope_manager:get_resolved(opts.scope)
         if not scope then
+            ---@diagnostic disable-next-line: param-type-mismatch
             return err
         end
 
@@ -131,11 +130,13 @@ function App:reset(opts)
         name = scope.name
     end
 
-    if not id or not name then
+    if not id then
         return string.format("must provide a valid scope or id: %s", vim.inspect(opts))
     end
 
-    self.scope_manager.cache:unwatch(name)
+    if name then
+        self.scope_manager.cache:unwatch(name)
+    end
 
     ---@diagnostic disable-next-line: redefined-local
     local err = self.tag_manager:reset(id)
