@@ -89,11 +89,9 @@ function App:current_scope()
     return self.scope_manager:get_resolved(self.settings.scope)
 end
 
----Reset tags for a given scope (name) or loaded scope (id)
----By default, uses the current scope
 ---@param opts? { scope?: string, id?: string }
----@return string? error
-function App:reset(opts)
+---@return string | nil id, string | nil name, string? error
+function App:lookup(opts)
     opts = vim.tbl_extend("keep", opts or {}, {
         scope = self.settings.scope,
     })
@@ -113,7 +111,7 @@ function App:reset(opts)
         local scope, err = app.scope_manager:get_resolved(opts.scope)
         if not scope then
             ---@diagnostic disable-next-line: param-type-mismatch
-            return err
+            return nil, nil, err
         end
 
         id = scope.id
@@ -121,18 +119,44 @@ function App:reset(opts)
     end
 
     if not id then
-        return string.format("must provide a valid scope or id: %s", vim.inspect(opts))
+        return nil, nil, string.format("must provide a valid scope or id: %s", vim.inspect(opts))
+    end
+
+    return id, name, nil
+end
+
+---Unload tags for a given scope (name) or loaded scope (id)
+---By default, uses the current scope
+---@param opts? { scope?: string, id?: string }
+---@return string? error
+function App:unload(opts)
+    local id, name, err = self:lookup(opts)
+    if not id then
+        return err
     end
 
     if name then
         self.scope_manager.cache:unwatch(name)
     end
 
-    ---@diagnostic disable-next-line: redefined-local
-    local err = self.tag_manager:reset(id)
-    if err then
+    self.tag_manager:unload(id)
+end
+
+---Reset tags for a given scope (name) or loaded scope (id)
+---By default, uses the current scope
+---@param opts? { scope?: string, id?: string }
+---@return string? error
+function App:reset(opts)
+    local id, name, err = self:lookup(opts)
+    if not id then
         return err
     end
+
+    if name then
+        self.scope_manager.cache:unwatch(name)
+    end
+
+    self.tag_manager:reset(id)
 end
 
 ---@param scope_name? string

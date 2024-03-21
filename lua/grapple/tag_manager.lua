@@ -135,9 +135,14 @@ function TagManager:load(id)
 end
 
 ---@param id string
+function TagManager:unload(id)
+    self.containers[id] = nil
+end
+
+---@param id string
 ---@return string? error
 function TagManager:reset(id)
-    self.containers[id] = nil
+    self:unload(id)
 
     if self.state:exists(id) then
         local err = self.state:remove(id)

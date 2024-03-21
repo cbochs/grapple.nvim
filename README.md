@@ -821,12 +821,13 @@ require("grapple").open_scopes()
 
 <img width="1080" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/8b91222f-cf5e-43b9-9286-56379a6a80f0">
 
-Open a floating window with all loaded scopes. This buffer is not modifiable. Some basic actions are available by default:
+Open a floating window with all loaded scope IDs. This buffer is not modifiable. Some basic actions are available by default:
 
-- **Selection** (`<cr>`): open the [tags window](#tags-window) for the loaded scope under the cursor
-- **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
-- **Deletion** (`x`): reset the tags for the loaded scope under the cursor
-- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scopes
+- **Selection** (`<cr>`): open the [tags window](#tags-window) for the loaded scope ID under the cursor
+- **Quick select** (default: `1-9`): open tags window for the loaded scope ID at a given index
+- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scope IDs
+- **Unload** (`x`): unload the tags for the scope ID under the cursor
+- **Deletion** (`X`): reset the tags for the scope ID under the cursor
 - **Go up** (`-`): navigate across to the [scopes window](#scopes-window)
 - **Help** (`?`): open the help window
 

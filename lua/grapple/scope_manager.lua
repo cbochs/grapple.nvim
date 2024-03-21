@@ -1,3 +1,4 @@
+local ResolvedScope = require("grapple.resolved_scope")
 local Scope = require("grapple.scope")
 
 ---@class grapple.scope_manager
@@ -63,11 +64,25 @@ end
 ---@return grapple.resolved_scope | nil, string? error
 function ScopeManager:lookup(id)
     local resolved = self.resolved_lookup[id]
-    if not resolved then
-        return nil, string.format("could not find resolved scope for id: %s", id)
+
+    if resolved then
+        return resolved, nil
     end
 
-    return self.resolved_lookup[id], nil
+    ---@param item grapple.tag_container_item
+    ---@return string id
+    local to_id = function(item)
+        return item.id
+    end
+
+    -- TODO: This lookup is using the tag_manager. Maybe it should be moved
+    -- somewhere else? Looks like an opportunity for refactoring
+    local ids = vim.tbl_map(to_id, self.app.tag_manager:list())
+    if vim.tbl_contains(ids, id) then
+        return ResolvedScope:new(self.app, "unknown", id, nil)
+    end
+
+    return nil, string.format("could not find resolved scope for id: %s", id)
 end
 
 ---@param name string

@@ -16,9 +16,14 @@ function ContainerActions.select(opts)
     require("grapple").open_tags({ id = opts.id })
 end
 
+function ContainerActions.unload(opts)
+    require("grapple").unload({ id = opts.id, notify = true })
+    opts.window:render()
+end
+
 ---@param opts grapple.action.container_options
 function ContainerActions.reset(opts)
-    require("grapple").reset({ id = opts.id })
+    require("grapple").reset({ id = opts.id, notify = true })
     opts.window:render()
 end
 

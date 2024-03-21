@@ -3,24 +3,24 @@ local Util = require("grapple.util")
 
 ---@class grapple.tag_content
 ---@field scope grapple.resolved_scope
----@field style_fn grapple.style_fn
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
+---@field style_fn grapple.style_fn
 ---@field current_selection string | nil path of the current buffer
 local TagContent = {}
 TagContent.__index = TagContent
 
 ---@param scope grapple.resolved_scope
----@param style_fn grapple.style_fn
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
+---@param style_fn grapple.style_fn
 ---@return grapple.tag_content
-function TagContent:new(scope, style_fn, hook_fn, title_fn)
+function TagContent:new(scope, hook_fn, title_fn, style_fn)
     return setmetatable({
         scope = scope,
-        style_fn = style_fn,
         hook_fn = hook_fn,
         title_fn = title_fn,
+        style_fn = style_fn,
         current_selection = nil,
     }, self)
 end

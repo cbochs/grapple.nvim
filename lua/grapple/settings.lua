@@ -318,8 +318,15 @@ local DEFAULT_SETTINGS = {
             window:perform_retain(ContainerActions.toggle_all)
         end, { desc = "Toggle show all" })
 
-        -- Reset
+        -- Unload
         window:map("n", "x", function()
+            local entry = window:current_entry()
+            local id = entry.data.id
+            window:perform_retain(ContainerActions.unload, { id = id })
+        end)
+
+        -- Reset
+        window:map("n", "X", function()
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_retain(ContainerActions.reset, { id = id })

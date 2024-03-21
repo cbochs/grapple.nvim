@@ -378,19 +378,50 @@ function Grapple.statusline(opts)
     return statusline
 end
 
+---@param opts? { scope?: string, id?: string, notify?: boolean }
+---@return string? error
+function Grapple.unload(opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    opts = opts or {}
+
+    local err = app:unload(opts)
+    if err then
+        if opts.notify then
+            return vim.notify(err, vim.log.levels.ERROR)
+        else
+            return err
+        end
+    end
+
+    if opts.notify then
+        vim.notify(string.format("Scope unloaded: %s", opts.scope or opts.id), vim.log.levels.INFO)
+    end
+end
+
 ---Reset tags for a given (scope) name or loaded scope (id)
 ---By default, uses the current scope
----@param opts? { scope?: string, id?: string }
+---@param opts? { scope?: string, id?: string, notify?: boolean }
+---@return string? error
 function Grapple.reset(opts)
     local App = require("grapple.app")
     local app = App.get()
 
+    opts = opts or {}
+
     local err = app:reset(opts)
     if err then
-        return vim.notify(err, vim.log.levels.ERROR)
+        if opts.notify then
+            return vim.notify(err, vim.log.levels.ERROR)
+        else
+            return err
+        end
     end
 
-    vim.notify(string.format("Scope reset: %s", opts.scope or opts.id), vim.log.levels.INFO)
+    if opts.notify then
+        vim.notify(string.format("Scope reset: %s", opts.scope or opts.id), vim.log.levels.INFO)
+    end
 end
 
 ---Create a user-defined scope
@@ -412,20 +443,20 @@ function Grapple.delete_scope(scope)
 end
 
 ---Change the currently selected scope
----@param scope string
-function Grapple.use_scope(scope)
+---@param scope_name string
+function Grapple.use_scope(scope_name)
     local App = require("grapple.app")
     local app = App.get()
 
-    local resolved, err = app.scope_manager:get(scope)
-    if not resolved then
+    local scope, err = app.scope_manager:get(scope_name)
+    if not scope then
         ---@diagnostic disable-next-line: param-type-mismatch
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
-    if resolved.name ~= app.settings.scope then
-        app.settings:update({ scope = resolved.name })
-        vim.notify(string.format("Changing scope: %s", resolved.name))
+    if scope.name ~= app.settings.scope then
+        app.settings:update({ scope = scope.name })
+        vim.notify(string.format("Changing scope: %s", scope.name))
     end
 end
 
@@ -499,9 +530,9 @@ function Grapple.open_tags(opts)
     -- stylua: ignore
     local content = TagContent:new(
         scope,
-        app.settings.styles[opts.style or app.settings.style],
         app.settings.tag_hook,
-        app.settings.tag_title
+        app.settings.tag_title,
+        app.settings.styles[opts.style or app.settings.style]
     )
 
     open(content)
@@ -642,6 +673,7 @@ function Grapple.initialize()
                     toggle_loaded  = { args = {},              kwargs = { "all" } },
                     toggle_scopes  = { args = {},              kwargs = {} },
                     toggle_tags    = { args = {},              kwargs = window_kwargs },
+                    unload         = { args = {},              kwargs = scope_kwargs },
                     untag          = { args = {},              kwargs = use_kwargs },
                     use_scope      = { args = { "scope" },     kwargs = {} },
                 }
