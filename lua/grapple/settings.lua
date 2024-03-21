@@ -330,7 +330,7 @@ local DEFAULT_SETTINGS = {
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_retain(ContainerActions.unload, { id = id })
-        end)
+        end, { desc = "Unload scope" })
 
         -- Reset
         window:map("n", "X", function()

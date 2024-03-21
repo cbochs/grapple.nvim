@@ -76,7 +76,7 @@ function HelpContent:entities()
         ---@class grapple.help_content.entity
         local entity = {
             lhs = keymap.lhs,
-            desc = keymap.desc,
+            desc = keymap.desc or "",
             padding = 0,
         }
 
