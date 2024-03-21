@@ -423,8 +423,8 @@ function Grapple.reset(opts)
     end
 end
 
----Prune
----@param opts? { ttl?: integer | string, notify?: boolean }
+---Prune Grapple save files based on their last modified time (mtime)
+---@param opts? { mtime?: integer | string, notify?: boolean }
 ---@return string[] | nil, string? error
 function Grapple.prune(opts)
     local App = require("grapple.app")
@@ -432,7 +432,7 @@ function Grapple.prune(opts)
 
     opts = opts or {}
 
-    local pruned_ids, err = app.tag_manager:prune(opts.until or app.settings.prune)
+    local pruned_ids, err = app.tag_manager:prune(opts.mtime or app.settings.prune)
     if not pruned_ids then
         if opts.notify then
             vim.notify(err, vim.log.levels.ERROR)
@@ -684,7 +684,7 @@ function Grapple.initialize()
                     open_loaded    = { args = {},              kwargs = { "all" } },
                     open_scopes    = { args = {},              kwargs = {} },
                     open_tags      = { args = {},              kwargs = window_kwargs },
-                    prune          = { args = {},              kwargs = { "ttl" } },
+                    prune          = { args = {},              kwargs = { "mtime" } },
                     quickfix       = { args = {},              kwargs = scope_kwargs },
                     reset          = { args = {},              kwargs = scope_kwargs },
                     select         = { args = {},              kwargs = use_kwargs },

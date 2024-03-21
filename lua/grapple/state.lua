@@ -83,7 +83,7 @@ function State:remove(name)
 end
 
 ---@return string[] | nil pruned, string? error, string? error_kind
-function State:prune(ttl_msec)
+function State:prune(mtime_sec)
     local function current_time()
         local name = os.tmpname()
         local fd, err, err_kind = vim.loop.fs_open(name, "r", 438)
@@ -91,6 +91,7 @@ function State:prune(ttl_msec)
             return nil, err, err_kind
         end
 
+        ---@diagnostic disable-next-line: redefined-local
         local stat, err, err_kind = vim.loop.fs_fstat(fd)
         if not stat then
             return nil, err, err_kind
@@ -119,7 +120,7 @@ function State:prune(ttl_msec)
         end
 
         local elapsed_msec = now - stat.mtime.sec
-        if elapsed_msec > ttl_msec then
+        if elapsed_msec > mtime_sec then
             name = path_decode(name)
             name = string.gsub(name, "%.json", "")
             table.insert(pruned, path_decode(name))

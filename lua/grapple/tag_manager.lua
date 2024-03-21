@@ -152,37 +152,37 @@ function TagManager:reset(id)
     end
 end
 
----@param ttl integer | string
+---@param mtime integer | string
 ---@return string[] | nil pruned, string? error
-function TagManager:prune(ttl)
+function TagManager:prune(mtime)
     vim.validate({
-        ttl = { ttl, { "number", "string" } },
+        mtime = { mtime, { "number", "string" } },
     })
 
-    local ttl_msec
-    if type(ttl) == "number" then
-        ttl_msec = ttl
-    elseif type(ttl) == "string" then
-        local n, kind = string.match(ttl, "^(%d+)(%S)$")
+    local mtime_msec
+    if type(mtime) == "number" then
+        mtime_msec = mtime
+    elseif type(mtime) == "string" then
+        local n, kind = string.match(mtime, "^(%d+)(%S)$")
         if not n or not kind then
-            return nil, string.format("Could not parse time-to-live: %s", ttl)
+            return nil, string.format("Could not parse time-to-live: %s", mtime)
         end
 
         n = assert(tonumber(n))
         if kind == "d" then
-            ttl_msec = n * 24 * 60 * 60 * 1000
+            mtime_msec = n * 24 * 60 * 60 * 1000
         elseif kind == "h" then
-            ttl_msec = n * 60 * 60 * 1000
+            mtime_msec = n * 60 * 60 * 1000
         elseif kind == "m" then
-            ttl_msec = n * 60 * 1000
+            mtime_msec = n * 60 * 1000
         else
             return nil, string.format("Invalid time-to-live kind: %s", kind)
         end
     else
-        return nil, string.format("Invalid time-to-live: %s", vim.inspect(ttl))
+        return nil, string.format("Invalid time-to-live: %s", vim.inspect(mtime))
     end
 
-    local pruned_ids, err = self.state:prune(ttl_msec)
+    local pruned_ids, err = self.state:prune(mtime_msec)
     if not pruned_ids then
         return nil, err
     end
