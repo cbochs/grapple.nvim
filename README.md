@@ -456,9 +456,38 @@ require("grapple").cycle_forward()
 
 </details>
 
+#### `Grapple.unload`
+
+Unload tags for a give (scope) name or loaded scope (id).
+
+**Command**: `:Grapple unload [scope={scope}] [id={id}]`
+
+**API**: `require("grapple").unload(opts)`
+
+**`opts?`**: `table`
+
+- **`scope?`**: `string` scope name (default: `settings.scope`)
+- **`id?`**: `string` the ID of a resolved scope
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Unload the current scope
+require("grapple").unload()
+
+-- Unload a scope (dynamic)
+require("grapple").unload({ scope = "git" })
+
+-- Unload a specific resolved scope ID
+require("grapple").unload({ id = "~/git" })
+```
+
+</details>
+
 #### `Grapple.reset`
 
-Clear all tags for a scope.
+Reset tags for a given (scope) name or loaded scope (id).
 
 **Command**: `:Grapple reset [scope={scope}] [id={id}]`
 
@@ -481,6 +510,41 @@ require("grapple").reset({ scope = "git" })
 
 -- Reset a specific resolved scope ID
 require("grapple").reset({ id = "~/git" })
+```
+
+</details>
+
+#### `Grapple.prune`
+
+Prune save files based on their last modified time.
+
+**Command**: `:Grapple prune [limit=]`
+
+**API**: `require("grapple").prune(opts)`
+
+**`opts?`**: `table`
+
+- **`limit?`**: `integer` | `string` modified time limit (default: `settings.prune`)
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Prune using the default time limit
+require("grapple").prune()
+
+-- Prune longer than 30 days
+require("grapple").prune({ limit = "30d" })
+
+-- Prune longer than 6 hours
+require("grapple").prune({ limit = "6h" })
+
+-- Prune longer than 15 minutes
+require("grapple").prune({ limit = "15m" })
+
+-- Prune longer than 120 seconds
+require("grapple").prune({ limit = "120s" })
+require("grapple").prune({ limit = 120 })
 ```
 
 </details>
