@@ -152,6 +152,46 @@ function TagManager:reset(id)
     end
 end
 
+---@param time_limit integer | string
+---@return string[] | nil pruned, string? error
+function TagManager:prune(time_limit)
+    vim.validate({
+        time_limit = { time_limit, { "number", "string" } },
+    })
+
+    local limit_sec
+    if type(time_limit) == "number" then
+        limit_sec = time_limit
+    elseif type(time_limit) == "string" then
+        local n, kind = string.match(time_limit, "^(%d+)(%S)$")
+        if not n or not kind then
+            return nil, string.format("Could not parse time limit: %s", time_limit)
+        end
+
+        n = assert(tonumber(n))
+        if kind == "d" then
+            limit_sec = n * 24 * 60 * 60
+        elseif kind == "h" then
+            limit_sec = n * 60 * 60
+        elseif kind == "m" then
+            limit_sec = n * 60
+        elseif kind == "s" then
+            limit_sec = n
+        else
+            return nil, string.format("Invalid time limit kind: %s", time_limit)
+        end
+    else
+        return nil, string.format("Invalid time limit: %s", vim.inspect(time_limit))
+    end
+
+    local pruned_ids, err = self.state:prune(limit_sec)
+    if not pruned_ids then
+        return nil, err
+    end
+
+    return pruned_ids, nil
+end
+
 ---@param id string
 ---@return string? error
 function TagManager:sync(id)

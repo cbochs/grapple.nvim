@@ -378,6 +378,7 @@ function Grapple.statusline(opts)
     return statusline
 end
 
+---Unload tags for a give (scope) name or loaded scope (id)
 ---@param opts? { scope?: string, id?: string, notify?: boolean }
 ---@return string? error
 function Grapple.unload(opts)
@@ -389,10 +390,9 @@ function Grapple.unload(opts)
     local err = app:unload(opts)
     if err then
         if opts.notify then
-            return vim.notify(err, vim.log.levels.ERROR)
-        else
-            return err
+            vim.notify(err, vim.log.levels.ERROR)
         end
+        return err
     end
 
     if opts.notify then
@@ -413,15 +413,48 @@ function Grapple.reset(opts)
     local err = app:reset(opts)
     if err then
         if opts.notify then
-            return vim.notify(err, vim.log.levels.ERROR)
-        else
-            return err
+            vim.notify(err, vim.log.levels.ERROR)
         end
+        return err
     end
 
     if opts.notify then
         vim.notify(string.format("Scope reset: %s", opts.scope or opts.id), vim.log.levels.INFO)
     end
+end
+
+---Prune save files based on their last modified time
+---@param opts? { limit?: integer | string, notify?: boolean }
+---@return string[] | nil, string? error
+function Grapple.prune(opts)
+    local Util = require("grapple.util")
+    local App = require("grapple.app")
+    local app = App.get()
+
+    opts = opts or {}
+
+    local pruned_ids, err = app.tag_manager:prune(opts.limit or app.settings.prune)
+    if not pruned_ids then
+        if opts.notify then
+            vim.notify(err, vim.log.levels.ERROR)
+        end
+        return nil, err
+    end
+
+    if opts.notify then
+        if #pruned_ids == 0 then
+            vim.notify("Pruned 0 save files", vim.log.levels.INFO)
+        elseif #pruned_ids == 1 then
+            vim.notify(string.format("Pruned %d save file: %s", #pruned_ids, pruned_ids[1]), vim.log.levels.INFO)
+        else
+            vim.print(pruned_ids)
+            local output_tbl = vim.tbl_map(Util.with_prefix("  "), pruned_ids)
+            local output = table.concat(output_tbl, "\n")
+            vim.notify(string.format("Pruned %d save files\n%s", #pruned_ids, output), vim.log.levels.INFO)
+        end
+    end
+
+    return pruned_ids, nil
 end
 
 ---Create a user-defined scope
@@ -665,6 +698,7 @@ function Grapple.initialize()
                     open_loaded    = { args = {},              kwargs = { "all" } },
                     open_scopes    = { args = {},              kwargs = {} },
                     open_tags      = { args = {},              kwargs = window_kwargs },
+                    prune          = { args = {},              kwargs = { "limit" } },
                     quickfix       = { args = {},              kwargs = scope_kwargs },
                     reset          = { args = {},              kwargs = scope_kwargs },
                     select         = { args = {},              kwargs = use_kwargs },

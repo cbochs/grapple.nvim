@@ -59,13 +59,15 @@ end
 ---@return string[]
 function State:list()
     local files = {}
-    for name, type in vim.fs.dir(self.save_dir) do
+    for file_name, type in vim.fs.dir(self.save_dir) do
         if type ~= "file" then
             goto continue
         end
 
+        local name = file_name
         name = path_decode(name)
         name = string.gsub(name, "%.json", "")
+
         table.insert(files, name)
 
         ::continue::
@@ -80,6 +82,45 @@ function State:remove(name)
     if err then
         return err, "FS_UNLINK"
     end
+end
+
+---@return string[] | nil pruned, string? error, string? error_kind
+function State:prune(limit_sec)
+    local now = os.time(os.date("*t"))
+    local pruned = {}
+
+    for file_name, type in vim.fs.dir(self.save_dir) do
+        if type ~= "file" then
+            goto continue
+        end
+
+        local path = Path.join(self.save_dir, file_name)
+
+        local name = file_name
+        name = path_decode(name)
+        name = string.gsub(name, "%.json", "")
+
+        ---@diagnostic disable-next-line: redefined-local
+        local stat, err, err_kind = vim.loop.fs_stat(path)
+        if not stat then
+            return nil, err, err_kind
+        end
+
+        local elapsed_sec = now - stat.mtime.sec
+        if elapsed_sec > limit_sec then
+            table.insert(pruned, path_decode(name))
+
+            ---@diagnostic disable-next-line: redefined-local
+            local err, err_kind = self:remove(name)
+            if err then
+                return nil, err, err_kind
+            end
+        end
+
+        ::continue::
+    end
+
+    return pruned, nil, nil
 end
 
 ---@param name string
