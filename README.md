@@ -253,7 +253,7 @@ require("grapple").setup({
 
     ---Time limit used for pruning unused scope (IDs). If a scope's save file
     ---modified time exceeds this limit, then it will be deleted when a prune
-    ---requested. Can be an integer (in milliseconds) or a string time delta
+    ---requested. Can be an integer (in milliseconds) or a string time limit
     ---(e.g. "30d" or "2h" or "15m")
     ---@type integer | string
     prune = "30d",
