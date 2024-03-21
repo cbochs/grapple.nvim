@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 19
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 21
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -828,24 +828,32 @@ Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the |grapple-tags-window| for the loaded scope under the cursor
 - **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
-- **Deletion (x)**reset the tags for the loaded scope under the cursor
+- **Deletion** (`x`): reset the tags for the loaded scope under the cursor
+- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scopes
 - **Go up** (`-`): navigate across to the |grapple-scopes-window|
 - **Help** (`?`): open the help window
 
 **API**
 
-- `require("grapple").open_loaded()`
-- `require("grapple").toggle_loaded()`
+- `require("grapple").open_loaded(opts)`
+- `require("grapple").toggle_loaded(opts)`
+
+**opts?**`table`
+
+- **all**`boolean` (default: `false`)
 
 Examples ~
 
 >lua
-    -- Open the scopes window
+    -- Open the loaded scopes window, show only loaded scopes
     require("grapple").open_loaded()
+    
+    -- Open the loaded scopes window, show both loaded and unloaded scopes
+    require("grapple").open_loaded({ all = true })
 <
 
 
-WINDOWHIGHLIGHTS ~
+WINDOW HIGHLIGHTS ~
 
   ---------------------------------------------------------------------------
   Highlight        Default Link      Style      Used in
