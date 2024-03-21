@@ -424,6 +424,20 @@ function Grapple.reset(opts)
     end
 end
 
+---@param opts { ttl: integer | string }
+---@return string[] | nil, string? error
+function Grapple.prune(opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    local pruned_ids, err = app.tag_manager:prune(opts.ttl)
+    if not pruned_ids then
+        return nil, err
+    end
+
+    return pruned_ids, nil
+end
+
 ---Create a user-defined scope
 ---@param definition grapple.scope_definition
 ---@return string? error

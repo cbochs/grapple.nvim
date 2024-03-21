@@ -152,6 +152,44 @@ function TagManager:reset(id)
     end
 end
 
+---@param ttl integer | string
+---@return string[] | nil pruned, string? error
+function TagManager:prune(ttl)
+    vim.validate({
+        ttl = { ttl, { "number", "string" } },
+    })
+
+    local ttl_msec
+    if type(ttl) == "number" then
+        ttl_msec = ttl
+    elseif type(ttl) == "string" then
+        local n, kind = string.match(ttl, "^(%d+)(%S)$")
+        if not n or not kind then
+            return nil, string.format("Could not parse time-to-live: %s", ttl)
+        end
+
+        n = assert(tonumber(n))
+        if kind == "d" then
+            ttl_msec = n * 24 * 60 * 60 * 1000
+        elseif kind == "h" then
+            ttl_msec = n * 60 * 60 * 1000
+        elseif kind == "m" then
+            ttl_msec = n * 60 * 1000
+        else
+            return nil, string.format("Invalid time-to-live kind: %s", kind)
+        end
+    else
+        return nil, string.format("Invalid time-to-live: %s", vim.inspect(ttl))
+    end
+
+    local pruned_ids, err = self.state:prune(ttl_msec)
+    if not pruned_ids then
+        return nil, err
+    end
+
+    return pruned_ids, nil
+end
+
 ---@param id string
 ---@return string? error
 function TagManager:sync(id)
