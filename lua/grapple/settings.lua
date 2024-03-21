@@ -41,12 +41,19 @@ local DEFAULT_SETTINGS = {
 
     ---A string of characters used for quick selecting in Grapple windows
     ---An empty string or false will disable quick select
-    ---@type string
+    ---@type string | boolean
     quick_select = "123456789",
 
     ---Default command to use when selecting a tag
     ---@type fun(path: string)
     command = vim.cmd.edit,
+
+    ---Time limit used for pruning unused scope (IDs). If a scope's save file
+    ---modified time exceeds this limit, then it will be deleted when a prune
+    ---requested. Can be an integer (in milliseconds) or a string time delta
+    ---(e.g. "30d" or "2h" or "15m")
+    ---@type integer | string
+    prune = "30d",
 
     ---@class grapple.scope_definition
     ---@field name string
