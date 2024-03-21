@@ -65,7 +65,7 @@ function State:list()
         end
 
         local name = file_name
-        name = path_decode(file_name)
+        name = path_decode(name)
         name = string.gsub(name, "%.json", "")
 
         table.insert(files, name)
@@ -97,7 +97,7 @@ function State:prune(limit_sec)
         local path = Path.join(self.save_dir, file_name)
 
         local name = file_name
-        name = path_decode(file_name)
+        name = path_decode(name)
         name = string.gsub(name, "%.json", "")
 
         ---@diagnostic disable-next-line: redefined-local
