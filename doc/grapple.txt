@@ -823,13 +823,14 @@ LOADEDSCOPES WINDOW ~
 
 
 
-Open a floating window with all loaded scopes. This buffer is not modifiable.
-Some basic actions are available by default:
+Open a floating window with all loaded scope IDs. This buffer is not
+modifiable. Some basic actions are available by default:
 
-- **Selection** (`<cr>`): open the |grapple-tags-window| for the loaded scope under the cursor
-- **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
-- **Deletion** (`x`): reset the tags for the loaded scope under the cursor
-- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scopes
+- **Selection** (`<cr>`): open the |grapple-tags-window| for the loaded scope ID under the cursor
+- **Quick select** (default: `1-9`): open tags window for the loaded scope ID at a given index
+- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scope IDs
+- **Unload** (`x`): unload the tags for the scope ID under the cursor
+- **Deletion** (`X`): reset the tags for the scope ID under the cursor
 - **Go up** (`-`): navigate across to the |grapple-scopes-window|
 - **Help** (`?`): open the help window
 
