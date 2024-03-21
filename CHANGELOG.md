@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.25.0](https://github.com/cbochs/grapple.nvim/compare/v0.24.1...v0.25.0) (2024-03-21)
+
+
+### Features
+
+* toggle showing loaded and unloaded scopes in UI with '&lt;s-cr&gt;' ([03ffbb9](https://github.com/cbochs/grapple.nvim/commit/03ffbb907adffd4d95214265ac987e312946674e))
+
+
+### Bug Fixes
+
+* allow deletion of unloaded scopes ([9350912](https://github.com/cbochs/grapple.nvim/commit/9350912b46ce0c2fc0386c82f40d71f26e6d01be))
+* don't close loaded scopes window when a scope is reset ([dcc5984](https://github.com/cbochs/grapple.nvim/commit/dcc598415ce24e5faaee232c5e6a792bda7c957c))
+
 ## [0.24.1](https://github.com/cbochs/grapple.nvim/compare/v0.24.0...v0.24.1) (2024-03-19)
 
 
