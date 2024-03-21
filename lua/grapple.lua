@@ -8,11 +8,6 @@ function Grapple.setup(opts)
     if err then
         return vim.notify(err, vim.log.levels.ERROR)
     end
-
-    local err = app:load_current_scope()
-    if err then
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
 end
 
 ---@class grapple.options

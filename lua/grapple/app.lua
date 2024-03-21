@@ -84,16 +84,6 @@ function App:delete_scope(scope_name)
     return self.scope_manager:delete(scope_name)
 end
 
----@return string? error
-function App:load_current_scope()
-    local scope, err = self:current_scope()
-    if not scope then
-        return err
-    end
-
-    self.tag_manager:load(scope.id)
-end
-
 ---@return grapple.resolved_scope | nil, string? error
 function App:current_scope()
     return self.scope_manager:get_resolved(self.settings.scope)
