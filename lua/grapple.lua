@@ -440,6 +440,10 @@ function Grapple.prune(opts)
         return nil, err
     end
 
+    if opts.notify then
+        vim.notify(string.format("Pruned %d save files", #pruned_ids), vim.log.levels.INFO)
+    end
+
     return pruned_ids, nil
 end
 
