@@ -209,7 +209,9 @@ function Window:sync()
     return nil
 end
 
----@alias grapple.window.entity any
+---@class grapple.window.entity
+---@field current boolean
+---@field ... any
 
 ---@class grapple.window.entry
 ---@field data table
@@ -341,6 +343,11 @@ function Window:render()
     self.entries = {}
 
     for i, entity in ipairs(entities) do
+        -- Change the cursor if the cursor is at the default position (1, 0)
+        if entity.current and cursor[1] == 1 and cursor[2] == 0 then
+            cursor = { i, 0 }
+        end
+
         local entry = self.content:create_entry(entity, i)
         table.insert(self.entries, entry)
     end
