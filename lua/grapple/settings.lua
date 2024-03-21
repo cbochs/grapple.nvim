@@ -313,6 +313,11 @@ local DEFAULT_SETTINGS = {
             end, { desc = string.format("Quick select %d", i) })
         end
 
+        -- Toggle
+        window:map("n", "<s-cr>", function()
+            window:perform_close(ContainerActions.toggle_all)
+        end, { desc = "Toggle show all" })
+
         -- Reset
         window:map("n", "x", function()
             local entry = window:current_entry()

@@ -395,7 +395,7 @@ function Grapple.reset(opts)
         return vim.notify(err, vim.log.levels.ERROR)
     end
 
-    vim.notify("Scope reset", vim.log.levels.INFO)
+    vim.notify(string.format("Scope reset: %s", opts.scope or opts.id), vim.log.levels.INFO)
 end
 
 ---Create a user-defined scope
@@ -519,27 +519,30 @@ end
 
 ---Open a floating window populated with all defined scopes
 function Grapple.open_scopes()
-    local App = require("grapple.app")
     local ScopeContent = require("grapple.scope_content")
-
+    local App = require("grapple.app")
     local app = App.get()
-    local content = ScopeContent:new(app.scope_manager, app.settings.scope_hook, app.settings.scope_title)
+
+    local content = ScopeContent:new(app, app.settings.scope_hook, app.settings.scope_title)
 
     open(content)
 end
 
 ---Toggle a floating window populated with all loaded scopes
-function Grapple.toggle_loaded()
-    toggle(Grapple.open_loaded)
+---@param opts? { all: boolean }
+function Grapple.toggle_loaded(opts)
+    toggle(Grapple.open_loaded, opts)
 end
 
 ---Open a floating window populated with all loaded scopes
-function Grapple.open_loaded()
-    local App = require("grapple.app")
+---@param opts? { all: boolean }
+function Grapple.open_loaded(opts)
     local ContainerContent = require("grapple.container_content")
-
+    local App = require("grapple.app")
     local app = App.get()
-    local content = ContainerContent:new(app.tag_manager, app.settings.loaded_hook, app.settings.loaded_title)
+
+    local show_all = opts and opts.all or false
+    local content = ContainerContent:new(app, app.settings.loaded_hook, app.settings.loaded_title, show_all)
 
     open(content)
 end
@@ -633,7 +636,7 @@ function Grapple.initialize()
                     cycle          = { args = { "direction" }, kwargs = use_kwargs },
                     cycle_backward = { args = {},              kwargs = use_kwargs },
                     cycle_forward  = { args = {},              kwargs = use_kwargs },
-                    open_loaded    = { args = {},              kwargs = {} },
+                    open_loaded    = { args = {},              kwargs = { "all" } },
                     open_scopes    = { args = {},              kwargs = {} },
                     open_tags      = { args = {},              kwargs = window_kwargs },
                     quickfix       = { args = {},              kwargs = scope_kwargs },
@@ -641,7 +644,7 @@ function Grapple.initialize()
                     select         = { args = {},              kwargs = use_kwargs },
                     tag            = { args = {},              kwargs = new_kwargs },
                     toggle         = { args = {},              kwargs = tag_kwargs },
-                    toggle_loaded  = { args = {},              kwargs = {} },
+                    toggle_loaded  = { args = {},              kwargs = { "all" } },
                     toggle_scopes  = { args = {},              kwargs = {} },
                     toggle_tags    = { args = {},              kwargs = window_kwargs },
                     untag          = { args = {},              kwargs = use_kwargs },
@@ -650,6 +653,7 @@ function Grapple.initialize()
 
                 -- Lookup table of arguments and their known values
                 local argument_lookup = {
+                    all = { "true", "false" },
                     direction = { "forward", "backward" },
                     scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
                     style = Util.sort(vim.tbl_keys(app.settings.styles), Util.as_lower),

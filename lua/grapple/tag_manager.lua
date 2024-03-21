@@ -72,29 +72,30 @@ function TagManager:transaction(id, callback, opts)
     return nil
 end
 
----@return grapple.tag_container[]
-function TagManager:list_all()
-    return Util.add(self:list_loaded(), self:list_unloaded())
-end
+---@alias grapple.tag_container_item { container: grapple.tag_container | nil, loaded: boolean}
+---
+---@return grapple.tag_container_item[]
+function TagManager:list()
+    local list = {}
 
----@return grapple.tag_container[]
-function TagManager:list_loaded()
-    return vim.tbl_values(self.containers)
-end
-
----@return grapple.tag_container[]
-function TagManager:list_unloaded()
-    local unloaded = {}
     for _, id in ipairs(self.state:list()) do
-        if self:is_loaded(id) then
-            goto continue
-        end
+        ---@type grapple.tag_container_item
+        local item = {
+            id = id,
+            container = self:get(id),
+            loaded = self:is_loaded(id),
+        }
 
-        table.insert(unloaded, TagContainer:new(id))
-
-        ::continue::
+        table.insert(list, item)
     end
-    return unloaded
+
+    return list
+end
+
+---@param id string
+---@return grapple.tag_container | nil
+function TagManager:get(id)
+    return self.containers[id]
 end
 
 ---@param id string

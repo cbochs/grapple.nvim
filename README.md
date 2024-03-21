@@ -825,21 +825,29 @@ Open a floating window with all loaded scopes. This buffer is not modifiable. So
 
 - **Selection** (`<cr>`): open the [tags window](#tags-window) for the loaded scope under the cursor
 - **Quick select** (default: `1-9`): open tags window for the loaded scope at a given index
-- **Deletion (`x`)**: reset the tags for the loaded scope under the cursor
+- **Deletion** (`x`): reset the tags for the loaded scope under the cursor
+- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scopes
 - **Go up** (`-`): navigate across to the [scopes window](#scopes-window)
 - **Help** (`?`): open the help window
 
 **API**:
 
-- `require("grapple").open_loaded()`
-- `require("grapple").toggle_loaded()`
+- `require("grapple").open_loaded(opts)`
+- `require("grapple").toggle_loaded(opts)`
+
+**`opts?`**: `table`
+
+- **`all`**: `boolean` (default: `false`)
 
 <details>
 <summary><b>Examples</b></summary>
 
 ```lua
--- Open the scopes window
+-- Open the loaded scopes window, show only loaded scopes
 require("grapple").open_loaded()
+
+-- Open the loaded scopes window, show both loaded and unloaded scopes
+require("grapple").open_loaded({ all = true })
 ```
 
 </details>

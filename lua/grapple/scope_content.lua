@@ -1,19 +1,19 @@
 local Util = require("grapple.util")
 
 ---@class grapple.scope_content
----@field scope_manager grapple.scope_manager
+---@field app grapple.app
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
 local ScopeContent = {}
 ScopeContent.__index = ScopeContent
 
----@param scope_manager grapple.scope_manager
+---@param app grapple.app
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
 ---@return grapple.scope_content
-function ScopeContent:new(scope_manager, hook_fn, title_fn)
+function ScopeContent:new(app, hook_fn, title_fn)
     return setmetatable({
-        scope_manager = scope_manager,
+        app = app,
         hook_fn = hook_fn,
         title_fn = title_fn,
     }, self)
@@ -77,7 +77,7 @@ function ScopeContent:entities()
         return string.lower(scope_a.name) < string.lower(scope_b.name)
     end
 
-    local scopes = vim.tbl_values(self.scope_manager.scopes)
+    local scopes = vim.tbl_values(self.app.scope_manager.scopes)
     table.sort(scopes, by_name)
 
     local entities = {}
