@@ -378,6 +378,7 @@ function Grapple.statusline(opts)
     return statusline
 end
 
+---Unload tags for a give (scope) name or loaded scope (id)
 ---@param opts? { scope?: string, id?: string, notify?: boolean }
 ---@return string? error
 function Grapple.unload(opts)
@@ -389,10 +390,9 @@ function Grapple.unload(opts)
     local err = app:unload(opts)
     if err then
         if opts.notify then
-            return vim.notify(err, vim.log.levels.ERROR)
-        else
-            return err
+            vim.notify(err, vim.log.levels.ERROR)
         end
+        return err
     end
 
     if opts.notify then
@@ -413,10 +413,9 @@ function Grapple.reset(opts)
     local err = app:reset(opts)
     if err then
         if opts.notify then
-            return vim.notify(err, vim.log.levels.ERROR)
-        else
-            return err
+            vim.notify(err, vim.log.levels.ERROR)
         end
+        return err
     end
 
     if opts.notify then
@@ -424,14 +423,20 @@ function Grapple.reset(opts)
     end
 end
 
----@param opts { ttl: integer | string }
+---Prune
+---@param opts? { ttl?: integer | string, notify?: boolean }
 ---@return string[] | nil, string? error
 function Grapple.prune(opts)
     local App = require("grapple.app")
     local app = App.get()
 
-    local pruned_ids, err = app.tag_manager:prune(opts.ttl)
+    opts = opts or {}
+
+    local pruned_ids, err = app.tag_manager:prune(opts.until or app.settings.prune)
     if not pruned_ids then
+        if opts.notify then
+            vim.notify(err, vim.log.levels.ERROR)
+        end
         return nil, err
     end
 
@@ -679,6 +684,7 @@ function Grapple.initialize()
                     open_loaded    = { args = {},              kwargs = { "all" } },
                     open_scopes    = { args = {},              kwargs = {} },
                     open_tags      = { args = {},              kwargs = window_kwargs },
+                    prune          = { args = {},              kwargs = { "ttl" } },
                     quickfix       = { args = {},              kwargs = scope_kwargs },
                     reset          = { args = {},              kwargs = scope_kwargs },
                     select         = { args = {},              kwargs = use_kwargs },
