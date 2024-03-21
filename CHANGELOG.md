@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.26.0](https://github.com/cbochs/grapple.nvim/compare/v0.25.0...v0.26.0) (2024-03-21)
+
+
+### Features
+
+* prune scope save files based on last modified time ([#143](https://github.com/cbochs/grapple.nvim/issues/143)) ([f440b0a](https://github.com/cbochs/grapple.nvim/commit/f440b0a79e4c3cfa7e74b9bb68ca4a01621ce230))
+* unload scopes ([5b184b6](https://github.com/cbochs/grapple.nvim/commit/5b184b6eea00e6c1083e74b472440b9c79e850f8))
+
+
+### Bug Fixes
+
+* add missing keymap description + handle nil descriptions in help window ([2f1011b](https://github.com/cbochs/grapple.nvim/commit/2f1011bd573c9a240e3eaed2365a8a050bdaeb5f))
+* don't eagerly load current scope on setup ([b2b0586](https://github.com/cbochs/grapple.nvim/commit/b2b058606ce2ef4c9cb2ca133bb649aca648ecd1))
+* place cursor on "current" entry in ui ([5f7cbaa](https://github.com/cbochs/grapple.nvim/commit/5f7cbaa65d3656ea1d18ee6dbc1781c27761158f))
+* reduce window flickering when toggling unloaded scopes ([b381b69](https://github.com/cbochs/grapple.nvim/commit/b381b690fc112acb7f89573e0052ffccb2818ab7))
+
 ## [0.25.0](https://github.com/cbochs/grapple.nvim/compare/v0.24.1...v0.25.0) (2024-03-21)
 
 
