@@ -59,13 +59,15 @@ end
 ---@return string[]
 function State:list()
     local files = {}
-    for name, type in vim.fs.dir(self.save_dir) do
+    for file_name, type in vim.fs.dir(self.save_dir) do
         if type ~= "file" then
             goto continue
         end
 
-        name = path_decode(name)
+        local name = file_name
+        name = path_decode(file_name)
         name = string.gsub(name, "%.json", "")
+
         table.insert(files, name)
 
         ::continue::
@@ -83,48 +85,39 @@ function State:remove(name)
 end
 
 ---@return string[] | nil pruned, string? error, string? error_kind
-function State:prune(mtime_sec)
-    local function current_time()
-        local name = os.tmpname()
-        local fd, err, err_kind = vim.loop.fs_open(name, "r", 438)
-        if not fd then
-            return nil, err, err_kind
-        end
-
-        ---@diagnostic disable-next-line: redefined-local
-        local stat, err, err_kind = vim.loop.fs_fstat(fd)
-        if not stat then
-            return nil, err, err_kind
-        end
-
-        assert(vim.loop.fs_close(fd))
-        assert(vim.loop.fs_unlink(name))
-
-        return stat.mtime.sec, nil, nil
-    end
-
-    local now, err, err_kind = current_time()
-    if not now then
-        return nil, err, err_kind
-    end
-
+function State:prune(limit_sec)
+    local now = os.time(os.date("*t"))
     local pruned = {}
 
-    for name, _ in vim.fs.dir(self.save_dir) do
-        local path = Path.join(self.save_dir, name)
+    for file_name, type in vim.fs.dir(self.save_dir) do
+        if type ~= "file" then
+            goto continue
+        end
+
+        local path = Path.join(self.save_dir, file_name)
+
+        local name = file_name
+        name = path_decode(file_name)
+        name = string.gsub(name, "%.json", "")
 
         ---@diagnostic disable-next-line: redefined-local
         local stat, err, err_kind = vim.loop.fs_stat(path)
         if not stat then
-            return err, err_kind
+            return nil, err, err_kind
         end
 
-        local elapsed_msec = now - stat.mtime.sec
-        if elapsed_msec > mtime_sec then
-            name = path_decode(name)
-            name = string.gsub(name, "%.json", "")
+        local elapsed_sec = now - stat.mtime.sec
+        if elapsed_sec > limit_sec then
             table.insert(pruned, path_decode(name))
+
+            ---@diagnostic disable-next-line: redefined-local
+            local err, err_kind = self:remove(name)
+            if err then
+                return nil, err, err_kind
+            end
         end
+
+        ::continue::
     end
 
     return pruned, nil, nil
