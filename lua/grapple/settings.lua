@@ -315,7 +315,7 @@ local DEFAULT_SETTINGS = {
 
         -- Toggle
         window:map("n", "<s-cr>", function()
-            window:perform_close(ContainerActions.toggle_all)
+            window:perform_retain(ContainerActions.toggle_all)
         end, { desc = "Toggle show all" })
 
         -- Reset
