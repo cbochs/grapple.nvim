@@ -196,28 +196,85 @@ function Grapple.quickfix(opts)
     end
 end
 
+local function next_index(current_index, direction, length)
+    -- Fancy maths to get the next index for a given direction
+    -- 1. Change to 0-based indexing
+    -- 2. Perform index % container length, being careful of negative values
+    -- 3. Change back to 1-based indexing
+    -- stylua: ignore
+    local index = (
+        current_index
+        or direction == "next" and length
+        or direction == "prev" and 1
+    ) - 1
+    local next_direction = direction == "next" and 1 or -1
+    local next_index = math.fmod(index + next_direction + length, length) + 1
+
+    return next_index
+end
+
+local function format_message(message)
+    message = vim.trim(message)
+    message = string.gsub(message, "\n%s+", "\n")
+    return message
+end
+
 ---Select the next available tag for a given scope
 ---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.cycle_forward(opts)
-    Grapple.cycle("forward", opts)
+    -- stylua: ignore
+    vim.notify(format_message([[
+        Deprecated: Grapple cycle_forward
+        Use instead: Grapple cycle_tags next
+    ]]), vim.log.levels.WARN)
+
+    Grapple.cycle_tags("next", opts)
 end
 
 ---Select the previous available tag for a given scope
 ---By default, uses the current scope
 ---@param opts? grapple.options
 function Grapple.cycle_backward(opts)
-    Grapple.cycle("backward", opts)
+    -- stylua: ignore
+    vim.notify(format_message([[
+        Deprecated: Grapple cycle_backward
+        Use instead: Grapple cycle_tags prev
+    ]]), vim.log.levels.WARN)
+
+    Grapple.cycle_tags("prev", opts)
 end
 
--- Cycle through and select the next or previous available tag for a given scope.
----By default, uses the current scope
----@param direction "forward" | "backward"
+-- Cycle through and select the next or previous value, be that from the a
+-- scope's tags, defined scopes, or loaded scope IDs. By default, uses the
+-- cycles through the tags
+---@param direction "next" | "prev" | "forward" | "backward"
 ---@param opts? grapple.options
 function Grapple.cycle(direction, opts)
+    if direction == "forward" or direction == "backward" then
+        -- stylua: ignore
+        vim.notify(format_message([[
+            Deprecated: Grapple cycle {forward|backward}
+            Use instead: Grapple cycle_tags {next|prev}
+        ]]), vim.log.levels.WARN)
+    end
+
+    -- stylua: ignore
+    direction = direction == "forward" and "next"
+        or direction == "backward" and "prev"
+        or direction
+
+    Grapple.cycle_tags(direction, opts)
+end
+
+---@param direction "next" | "prev"
+---@param opts? grapple.options
+function Grapple.cycle_tags(direction, opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
     opts = opts or {}
 
-    local app = require("grapple.app").get()
     app:enter_without_save(opts.scope, function(container)
         if container:is_empty() then
             return
@@ -226,20 +283,9 @@ function Grapple.cycle(direction, opts)
         local path, _ = extract_path(opts)
         opts.path = path
 
-        -- Fancy maths to get the next index for a given direction
-        -- 1. Change to 0-based indexing
-        -- 2. Perform index % container length, being careful of negative values
-        -- 3. Change back to 1-based indexing
-        local index = (
-            container:find(opts)
-            or direction == "forward" and container:len()
-            or direction == "backward" and 1
-        ) - 1
-        local next_direction = direction == "forward" and 1 or -1
-        local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
+        local index = next_index(container:find(opts), direction, container:len())
 
-        ---@diagnostic disable-next-line: redefined-local
-        local tag, err = container:get({ index = next_index })
+        local tag, err = container:get({ index = index })
         if not tag then
             return err
         end
@@ -250,6 +296,34 @@ function Grapple.cycle(direction, opts)
             return err
         end
     end)
+end
+
+---@param direction "next" | "prev"
+---@param opts { scope?: string }
+function Grapple.cycle_scopes(direction, opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    local current_index
+
+    Grapple.use_scope(next_scope)
+end
+
+---@param direction "next" | "prev"
+---@param opts { scope?: string }
+function Grapple.cycle_loaded(direction, opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    -- TODO: this is like putting the scope in a "detatched head" state.
+    -- The scope used will now be a resolved scope instead of a scope.
+    -- This means that some things will need to be updated to account for
+    -- this. For example,
+    --   - Grapple.use_scope makes sure to lookup the scope first. This will error
+    --   - ScopeContent checks the current by the scope's name, it shouldn't match a scope to a resolved scope though
+    --   - App:lookup assumes that a resolved scope's name is useful. How should this be better handled?
+    --   - Maybe the settings.scope should never be updated. After setup, the scope manager should keep a reference to the "current scope" instead
+    Grapple.use_scope(next_scope)
 end
 
 ---Search for a tag in a given scope
@@ -677,14 +751,10 @@ function Grapple.initialize()
                 local app = App.get()
 
                 -- Keyword argument names permitted by Grapple
-                -- "tag" kwargs refer to methods that accept all keyword arguments (i.e. toggle)
-                -- "new" kwargs refer to methods that create a new tag (i.e. tag)
-                -- "use" kwargs refer to methods that use an existing tag (i.e. select)
-                -- "scope" kwargs refer to methods that operate on a scope (i.e. quickfix)
-                -- "window" kwargs refer to methods that open a window (i.e. toggle_tags)
-                local tag_kwargs = { "buffer", "path", "name", "index", "scope", "command" }
-                local new_kwargs = Util.subtract(tag_kwargs, { "command" })
-                local use_kwargs = Util.subtract(tag_kwargs, { "command" })
+                -- "tag" kwargs refer to methods that operate on tags (i.e. tag or toggle)
+                -- "scope" kwargs refer to methods that operate scopes (i.e. quickfix)
+                -- "window" kwargs refer to methods that open windows (i.e. toggle_tags)
+                local tag_kwargs = { "buffer", "path", "name", "index", "scope" }
                 local scope_kwargs = { "scope", "id" }
                 local window_kwargs = { "style", unpack(scope_kwargs) }
 
@@ -692,36 +762,40 @@ function Grapple.initialize()
                 -- Lookup table of API functions and their available arguments
                 local subcommand_lookup = {
                     clear_cache    = { args = { "scope" },     kwargs = {} },
-                    cycle          = { args = { "direction" }, kwargs = use_kwargs },
-                    cycle_backward = { args = {},              kwargs = use_kwargs },
-                    cycle_forward  = { args = {},              kwargs = use_kwargs },
+                    cycle_loaded   = { args = { "direction" }, kwargs = tag_kwargs },
+                    cycle_scopes   = { args = { "direction" }, kwargs = scope_kwargs },
+                    cycle_tags     = { args = { "direction" }, kwargs = { "id" } },
                     open_loaded    = { args = {},              kwargs = { "all" } },
                     open_scopes    = { args = {},              kwargs = {} },
                     open_tags      = { args = {},              kwargs = window_kwargs },
                     prune          = { args = {},              kwargs = { "limit" } },
                     quickfix       = { args = {},              kwargs = scope_kwargs },
                     reset          = { args = {},              kwargs = scope_kwargs },
-                    select         = { args = {},              kwargs = use_kwargs },
-                    tag            = { args = {},              kwargs = new_kwargs },
+                    select         = { args = {},              kwargs = tag_kwargs },
+                    tag            = { args = {},              kwargs = tag_kwargs },
                     toggle         = { args = {},              kwargs = tag_kwargs },
                     toggle_loaded  = { args = {},              kwargs = { "all" } },
                     toggle_scopes  = { args = {},              kwargs = {} },
                     toggle_tags    = { args = {},              kwargs = window_kwargs },
                     unload         = { args = {},              kwargs = scope_kwargs },
-                    untag          = { args = {},              kwargs = use_kwargs },
+                    untag          = { args = {},              kwargs = tag_kwargs },
                     use_scope      = { args = { "scope" },     kwargs = {} },
                 }
 
                 -- Lookup table of arguments and their known values
                 local argument_lookup = {
-                    all = { "true", "false" },
-                    direction = { "forward", "backward" },
+                    all = { "false", "true" },
+                    direction = { "next", "prev" },
+                    kind = { "loaded", "scopes", "tags" },
                     scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
                     style = Util.sort(vim.tbl_keys(app.settings.styles), Util.as_lower),
                 }
 
                 -- API methods which are not actionable
                 local excluded_subcmds = {
+                    "cycle", -- deprecated
+                    "cycle_backward", -- deprecated
+                    "cycle_forward", -- deprecated
                     "define_scope",
                     "delete_scope",
                     "exists",
@@ -777,7 +851,7 @@ function Grapple.initialize()
 
                 if #input_kwargs == 0 then
                     local arg_name = completion.args[#input_args]
-                    local arg_values = argument_lookup[arg_name] or {}
+                    local arg_values = Util.sort(argument_lookup[arg_name] or {}, Util.as_lower)
 
                     -- stylua: ignore
                     return current == ""
@@ -791,7 +865,7 @@ function Grapple.initialize()
                 local key, value = string.match(current, "^(.*)=(.*)$")
                 if not key then
                     local input_keys = vim.tbl_map(Util.match_key, input_kwargs)
-                    local kwarg_keys = Util.subtract(completion.kwargs, input_keys)
+                    local kwarg_keys = Util.sort(Util.subtract(completion.kwargs, input_keys), Util.as_lower)
 
                     -- stylua: ignore
                     local filtered = current == ""
@@ -804,7 +878,7 @@ function Grapple.initialize()
                 -- "Grapple subcmd arg key=|"
                 -- "Grapple subcmd arg key=val|"
 
-                local kwarg_values = argument_lookup[key] or {}
+                local kwarg_values = Util.sort(argument_lookup[key] or {}, Util.as_lower)
 
                 -- stylua: ignore
                 local filtered = value == ""
