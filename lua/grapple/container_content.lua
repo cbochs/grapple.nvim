@@ -150,7 +150,7 @@ function ContainerContent:create_entry(entity, index)
 
     local loaded_highlight
     if not entity.loaded then
-        local col_start, col_end = assert(string.find(line, container_id))
+        local col_start, col_end = assert(string.find(line, Util.escape(container_id)))
         loaded_highlight = {
             hl_group = "GrappleHint",
             line = index - 1,
