@@ -334,7 +334,7 @@ function Grapple.tags(opts)
         return nil, err
     end
 
-    return tags, nil
+    return vim.deepcopy(tags), nil
 end
 
 ---Return a formatted string to be displayed on the statusline
