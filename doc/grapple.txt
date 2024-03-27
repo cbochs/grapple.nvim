@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 21
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 March 27
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -785,7 +785,7 @@ Examples ~
         scope = "git_branch",
     })
     
-    -- Define a custom scope
+    -- Define and use a custom scope
     require("grapple").setup({
         scope = "custom",
     
@@ -1087,10 +1087,21 @@ Used for defining new scopes.
 **Type**`table`
 
 - **name**`string` scope name
-- **desc**`string` scope description
 - **resolver**|grapple-`grapple.scope_resolver`|
+- **desc?**`string` scope description (default: `""`)
+- **force?**`string` scope description
 - **fallback?**`string` fallback scope name
 - **cache?**|grapple-`grapple.cache.options`| | `boolean`
+- **priority?**`integer` scope priority, higher scopes are loaded first
+- **hidden?**`integer` do not show the scope in the |grapple-scopes-window|
+- **delete?**`integer`
+
+**Note**Scopes are given a `priority` based on their fallback ordering. By
+default, scopes without a fallback are given a priority of `1000`; scopes with
+a fallback, but are also fallbacks themselves, are given a priority of `100`;
+and all other scopes are given a priority of `1`. Higher priority scopes are
+loaded first. This can be overridden by setting a scope’s `priority` manually
+in the |grapple-settings|.
 
 
 GRAPPLE.SCOPE_RESOLVER ~
