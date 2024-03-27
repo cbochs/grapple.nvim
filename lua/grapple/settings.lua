@@ -460,6 +460,12 @@ function Settings:new()
     }, self)
 end
 
+-- Update settings in-place
+---@param opts? grapple.settings
+function Settings:update(opts)
+    self.inner = vim.tbl_deep_extend("force", self.inner, opts or {})
+end
+
 ---Override quick_select to ensure a string table is always returned
 ---@return string[]
 ---@diagnostic disable-next-line: assign-type-mismatch
@@ -475,6 +481,7 @@ end
 
 ---Override scopes to combine both the default scopes and user-defined scopes
 ---@return grapple.scope_definition[]
+---@diagnostic disable-next-line: assign-type-mismatch
 function Settings:scopes()
     -- HACK: Define the order so that fallbacks are defined first
     local default_order = {
@@ -503,12 +510,6 @@ function Settings:scopes()
     end
 
     return scopes
-end
-
--- Update settings in-place
----@param opts? grapple.settings
-function Settings:update(opts)
-    self.inner = vim.tbl_deep_extend("force", self.inner, opts or {})
 end
 
 return Settings
