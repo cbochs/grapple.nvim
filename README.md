@@ -871,6 +871,7 @@ Open a floating window with all defined scopes. This buffer is not modifiable. S
 - **Quick select** (default: `1-9`): open the tags window for the scope at a given index
 - **Change** (`<s-cr>`): change the current scope to the one under the cursor
 - **Go up** (`-`): navigate across to the [loaded scopes window](#loaded-scopes-window)
+- **Toggle** (`g.`): toggle showing both hidden and unhidden scopes
 - **Help** (`?`): open the help window
 
 **API**:
@@ -896,10 +897,10 @@ Open a floating window with all loaded scope IDs. This buffer is not modifiable.
 
 - **Selection** (`<cr>`): open the [tags window](#tags-window) for the loaded scope ID under the cursor
 - **Quick select** (default: `1-9`): open tags window for the loaded scope ID at a given index
-- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scope IDs
 - **Unload** (`x`): unload the tags for the scope ID under the cursor
 - **Deletion** (`X`): reset the tags for the scope ID under the cursor
 - **Go up** (`-`): navigate across to the [scopes window](#scopes-window)
+- **Toggle** (`g.`): toggle showing both loaded and unloaded scope IDs
 - **Help** (`?`): open the help window
 
 **API**:
