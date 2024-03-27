@@ -122,6 +122,8 @@ Note, these examples assume you are using the [lazy.nvim](https://github.com/fol
     keys = {
         { "<leader>m", "<cmd>Grapple toggle<cr>", desc = "Grapple toggle tag" },
         { "<leader>M", "<cmd>Grapple toggle_tags<cr>", desc = "Grapple open tags window" },
+        { "<leader>n", "<cmd>Grapple cycle_tags next<cr>", desc = "Grapple cycle next tag" },
+        { "<leader>p", "<cmd>Grapple cycle_tags prev<cr>", desc = "Grapple cycle previous tag" },
     },
 },
 ```
@@ -150,8 +152,8 @@ Example configuration similar to [harpoon.nvim](https://github.com/ThePrimeagen/
         { "<c-n>", "<cmd>Grapple select index=3<cr>", desc = "Select third tag" },
         { "<c-s>", "<cmd>Grapple select index=4<cr>", desc = "Select fourth tag" },
 
-        { "<c-s-p>", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
-        { "<c-s-n>", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
+        { "<c-s-n>", "<cmd>Grapple cycle_tags next<cr>", desc = "Go to next tag" },
+        { "<c-s-p>", "<cmd>Grapple cycle_tags prev<cr>", desc = "Go to previous tag" },
     },
 },
 ```
@@ -178,8 +180,8 @@ Example configuration similar to [arrow.nvim](https://github.com/otavioschwanck/
         { ";", "<cmd>Grapple toggle_tags<cr>", desc = "Toggle tags menu" },
 
         { "<c-s>", "<cmd>Grapple toggle<cr>", desc = "Toggle tag" },
-        { "H", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
-        { "L", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
+        { "H", "<cmd>Grapple cycle_tags next<cr>", desc = "Go to next tag" },
+        { "L", "<cmd>Grapple cycle_tags prev<cr>", desc = "Go to previous tag" },
     },
 },
 ```
@@ -304,13 +306,13 @@ In general, the API is as follows:
 Where `opts` in the user command is a list of `value` arguments and `key=value` keyword arguments. For example,
 
 ```vim
-:Grapple cycle forward scope=cwd
+:Grapple cycle_tags next scope=cwd
 ```
 
 Has the equivalent form
 
 ```lua
-require("grapple").cycle("forward", { scope = "cwd" })
+require("grapple").cycle_tags("next", { scope = "cwd" })
 ```
 
 ### Grapple API
@@ -419,19 +421,15 @@ require("grapple").select({ index = 3 })
 
 </details>
 
-#### `Grapple.cycle`
+#### `Grapple.cycle_tags`
 
 Cycle through and select the next or previous available tag for a given scope.
 
-**API**:
-
-- `require("grapple").cycle(direction, opts)`
-- `require("grapple").cycle_backward(opts)`
-- `require("grapple").cycle_forward(opts)`
+**API**: `require("grapple").cycle_tags(direction, opts)`
 
 Where:
 
-- **`direction`**: `"backward"` | `"forward"`
+- **`direction`**: `"next"` | `"prev"`
 - **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
 
 **Note**: Starting tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
@@ -441,10 +439,10 @@ Where:
 
 ```lua
 -- Cycle to the previous tagged file
-require("grapple").cycle_backward()
+require("grapple").cycle_tags("next")
 
 -- Cycle to the next tagged file
-require("grapple").cycle_forward()
+require("grapple").cycle_tags("prev")
 ```
 
 </details>
