@@ -146,11 +146,11 @@ function Window:close()
 
     if vim.api.nvim_win_is_valid(self.win_id) then
         vim.api.nvim_win_close(self.win_id, true)
-        self.win_id = nil
-        self.buf_id = nil
-        self.alt_win = nil
     end
 
+    self.win_id = nil
+    self.buf_id = nil
+    self.alt_win = nil
     self.entries = nil
 end
 
