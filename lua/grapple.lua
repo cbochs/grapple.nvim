@@ -213,12 +213,6 @@ local function next_index(current_index, direction, length)
     return next_index
 end
 
-local function format_message(message)
-    message = vim.trim(message)
-    message = string.gsub(message, "\n%s+", "\n")
-    return message
-end
-
 ---Select the next available tag for a given scope
 ---By default, uses the current scope
 ---@deprecated Soft-deprecated in favour of Grapple.cycle_tags
