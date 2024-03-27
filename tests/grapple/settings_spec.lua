@@ -38,19 +38,19 @@ describe("Settings", function()
     end)
 
     describe(".scopes", function()
-        it("has the correct scopes default", function()
+        it("has the correct scope defaults in priority order", function()
             local settings = Settings:new()
             -- stylua: ignore
             local names = vim.tbl_map(function(def) return def.name end, settings:scopes())
-            assert.same({ "global", "cwd", "git", "git_branch", "lsp" }, names)
+            assert.same({ "cwd", "global", "static", "git", "git_branch", "lsp" }, names)
         end)
 
         it("merges default and user-defined scopes", function()
             local settings = Settings:new()
-            settings:update({ scopes = { { name = "test" } } })
+            settings:update({ scopes = { test = {} } })
             -- stylua: ignore
             local names = vim.tbl_map(function(def) return def.name end, settings:scopes())
-            assert.same({ "global", "cwd", "git", "git_branch", "lsp", "test" }, names)
+            assert.same({ "cwd", "global", "static", "test", "git", "git_branch", "lsp" }, names)
         end)
 
         it("overrides default scope definitions", function()
@@ -58,7 +58,7 @@ describe("Settings", function()
             settings:update({ default_scopes = { global = { name = "bob" } } })
             -- stylua: ignore
             local names = vim.tbl_map(function(def) return def.name end, settings:scopes())
-            assert.same({ "bob", "cwd", "git", "git_branch", "lsp" }, names)
+            assert.same({ "bob", "cwd", "static", "git", "git_branch", "lsp" }, names)
         end)
 
         it("marks default scopes to be deleted", function()
@@ -66,7 +66,9 @@ describe("Settings", function()
             settings:update({ default_scopes = { cwd = false } })
             -- stylua: ignore
             local deleted = vim.tbl_filter(function(def) return def.delete end, settings:scopes())
-            assert.same({ { name = "cwd", delete = true } }, deleted)
+            assert.same(1, #deleted)
+            assert.same("cwd", deleted[1].name)
+            assert.same(true, deleted[1].delete)
         end)
     end)
 end)

@@ -57,10 +57,13 @@ local DEFAULT_SETTINGS = {
 
     ---@class grapple.scope_definition
     ---@field name string
-    ---@field force? boolean
     ---@field desc? string
+    ---@field force? boolean
     ---@field fallback? string name of scope to fall back on
     ---@field cache? grapple.cache.options | boolean
+    ---@field priority? integer
+    ---@field hidden? boolean
+    ---@field delete? boolean
     ---@field resolver grapple.scope_resolver
 
     ---Default scopes provided by Grapple
@@ -483,31 +486,67 @@ end
 ---@return grapple.scope_definition[]
 ---@diagnostic disable-next-line: assign-type-mismatch
 function Settings:scopes()
-    -- HACK: Define the order so that fallbacks are defined first
-    local default_order = {
-        "global",
-        "cwd",
-        "git",
-        "git_branch",
-        "lsp",
-    }
-
+    ---@type grapple.scope_definition[]
     local scopes = {}
 
-    for _, name in ipairs(default_order) do
-        local definition = self.inner.default_scopes[name]
+    -- Lookup table of whether a scope is used as a fallback
+    ---@type table<string, boolean>
+    local fallback_lookup = {}
+
+    -- Add default scopes
+    for name, definition in pairs(self.inner.default_scopes) do
         if definition == false then
-            table.insert(scopes, { name = name, delete = true })
-        elseif type(definition) == "table" then
-            table.insert(scopes, self.inner.default_scopes[name])
+            definition = { delete = true }
+        end
+
+        definition = vim.tbl_extend("keep", definition, {
+            name = name,
+            desc = "",
+        })
+
+        assert(type(definition.name) == "string")
+
+        table.insert(scopes, definition)
+    end
+
+    -- Add user-defined scopes
+    for name, definition in pairs(self.inner.scopes) do
+        definition = vim.tbl_extend("keep", definition, {
+            name = name,
+            desc = "",
+        })
+
+        assert(type(definition.name) == "string")
+
+        if definition.fallback then
+            fallback_lookup[definition.fallback] = true
+        end
+
+        table.insert(scopes, definition)
+    end
+
+    -- Prioritize scope loading
+    for _, scope in ipairs(scopes) do
+        if scope.priority then
+            -- Skip. Already given an explicit priority
+        elseif not scope.fallback then
+            scope.priority = 1000
+        elseif fallback_lookup[scope.name] then
+            scope.priority = 100
         else
-            error(string.format("invalid default scope: %s", vim.inspect(definition)))
+            scope.priority = 1
         end
     end
 
-    for _, definition in ipairs(self.inner.scopes) do
-        table.insert(scopes, definition)
+    local function by_priority(scope_a, scope_b)
+        if scope_a.priority == scope_b.priority then
+            return string.lower(scope_a.name) < string.lower(scope_b.name)
+        else
+            return scope_a.priority > scope_b.priority
+        end
     end
+
+    table.sort(scopes, by_priority)
 
     return scopes
 end
