@@ -196,21 +196,26 @@ function Grapple.quickfix(opts)
     end
 end
 
+---@param current_index? integer
+---@param direction "next" | "prev"
+---@param length integer
+---@return integer
 local function next_index(current_index, direction, length)
     -- Fancy maths to get the next index for a given direction
     -- 1. Change to 0-based indexing
     -- 2. Perform index % container length, being careful of negative values
     -- 3. Change back to 1-based indexing
     -- stylua: ignore
-    local index = (
+    current_index = (
         current_index
         or direction == "next" and length
         or direction == "prev" and 1
     ) - 1
-    local next_direction = direction == "next" and 1 or -1
-    local next_index = math.fmod(index + next_direction + length, length) + 1
 
-    return next_index
+    local next_inc = direction == "next" and 1 or -1
+    local next_idx = math.fmod(current_index + next_inc + length, length) + 1
+
+    return next_idx
 end
 
 ---Select the next available tag for a given scope
