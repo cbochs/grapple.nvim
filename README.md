@@ -789,7 +789,7 @@ require("grapple").setup({
     scope = "git_branch",
 })
 
--- Define a custom scope
+-- Define and use a custom scope
 require("grapple").setup({
     scope = "custom",
 
@@ -1089,10 +1089,16 @@ Used for defining new scopes.
 **Type**: `table`
 
 - **`name`**: `string` scope name
-- **`desc`**: `string` scope description
 - **`resolver`**: [`grapple.scope_resolver`](#grapplescope_resolver)
+- **`desc?`**: `string` scope description (default: `""`)
+- **`force?`**: `string` scope description
 - **`fallback?`**: `string` fallback scope name
 - **`cache?`**: [`grapple.cache.options`](#grapplecacheoptions) | `boolean`
+- **`priority?`**: `integer` scope priority, higher scopes are loaded first
+- **`hidden?`**: `integer` do not show the scope in the [Scopes Window](#scopes-window)
+- **`delete?`**: `integer`
+
+**Note**: Scopes are given a `priority` based on their fallback ordering. By default, scopes without a fallback are given a priority of `1000`; scopes with a fallback, but are also fallbacks themselves, are given a priority of `100`; and all other scopes are given a priority of `1`. Higher priority scopes are loaded first. This can be overridden by setting a scope's `priority` manually in the [settings](#settings).
 
 ### `grapple.scope_resolver`
 
