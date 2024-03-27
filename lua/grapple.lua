@@ -196,28 +196,69 @@ function Grapple.quickfix(opts)
     end
 end
 
+local function next_index(current_index, direction, length)
+    -- Fancy maths to get the next index for a given direction
+    -- 1. Change to 0-based indexing
+    -- 2. Perform index % container length, being careful of negative values
+    -- 3. Change back to 1-based indexing
+    -- stylua: ignore
+    local index = (
+        current_index
+        or direction == "next" and length
+        or direction == "prev" and 1
+    ) - 1
+    local next_direction = direction == "next" and 1 or -1
+    local next_index = math.fmod(index + next_direction + length, length) + 1
+
+    return next_index
+end
+
+local function format_message(message)
+    message = vim.trim(message)
+    message = string.gsub(message, "\n%s+", "\n")
+    return message
+end
+
 ---Select the next available tag for a given scope
 ---By default, uses the current scope
+---@deprecated Soft-deprecated in favour of Grapple.cycle_tags
 ---@param opts? grapple.options
 function Grapple.cycle_forward(opts)
-    Grapple.cycle("forward", opts)
+    Grapple.cycle_tags("next", opts)
 end
 
 ---Select the previous available tag for a given scope
 ---By default, uses the current scope
+---@deprecated Soft-deprecated in favour of Grapple.cycle_tags
 ---@param opts? grapple.options
 function Grapple.cycle_backward(opts)
-    Grapple.cycle("backward", opts)
+    Grapple.cycle_tags("prev", opts)
 end
 
 -- Cycle through and select the next or previous available tag for a given scope.
 ---By default, uses the current scope
+---@deprecated Soft-deprecated in favour of Grapple.cycle_tags
 ---@param direction "forward" | "backward"
 ---@param opts? grapple.options
 function Grapple.cycle(direction, opts)
+    Grapple.cycle_tags(direction, opts)
+end
+
+-- Cycle through and select the next or previous available tag for a given scope.
+---By default, uses the current scope
+---@param direction "next" | "prev" | "previous" | "forward" | "backward"
+---@param opts? grapple.options
+function Grapple.cycle_tags(direction, opts)
+    local App = require("grapple.app")
+    local app = App.get()
+
     opts = opts or {}
 
-    local app = require("grapple.app").get()
+    -- stylua: ignore
+    direction = direction == "forward" and "next"
+        or direction == "backward" and "prev"
+        or direction
+
     app:enter_without_save(opts.scope, function(container)
         if container:is_empty() then
             return
@@ -226,20 +267,10 @@ function Grapple.cycle(direction, opts)
         local path, _ = extract_path(opts)
         opts.path = path
 
-        -- Fancy maths to get the next index for a given direction
-        -- 1. Change to 0-based indexing
-        -- 2. Perform index % container length, being careful of negative values
-        -- 3. Change back to 1-based indexing
-        local index = (
-            container:find(opts)
-            or direction == "forward" and container:len()
-            or direction == "backward" and 1
-        ) - 1
-        local next_direction = direction == "forward" and 1 or -1
-        local next_index = math.fmod(index + next_direction + container:len(), container:len()) + 1
+        local index = next_index(container:find(opts), direction, container:len())
 
         ---@diagnostic disable-next-line: redefined-local
-        local tag, err = container:get({ index = next_index })
+        local tag, err = container:get({ index = index })
         if not tag then
             return err
         end
@@ -694,9 +725,7 @@ function Grapple.initialize()
                 -- Lookup table of API functions and their available arguments
                 local subcommand_lookup = {
                     clear_cache    = { args = { "scope" },     kwargs = {} },
-                    cycle          = { args = { "direction" }, kwargs = use_kwargs },
-                    cycle_backward = { args = {},              kwargs = use_kwargs },
-                    cycle_forward  = { args = {},              kwargs = use_kwargs },
+                    cycle_tags     = { args = { "direction" }, kwargs = use_kwargs },
                     open_loaded    = { args = {},              kwargs = { "all" } },
                     open_scopes    = { args = {},              kwargs = {} },
                     open_tags      = { args = {},              kwargs = window_kwargs },
@@ -724,6 +753,11 @@ function Grapple.initialize()
 
                 -- API methods which are not actionable
                 local excluded_subcmds = {
+                    -- Deprecated
+                    "cycle",
+                    "cycle_backward",
+                    "cycle_forward",
+
                     "define_scope",
                     "delete_scope",
                     "exists",
