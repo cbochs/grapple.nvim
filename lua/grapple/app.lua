@@ -136,7 +136,7 @@ function App:unload(opts)
     end
 
     if name then
-        self.scope_manager.cache:unwatch(name)
+        self.cache:unwatch(name)
     end
 
     self.tag_manager:unload(id)
@@ -153,7 +153,7 @@ function App:reset(opts)
     end
 
     if name then
-        self.scope_manager.cache:unwatch(name)
+        self.cache:unwatch(name)
     end
 
     self.tag_manager:reset(id)

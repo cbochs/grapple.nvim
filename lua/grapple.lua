@@ -497,7 +497,7 @@ end
 function Grapple.clear_cache(scope)
     local App = require("grapple.app")
     local app = App.get()
-    app.scope_manager.cache:invalidate(scope or app.settings.scope)
+    app.cache:invalidate(scope or app.settings.scope)
 end
 
 ---Convenience function to open content in a new floating window
