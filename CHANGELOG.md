@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.1](https://github.com/cbochs/grapple.nvim/compare/v0.27.0...v0.27.1) (2024-03-27)
+
+
+### Bug Fixes
+
+* **ci:** update documentation link ([15d44ff](https://github.com/cbochs/grapple.nvim/commit/15d44fff935cdf402b76a0d3fab79f3883d14f2c))
+
 ## [0.27.0](https://github.com/cbochs/grapple.nvim/compare/v0.26.0...v0.27.0) (2024-03-27)
 
 
