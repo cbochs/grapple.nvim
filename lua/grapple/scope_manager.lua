@@ -3,19 +3,16 @@ local Scope = require("grapple.scope")
 
 ---@class grapple.scope_manager
 ---@field app grapple.app
----@field cache grapple.cache
 ---@field scopes table<string, grapple.scope>
 ---@field resolved_lookup table<string, grapple.resolved_scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
 ---@param app grapple.app
----@param cache grapple.cache
 ---@return grapple.scope_manager
-function ScopeManager:new(app, cache)
+function ScopeManager:new(app)
     return setmetatable({
         app = app,
-        cache = cache,
         scopes = {},
         resolved_lookup = {},
     }, self)
@@ -43,7 +40,7 @@ function ScopeManager:get_resolved(name)
         return nil, err
     end
 
-    local cached = self.cache:get(name)
+    local cached = self.app.cache:get(name)
     if cached then
         return cached, nil
     end
@@ -54,7 +51,7 @@ function ScopeManager:get_resolved(name)
         return nil, err
     end
 
-    self.cache:store(name, resolved)
+    self.app.cache:store(name, resolved)
     self.resolved_lookup[resolved.id] = resolved
 
     return resolved
@@ -97,7 +94,7 @@ function ScopeManager:define(name, resolver, opts)
             return string.format("scope already exists: %s", name)
         end
 
-        self.cache:close(name)
+        self.app.cache:close(name)
     end
 
     local fallback, err
@@ -110,7 +107,7 @@ function ScopeManager:define(name, resolver, opts)
 
     if opts.cache then
         ---@diagnostic disable-next-line: param-type-mismatch
-        self.cache:open(name, opts.cache == true and {} or opts.cache)
+        self.app.cache:open(name, opts.cache == true and {} or opts.cache)
     end
 
     local scope = Scope:new(self.app, name, resolver, {
@@ -131,7 +128,7 @@ function ScopeManager:delete(name)
         return
     end
 
-    self.cache:close(name)
+    self.app.cache:close(name)
     self.scopes[name] = nil
 end
 

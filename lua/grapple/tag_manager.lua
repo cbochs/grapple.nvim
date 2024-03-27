@@ -1,19 +1,15 @@
 local TagContainer = require("grapple.tag_container")
-local Util = require("grapple.util")
 
 ---@class grapple.tag_manager
----@field state grapple.state
 ---@field containers table<string, grapple.tag_container>
 local TagManager = {}
 TagManager.__index = TagManager
 
 ---@param app grapple.app
----@param state grapple.state
 ---@return grapple.tag_manager
-function TagManager:new(app, state)
+function TagManager:new(app)
     return setmetatable({
         app = app,
-        state = state,
         containers = {},
     }, self)
 end
@@ -81,7 +77,7 @@ end
 function TagManager:list()
     local list = {}
 
-    for _, id in ipairs(self.state:list()) do
+    for _, id in ipairs(self.app.state:list()) do
         ---@type grapple.tag_container_item
         local item = {
             id = id,
@@ -114,14 +110,14 @@ function TagManager:load(id)
         return self.containers[id], nil
     end
 
-    if not self.state:exists(id) then
+    if not self.app.state:exists(id) then
         local container = TagContainer:new(id)
         self.containers[id] = container
 
         return container, nil
     end
 
-    local tbl, err = self.state:read(id)
+    local tbl, err = self.app.state:read(id)
     if err then
         return nil, err
     end
@@ -147,8 +143,8 @@ end
 function TagManager:reset(id)
     self:unload(id)
 
-    if self.state:exists(id) then
-        local err = self.state:remove(id)
+    if self.app.state:exists(id) then
+        local err = self.app.state:remove(id)
         if err then
             return err
         end
@@ -187,7 +183,7 @@ function TagManager:prune(time_limit)
         return nil, string.format("Invalid time limit: %s", vim.inspect(time_limit))
     end
 
-    local pruned_ids, err = self.state:prune(limit_sec)
+    local pruned_ids, err = self.app.state:prune(limit_sec)
     if not pruned_ids then
         return nil, err
     end
@@ -203,7 +199,7 @@ function TagManager:sync(id)
         return string.format("no container for id: %s", id)
     end
 
-    local err = self.state:write(id, container:into_table())
+    local err = self.app.state:write(id, container:into_table())
     if err then
         return err
     end
