@@ -256,7 +256,12 @@ function Grapple.cycle_tags(direction, opts)
     -- stylua: ignore
     direction = direction == "forward" and "next"
         or direction == "backward" and "prev"
+        or direction == "previous" and "prev"
         or direction
+
+    if not vim.tbl_contains({ "next", "prev" }, direction) then
+        return vim.notify(string.format("invalid direction: %s", direction), vim.log.levels.ERROR)
+    end
 
     app:enter_without_save(opts.scope, function(container)
         if container:is_empty() then
@@ -745,7 +750,7 @@ function Grapple.initialize()
                 -- Lookup table of arguments and their known values
                 local argument_lookup = {
                     all = { "true", "false" },
-                    direction = { "forward", "backward" },
+                    direction = { "next", "prev" },
                     scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
                     style = Util.sort(vim.tbl_keys(app.settings.styles), Util.as_lower),
                 }
