@@ -17,7 +17,7 @@ Theme: [kanagawa](https://github.com/rebelot/kanagawa.nvim)
 
 ## Introduction
 
-Grapple is a plugin that aims to provide immediate navigation to important files (and their last known cursor location). See the [quickstart](#quickstart) section to get started.
+Grapple is a plugin that aims to provide immediate navigation to important files. See the [quickstart](#quickstart) section to get started.
 
 ## Goals
 
@@ -121,14 +121,7 @@ Note, these examples assume you are using the [lazy.nvim](https://github.com/fol
     cmd = "Grapple",
     keys = {
         { "<leader>m", "<cmd>Grapple toggle<cr>", desc = "Grapple toggle tag" },
-        { "<leader>k", "<cmd>Grapple toggle_tags<cr>", desc = "Grapple toggle tags" },
-        { "<leader>K", "<cmd>Grapple toggle_scopes<cr>", desc = "Grapple toggle scopes" },
-        { "<leader>j", "<cmd>Grapple cycle forward<cr>", desc = "Grapple cycle forward" },
-        { "<leader>J", "<cmd>Grapple cycle backward<cr>", desc = "Grapple cycle backward" },
-        { "<leader>1", "<cmd>Grapple select index=1<cr>", desc = "Grapple select 1" },
-        { "<leader>2", "<cmd>Grapple select index=2<cr>", desc = "Grapple select 2" },
-        { "<leader>3", "<cmd>Grapple select index=3<cr>", desc = "Grapple select 3" },
-        { "<leader>4", "<cmd>Grapple select index=4<cr>", desc = "Grapple select 4" },
+        { "<leader>M", "<cmd>Grapple toggle_tags<cr>", desc = "Grapple open tags window" },
     },
 },
 ```
@@ -253,7 +246,7 @@ require("grapple").setup({
 
     ---Time limit used for pruning unused scope (IDs). If a scope's save file
     ---modified time exceeds this limit, then it will be deleted when a prune
-    ---requested. Can be an integer (in milliseconds) or a string time limit
+    ---requested. Can be an integer (in seconds) or a string time limit
     ---(e.g. "30d" or "2h" or "15m")
     ---@type integer | string
     prune = "30d",
@@ -305,7 +298,7 @@ require("grapple").setup({
 In general, the API is as follows:
 
 **Lua**: `require("grapple").{method}(...)`
-<br>
+
 **Command**: `:Grapple [method] [opts...]`
 
 Where `opts` in the user command is a list of `value` arguments and `key=value` keyword arguments. For example,
@@ -430,16 +423,16 @@ require("grapple").select({ index = 3 })
 
 Cycle through and select the next or previous available tag for a given scope.
 
-**Command**: `:Grapple cycle {direction} [opts...]`
-
 **API**:
 
 - `require("grapple").cycle(direction, opts)`
 - `require("grapple").cycle_backward(opts)`
 - `require("grapple").cycle_forward(opts)`
 
-**`direction`**: `"backward"` | `"forward"`
-**`opts?`**: [`grapple.options`](#grappleoptions) (one of)
+Where:
+
+- **`direction`**: `"backward"` | `"forward"`
+- **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
 
 **Note**: Starting tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
 
@@ -459,8 +452,6 @@ require("grapple").cycle_forward()
 #### `Grapple.unload`
 
 Unload tags for a give (scope) name or loaded scope (id).
-
-**Command**: `:Grapple unload [scope={scope}] [id={id}]`
 
 **API**: `require("grapple").unload(opts)`
 
@@ -489,8 +480,6 @@ require("grapple").unload({ id = "~/git" })
 
 Reset tags for a given (scope) name or loaded scope (id).
 
-**Command**: `:Grapple reset [scope={scope}] [id={id}]`
-
 **API**: `require("grapple").reset(opts)`
 
 **`opts?`**: `table`
@@ -517,8 +506,6 @@ require("grapple").reset({ id = "~/git" })
 #### `Grapple.prune`
 
 Prune save files based on their last modified time.
-
-**Command**: `:Grapple prune [limit=]`
 
 **API**: `require("grapple").prune(opts)`
 
@@ -604,9 +591,9 @@ Search for a tag in a given scope.
 
 **API**: `require("grapple").find(opts)`
 
-**`returns`**: [`grapple.tag`](#grappletag) | `nil`, `string?` error
-
 **`opts?`**: [`grapple.options`](#grappleoptions) (one of)
+
+**`returns`**: [`grapple.tag`](#grappletag) | `nil`, `string?` error
 
 **Note**: Tag is searched based on one of (in order): `index`, `name`, `path`, `buffer`
 
@@ -715,9 +702,9 @@ Delete a default or user-defined scope.
 
 **API**: `require("grapple").delete_scope(scope)`
 
-**`returns`**: `string?` error
-
 **`scope`**: `string` scope name
+
+**`returns`**: `string?` error
 
 #### `Grapple.use_scope`
 
@@ -1001,6 +988,8 @@ require("grapple").setup({
 
 </details>
 
+<!-- panvimdoc-ignore-start -->
+
 #### Lualine Component
 
 <table>
@@ -1044,6 +1033,8 @@ require("lualine").setup({
 <td><img width="300" alt="image" src="https://github.com/cbochs/grapple.nvim/assets/2467016/d10f4359-9463-4fb8-b131-f7867e4c8fcc"></td>
 </tr>
 </table>
+
+<!-- panvimdoc-ignore-start -->
 
 ## Grapple Types
 
