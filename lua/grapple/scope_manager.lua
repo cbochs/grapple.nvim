@@ -79,7 +79,7 @@ function ScopeManager:lookup(id)
     -- somewhere else? Looks like an opportunity for refactoring
     local ids = vim.tbl_map(to_id, self.app.tag_manager:list())
     if vim.tbl_contains(ids, id) then
-        return ResolvedScope:new(self.app, "unknown", id, nil)
+        return ResolvedScope:new(self.app, "unknown", id, nil), nil
     end
 
     return nil, string.format("could not find resolved scope for id: %s", id)
@@ -87,7 +87,7 @@ end
 
 ---@param name string
 ---@param resolver grapple.scope_resolver
----@param opts? { force?: boolean, desc?: string, fallback?: string, cache?: grapple.cache.options | boolean }
+---@param opts? { force?: boolean, desc?: string, fallback?: string, cache?: grapple.cache.options | boolean, hidden?: boolean }
 ---@return string? error
 function ScopeManager:define(name, resolver, opts)
     opts = opts or {}
@@ -116,6 +116,7 @@ function ScopeManager:define(name, resolver, opts)
     local scope = Scope:new(self.app, name, resolver, {
         desc = opts.desc,
         fallback = fallback,
+        hidden = opts.hidden,
     })
 
     self.scopes[name] = scope

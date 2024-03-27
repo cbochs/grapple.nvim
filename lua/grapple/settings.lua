@@ -281,6 +281,11 @@ local DEFAULT_SETTINGS = {
             window:perform_close(ScopeActions.open_loaded)
         end, { desc = "Go to loaded scopes" })
 
+        -- Toggle
+        window:map("n", "g.", function()
+            window:perform_retain(ScopeActions.toggle_all)
+        end, { desc = "Toggle show hidden" })
+
         -- Help
         window:map("n", "?", function()
             local WindowActions = require("grapple.window_actions")
@@ -323,11 +328,6 @@ local DEFAULT_SETTINGS = {
             end, { desc = string.format("Quick select %d", i) })
         end
 
-        -- Toggle
-        window:map("n", "<s-cr>", function()
-            window:perform_retain(ContainerActions.toggle_all)
-        end, { desc = "Toggle show all" })
-
         -- Unload
         window:map("n", "x", function()
             local entry = window:current_entry()
@@ -346,6 +346,11 @@ local DEFAULT_SETTINGS = {
         window:map("n", "-", function()
             window:perform_close(ContainerActions.open_scopes)
         end, { desc = "Go to scopes" })
+
+        -- Toggle
+        window:map("n", "g.", function()
+            window:perform_retain(ContainerActions.toggle_all)
+        end, { desc = "Toggle show unloaded" })
 
         -- Help
         window:map("n", "?", function()
@@ -499,11 +504,7 @@ function Settings:scopes()
             definition = { delete = true }
         end
 
-        definition = vim.tbl_extend("keep", definition, {
-            name = name,
-            desc = "",
-        })
-
+        definition = vim.tbl_extend("keep", definition, { name = name })
         assert(type(definition.name) == "string")
 
         table.insert(scopes, definition)
@@ -511,11 +512,7 @@ function Settings:scopes()
 
     -- Add user-defined scopes
     for name, definition in pairs(self.inner.scopes) do
-        definition = vim.tbl_extend("keep", definition, {
-            name = name,
-            desc = "",
-        })
-
+        definition = vim.tbl_extend("keep", definition, { name = name })
         assert(type(definition.name) == "string")
 
         if definition.fallback then

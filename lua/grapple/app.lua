@@ -75,6 +75,7 @@ function App:define_scope(definition)
         desc = definition.desc,
         fallback = definition.fallback,
         cache = definition.cache,
+        hidden = definition.hidden,
     })
 end
 

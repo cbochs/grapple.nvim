@@ -6,6 +6,7 @@ local ResolvedScope = require("grapple.resolved_scope")
 ---@field desc string
 ---@field resolver grapple.scope_resolver
 ---@field fallback grapple.scope | nil
+---@field hidden boolean
 local Scope = {}
 Scope.__index = Scope
 
@@ -14,7 +15,7 @@ Scope.__index = Scope
 ---@param app grapple.app
 ---@param name string
 ---@param resolver grapple.scope_resolver
----@param opts? { desc?: string, fallback?: grapple.scope }
+---@param opts? { desc?: string, fallback?: grapple.scope, hidden?: boolean }
 ---@return grapple.scope
 function Scope:new(app, name, resolver, opts)
     opts = opts or {}
@@ -22,9 +23,10 @@ function Scope:new(app, name, resolver, opts)
     return setmetatable({
         app = app,
         name = name,
-        desc = opts.desc,
+        desc = opts.desc or "",
         resolver = resolver,
         fallback = opts.fallback,
+        hidden = opts.hidden,
     }, self)
 end
 
@@ -36,9 +38,9 @@ function Scope:resolve()
     if not id then
         if self.fallback then
             return self.fallback:resolve()
-        else
-            return nil, err
         end
+
+        return nil, err
     end
 
     return ResolvedScope:new(self.app, self.name, id, path), nil

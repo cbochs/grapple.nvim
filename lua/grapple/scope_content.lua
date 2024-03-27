@@ -4,18 +4,21 @@ local Util = require("grapple.util")
 ---@field app grapple.app
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
+---@field show_all boolean
 local ScopeContent = {}
 ScopeContent.__index = ScopeContent
 
 ---@param app grapple.app
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
+---@param show_all boolean
 ---@return grapple.scope_content
-function ScopeContent:new(app, hook_fn, title_fn)
+function ScopeContent:new(app, hook_fn, title_fn, show_all)
     return setmetatable({
         app = app,
         hook_fn = hook_fn,
         title_fn = title_fn,
+        show_all = show_all,
     }, self)
 end
 
@@ -77,12 +80,17 @@ function ScopeContent:entities()
         return string.lower(scope_a.name) < string.lower(scope_b.name)
     end
 
+    ---@type grapple.scope[]
     local scopes = vim.tbl_values(self.app.scope_manager.scopes)
     table.sort(scopes, by_name)
 
     local entities = {}
 
     for _, scope in ipairs(scopes) do
+        if not self.show_all and scope.hidden then
+            goto continue
+        end
+
         ---@class grapple.scope_content.entity
         local entity = {
             scope = scope,
@@ -90,6 +98,8 @@ function ScopeContent:entities()
         }
 
         table.insert(entities, entity)
+
+        ::continue::
     end
 
     return entities, nil
@@ -191,6 +201,10 @@ end
 ---@param opts? grapple.action.options
 ---@return string? error
 function ScopeContent:perform(action, opts)
+    opts = vim.tbl_extend("force", opts or {}, {
+        show_all = self.show_all,
+    })
+
     return action(opts)
 end
 

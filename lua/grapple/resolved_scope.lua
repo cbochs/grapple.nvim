@@ -11,7 +11,6 @@ ResolvedScope.__index = ResolvedScope
 ---@param name string
 ---@param id string
 ---@param path string | nil
----@param tag_manager grapple.tag_manager
 ---@return grapple.resolved_scope
 function ResolvedScope:new(app, name, id, path)
     return setmetatable({

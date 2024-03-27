@@ -72,8 +72,11 @@ function TagManager:transaction(id, callback, opts)
     return nil
 end
 
----@alias grapple.tag_container_item { container: grapple.tag_container | nil, loaded: boolean}
----
+---@class grapple.tag_container_item
+---@field id string
+---@field loaded boolean
+---@field container? grapple.tag_container
+
 ---@return grapple.tag_container_item[]
 function TagManager:list()
     local list = {}

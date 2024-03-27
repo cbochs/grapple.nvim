@@ -577,12 +577,14 @@ function Grapple.toggle_scopes()
 end
 
 ---Open a floating window populated with all defined scopes
-function Grapple.open_scopes()
+---@param opts? { all: boolean }
+function Grapple.open_scopes(opts)
     local ScopeContent = require("grapple.scope_content")
     local App = require("grapple.app")
     local app = App.get()
 
-    local content = ScopeContent:new(app, app.settings.scope_hook, app.settings.scope_title)
+    local show_all = opts and opts.all or false
+    local content = ScopeContent:new(app, app.settings.scope_hook, app.settings.scope_title, show_all)
 
     open(content)
 end
@@ -705,7 +707,7 @@ function Grapple.initialize()
                     tag            = { args = {},              kwargs = new_kwargs },
                     toggle         = { args = {},              kwargs = tag_kwargs },
                     toggle_loaded  = { args = {},              kwargs = { "all" } },
-                    toggle_scopes  = { args = {},              kwargs = {} },
+                    toggle_scopes  = { args = {},              kwargs = { "all" } },
                     toggle_tags    = { args = {},              kwargs = window_kwargs },
                     unload         = { args = {},              kwargs = scope_kwargs },
                     untag          = { args = {},              kwargs = use_kwargs },

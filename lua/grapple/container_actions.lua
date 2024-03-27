@@ -29,10 +29,9 @@ end
 
 ---@param opts grapple.action.container_options
 function ContainerActions.toggle_all(opts)
-    -- HACK: reduce window flickering for now by updating the content in-place
+    -- HACK: reduce window flickering by updating the content in-place
     opts.window.content.show_all = not opts.show_all
     opts.window:render()
-    -- require("grapple").open_loaded({ all = not opts.show_all })
 end
 
 function ContainerActions.open_scopes()

@@ -5,6 +5,9 @@ local ScopeActions = {}
 ---Provided by Window
 ---@field window grapple.window
 ---
+---Provided by ScopeContent
+---@field show_all boolean
+---
 ---User-provided information
 ---@field name? string
 
@@ -21,6 +24,12 @@ end
 
 function ScopeActions.open_loaded()
     require("grapple").open_loaded()
+end
+
+function ScopeActions.toggle_all(opts)
+    -- HACK: reduce window flickering by updating the content in-place
+    opts.window.content.show_all = not opts.show_all
+    opts.window:render()
 end
 
 return ScopeActions
