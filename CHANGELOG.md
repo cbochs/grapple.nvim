@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.27.0](https://github.com/cbochs/grapple.nvim/compare/v0.26.0...v0.27.0) (2024-03-27)
+
+
+### Features
+
+* add scope priority ([5e85367](https://github.com/cbochs/grapple.nvim/commit/5e853679a8f5412243f30e8a49d5670535fa251b))
+* hide scopes in scopes window ([c9907ec](https://github.com/cbochs/grapple.nvim/commit/c9907ec0293297eecab2a52fd3b6dcae5159f88b))
+
+
+### Bug Fixes
+
+* always unset window ids on window close ([601a73a](https://github.com/cbochs/grapple.nvim/commit/601a73a9c07a6a8c3082673785af1d84c0a7d6da))
+* deepcopy tags before returning in Grapple.tags ([5d96868](https://github.com/cbochs/grapple.nvim/commit/5d96868a6e9791b7a8ee51a9eef43fc408b9650e))
+* escape container_id in Loaded Scopes window ([8903901](https://github.com/cbochs/grapple.nvim/commit/89039013f6092053f1a45dd1abbc946ffc3d9f80))
+
 ## [0.26.0](https://github.com/cbochs/grapple.nvim/compare/v0.25.0...v0.26.0) (2024-03-21)
 
 
