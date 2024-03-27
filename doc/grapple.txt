@@ -871,6 +871,7 @@ Some basic actions are available by default:
 - **Quick select** (default: `1-9`): open the tags window for the scope at a given index
 - **Change** (`<s-cr>`): change the current scope to the one under the cursor
 - **Go up** (`-`): navigate across to the |grapple-loaded-scopes-window|
+- **Toggle** (`g.`): toggle showing both hidden and unhidden scopes
 - **Help** (`?`): open the help window
 
 **API**
@@ -895,10 +896,10 @@ modifiable. Some basic actions are available by default:
 
 - **Selection** (`<cr>`): open the |grapple-tags-window| for the loaded scope ID under the cursor
 - **Quick select** (default: `1-9`): open tags window for the loaded scope ID at a given index
-- **Toggle** (`<s-cr>`): toggle showing both loaded and unloaded scope IDs
 - **Unload** (`x`): unload the tags for the scope ID under the cursor
 - **Deletion** (`X`): reset the tags for the scope ID under the cursor
 - **Go up** (`-`): navigate across to the |grapple-scopes-window|
+- **Toggle** (`g.`): toggle showing both loaded and unloaded scope IDs
 - **Help** (`?`): open the help window
 
 **API**
