@@ -18,7 +18,6 @@ Table of Contents                                  *grapple-table-of-contents*
   - Grapple Windows                     |grapple-grapple.nvim-grapple-windows|
   - Persistent State                   |grapple-grapple.nvim-persistent-state|
   - Integrations                           |grapple-grapple.nvim-integrations|
-  - Grapple Types                         |grapple-grapple.nvim-grapple-types|
 
 ==============================================================================
 1. Grapple.nvim                                         *grapple-grapple.nvim*
@@ -27,8 +26,7 @@ Table of Contents                                  *grapple-table-of-contents*
 INTRODUCTION                               *grapple-grapple.nvim-introduction*
 
 Grapple is a plugin that aims to provide immediate navigation to important
-files (and their last known cursor location). See the |grapple-quickstart|
-section to get started.
+files. See the |grapple-quickstart| section to get started.
 
 
 GOALS                                             *grapple-grapple.nvim-goals*
@@ -130,14 +128,7 @@ Recommended ~
         cmd = "Grapple",
         keys = {
             { "<leader>m", "<cmd>Grapple toggle<cr>", desc = "Grapple toggle tag" },
-            { "<leader>k", "<cmd>Grapple toggle_tags<cr>", desc = "Grapple toggle tags" },
-            { "<leader>K", "<cmd>Grapple toggle_scopes<cr>", desc = "Grapple toggle scopes" },
-            { "<leader>j", "<cmd>Grapple cycle forward<cr>", desc = "Grapple cycle forward" },
-            { "<leader>J", "<cmd>Grapple cycle backward<cr>", desc = "Grapple cycle backward" },
-            { "<leader>1", "<cmd>Grapple select index=1<cr>", desc = "Grapple select 1" },
-            { "<leader>2", "<cmd>Grapple select index=2<cr>", desc = "Grapple select 2" },
-            { "<leader>3", "<cmd>Grapple select index=3<cr>", desc = "Grapple select 3" },
-            { "<leader>4", "<cmd>Grapple select index=4<cr>", desc = "Grapple select 4" },
+            { "<leader>M", "<cmd>Grapple toggle_tags<cr>", desc = "Grapple open tags window" },
         },
     },
 <
@@ -259,7 +250,7 @@ Default Settings ~
     
         ---Time limit used for pruning unused scope (IDs). If a scope's save file
         ---modified time exceeds this limit, then it will be deleted when a prune
-        ---requested. Can be an integer (in milliseconds) or a string time limit
+        ---requested. Can be an integer (in seconds) or a string time limit
         ---(e.g. "30d" or "2h" or "15m")
         ---@type integer | string
         prune = "30d",
@@ -309,8 +300,9 @@ USAGE                                             *grapple-grapple.nvim-usage*
 
 In general, the API is as follows:
 
-**Lua**`require("grapple").{method}(...)` **Command**`:Grapple [method]
-[opts...]`
+**Lua**`require("grapple").{method}(...)`
+
+**Command**`:Grapple [method] [opts...]`
 
 Where `opts` in the user command is a list of `value` arguments and `key=value`
 keyword arguments. For example,
@@ -432,16 +424,16 @@ GRAPPLE.CYCLE
 
 Cycle through and select the next or previous available tag for a given scope.
 
-**Command**`:Grapple cycle {direction} [opts...]`
-
 **API**
 
 - `require("grapple").cycle(direction, opts)`
 - `require("grapple").cycle_backward(opts)`
 - `require("grapple").cycle_forward(opts)`
 
-**direction**`"backward"` | `"forward"` **opts?**|grapple-`grapple.options`|
-(one of)
+Where:
+
+- **direction**`"backward"` | `"forward"`
+- **opts?**|grapple-`grapple.options`| (one of)
 
 **Note**Starting tag is searched based on one of (in order): `index`, `name`,
 `path`, `buffer`
@@ -460,8 +452,6 @@ Examples ~
 GRAPPLE.UNLOAD
 
 Unload tags for a give (scope) name or loaded scope (id).
-
-**Command**`:Grapple unload [scope={scope}] [id={id}]`
 
 **API**`require("grapple").unload(opts)`
 
@@ -488,8 +478,6 @@ GRAPPLE.RESET
 
 Reset tags for a given (scope) name or loaded scope (id).
 
-**Command**`:Grapple reset [scope={scope}] [id={id}]`
-
 **API**`require("grapple").reset(opts)`
 
 **opts?**`table`
@@ -514,8 +502,6 @@ Examples ~
 GRAPPLE.PRUNE
 
 Prune save files based on their last modified time.
-
-**Command**`:Grapple prune [limit=]`
 
 **API**`require("grapple").prune(opts)`
 
@@ -596,9 +582,9 @@ Search for a tag in a given scope.
 
 **API**`require("grapple").find(opts)`
 
-**returns**|grapple-`grapple.tag`| | `nil`, `string?` error
-
 **opts?**|grapple-`grapple.options`| (one of)
+
+**returns**|grapple-`grapple.tag`| | `nil`, `string?` error
 
 **Note**Tag is searched based on one of (in order): `index`, `name`, `path`,
 `buffer`
@@ -702,9 +688,9 @@ Delete a default or user-defined scope.
 
 **API**`require("grapple").delete_scope(scope)`
 
-**returns**`string?` error
-
 **scope**`string` scope name
+
+**returns**`string?` error
 
 
 GRAPPLE.USE_SCOPE
@@ -1011,122 +997,6 @@ Examples ~
         }
     })
 <
-
-
-LUALINECOMPONENT
-
-SnippetScreenshot>lua
-    require("lualine").setup({
-        sections = {
-            lualine_b = { "grapple" }
-        }
-    })
-<
-
->lua
-    require("lualine").setup({
-        sections = {
-            lualine_b = {
-                {
-                    require("grapple").name_or_index,
-                    cond = require("grapple").exists
-                }
-            }
-        }
-    })
-<
-
-
-GRAPPLE TYPES                             *grapple-grapple.nvim-grapple-types*
-
-Type Definitions ~
-
-
-GRAPPLE.OPTIONS ~
-
-Options available for most top-level tagging actions (e.g. tag, untag, select,
-toggle, etc).
-
-**Type**`table`
-
-- **buffer**`integer` (default: `0`)
-- **path**`string` file path or `<cfile>` (overrides `buffer`)
-- **name**`string` tag name
-- **index**`integer` tag insertion or deletion index (default: end of list)
-- **scope**`string` scope name (default `settings.scope`)
-
-
-GRAPPLE.TAG ~
-
-Data object for a tagged file.
-
-**Type**`table`
-
-- **path**`string` absolute file path
-- **name**`string` (optional) tag name
-- **cursor**`integer[]` (1, 0)-indexed cursor position
-
-
-GRAPPLE.CACHE.OPTIONS ~
-
-Options available for defining how a scope should be cached. Using the value of
-`true` will indicate a value should be cached indefinitely and is equivalent to
-providing an empty set of options (`{}`).
-
-**Type**`table` | `boolean`
-
-- **event?**`string` | `string[]` autocmd event (||autocmd||)
-- **pattern?**`string` autocmd pattern, useful for `User` events
-- **interval?**`integer` timer interval
-- **debounce?**`integer` debounce interval
-
-
-GRAPPLE.SCOPE_DEFINITION ~
-
-Used for defining new scopes.
-
-**Type**`table`
-
-- **name**`string` scope name
-- **resolver**|grapple-`grapple.scope_resolver`|
-- **desc?**`string` scope description (default: `""`)
-- **force?**`string` scope description
-- **fallback?**`string` fallback scope name
-- **cache?**|grapple-`grapple.cache.options`| | `boolean`
-- **priority?**`integer` scope priority, higher scopes are loaded first
-- **hidden?**`integer` do not show the scope in the |grapple-scopes-window|
-- **delete?**`integer`
-
-**Note**Scopes are given a `priority` based on their fallback ordering. By
-default, scopes without a fallback are given a priority of `1000`; scopes with
-a fallback, but are also fallbacks themselves, are given a priority of `100`;
-and all other scopes are given a priority of `1`. Higher priority scopes are
-loaded first. This can be overridden by setting a scope’s `priority` manually
-in the |grapple-settings|.
-
-
-GRAPPLE.SCOPE_RESOLVER ~
-
-Used for defining new scopes. Must return a tuple of `(id, path, err)`. If
-successful, an `id` must be provided with an optional absolute path `path`. If
-unsuccessful, `id` must be `nil` with an optional `err` explaining what when
-wrong.
-
-**Type**`function`
-
-**Returns**`string? id, string? path, string? err`
-
-
-GRAPPLE.RESOLVED_SCOPE ~
-
-Result from observing a scope at a point in time.
-
-**Type** `class`
-
-- **name**`string` scope name
-- **id**`string` resolved scope ID
-- **path**`string` | `nil` resolved scope path
-- **:tags()**returns all tags for the given ID
 
 Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
 
