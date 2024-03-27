@@ -965,6 +965,8 @@ A statusline component can be easily added to show whether a buffer is tagged.
 
 - `require("grapple").name_or_index()`
 - `require("grapple").exists()`
+- `require("grapple").find()`
+- `require("grapple").tags()`
 
 <details>
 <summary><b>Examples</b></summary>
