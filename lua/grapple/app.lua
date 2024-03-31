@@ -1,5 +1,6 @@
 ---@class grapple.app
 ---@field settings grapple.settings
+---@field cache grapple.cache
 ---@field scope_manager grapple.scope_manager
 ---@field tag_manager grapple.tag_manager
 local App = {}
@@ -29,21 +30,26 @@ function App:new()
     local State = require("grapple.state")
     local TagManager = require("grapple.tag_manager")
 
+    local settings = Settings:new()
+
     local app = setmetatable({
-        settings = nil,
+        settings = settings,
+        cache = Cache:new(),
         scope_manager = nil,
         tag_manager = nil,
     }, self)
 
-    local settings = Settings:new()
-
+    -- TODO: I think the "scope" cache and "glboal" cache should be separate.
+    -- Think about this more and decided on the best approach. Note: right now
+    -- the scope manager only really needs the "app" to get the tag_manager for
+    -- a single method. A bit of refactoring could probably remove this
+    -- dependency
     local cache = Cache:new()
     local scope_manager = ScopeManager:new(app, cache)
 
     local state = State:new(settings.save_path)
     local tag_manager = TagManager:new(app, state)
 
-    app.settings = settings
     app.scope_manager = scope_manager
     app.tag_manager = tag_manager
 
