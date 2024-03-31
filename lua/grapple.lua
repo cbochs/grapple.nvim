@@ -524,6 +524,12 @@ function Grapple.use_scope(scope_name)
 
     if scope.name ~= app.settings.scope then
         app.settings:update({ scope = scope.name })
+
+        vim.api.nvim_exec_autocmds("User", {
+            pattern = "GrappleScopeChanged",
+            modeline = false,
+        })
+
         vim.notify(string.format("Changing scope: %s", scope.name))
     end
 end
