@@ -6,18 +6,18 @@ Cache.__index = Cache
 
 ---@class grapple.cache.options
 ---@field event? string | string[]
----@field pattern? string
+---@field pattern? string | string[]
 ---@field interval? integer
 ---@field debounce? integer in milliseconds
 
 ---@class grapple.cache.value
 ---@field event? string | string[]
----@field pattern string?
----@field interval integer?
----@field debounce integer? in milliseconds
+---@field pattern? string | string[]
+---@field interval? integer
+---@field debounce? integer in milliseconds
 --
----@field au_id integer?
----@field timer uv_timer_t?
+---@field au_id? integer
+---@field timer? uv_timer_t
 --
 ---@field debouncing boolean
 ---@field watching boolean
@@ -31,6 +31,10 @@ function Cache:new()
         group_id = CACHE_GROUP,
         cache = {},
     }, self)
+end
+
+function Cache:is_open(id)
+    return self.cache[id] ~= nil
 end
 
 ---@param id string
