@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.28.0](https://github.com/cbochs/grapple.nvim/compare/v0.27.1...v0.28.0) (2024-03-31)
+
+
+### Features
+
+* add Cache:is_open(id) + some luadocs cleanup ([eee8d92](https://github.com/cbochs/grapple.nvim/commit/eee8d92e22facc4583e1431fc9de51b678e70234))
+* add global cache to App ([526cf25](https://github.com/cbochs/grapple.nvim/commit/526cf25f277340c85f1992dcdfa12557fb4307c2))
+* emit event on scope change "GrappleScopeChanged" (See [#147](https://github.com/cbochs/grapple.nvim/issues/147)) ([1e7ffdd](https://github.com/cbochs/grapple.nvim/commit/1e7ffdd48ed7a0e0f135c9b9684f5b74c5fbc243))
+
 ## [0.27.1](https://github.com/cbochs/grapple.nvim/compare/v0.27.0...v0.27.1) (2024-03-27)
 
 
