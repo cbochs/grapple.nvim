@@ -32,10 +32,8 @@ function Tag:select(command)
     local App = require("grapple.app")
     local app = App.get()
 
-    local short_path = Path.fs_short(self.path)
-
     command = command or app.settings.command
-    command(short_path)
+    command(self.path)
 
     if self.cursor then
         local current_cursor = vim.api.nvim_win_get_cursor(0)
