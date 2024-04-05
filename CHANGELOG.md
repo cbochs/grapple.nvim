@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.1](https://github.com/cbochs/grapple.nvim/compare/v0.28.0...v0.28.1) (2024-04-05)
+
+
+### Bug Fixes
+
+* **docs:** incorrect information for grapple.scope_definition type ([d256401](https://github.com/cbochs/grapple.nvim/commit/d256401e6850c30db96385df39f87db345e9c044))
+* send tag absolute path to command instead of short path ([34b8f47](https://github.com/cbochs/grapple.nvim/commit/34b8f4728294058e9fdad116fd21f72feb66ab73))
+
 ## [0.28.0](https://github.com/cbochs/grapple.nvim/compare/v0.27.1...v0.28.0) (2024-03-31)
 
 
