@@ -259,6 +259,7 @@ function Grapple.cycle_tags(direction, opts)
         or direction == "previous" and "prev"
         or direction
 
+    ---@cast direction "next" | "prev"
     if not vim.tbl_contains({ "next", "prev" }, direction) then
         return vim.notify(string.format("invalid direction: %s", direction), vim.log.levels.ERROR)
     end
