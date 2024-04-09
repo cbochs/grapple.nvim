@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "diagnostics.globals": ["vim"],
+    "runtime.version": "LuaJIT",
+    "workspace.checkThirdParty": false,
+    "workspace.library": [
+        "lua",
+        "$VIMRUNTIME/lua",
+        "${3rd}/busted/library",
+        "${3rd}/luv/library"
+    ],
+    "completion.callSnippet": "Disable",
+    "completion.keywordSnippet": "Disable"
+}
