@@ -260,6 +260,7 @@ function Grapple.cycle_tags(direction, opts)
         or direction
 
     ---@cast direction "next" | "prev"
+
     if not vim.tbl_contains({ "next", "prev" }, direction) then
         return vim.notify(string.format("invalid direction: %s", direction), vim.log.levels.ERROR)
     end
@@ -423,7 +424,7 @@ function Grapple.unload(opts)
 
     opts = opts or {}
 
-    local err = app:unload(opts)
+    local err = app:unload({ scope = opts.scope, id = opts.id })
     if err then
         if opts.notify then
             vim.notify(err, vim.log.levels.ERROR)
@@ -446,7 +447,7 @@ function Grapple.reset(opts)
 
     opts = opts or {}
 
-    local err = app:reset(opts)
+    local err = app:reset({ scope = opts.scope, id = opts.id })
     if err then
         if opts.notify then
             vim.notify(err, vim.log.levels.ERROR)
@@ -472,6 +473,7 @@ function Grapple.prune(opts)
     local pruned_ids, err = app.tag_manager:prune(opts.limit or app.settings.prune)
     if not pruned_ids then
         if opts.notify then
+            ---@diagnostic disable-next-line: param-type-mismatch
             vim.notify(err, vim.log.levels.ERROR)
         end
         return nil, err
