@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.2](https://github.com/cbochs/grapple.nvim/compare/v0.28.1...v0.28.2) (2024-04-09)
+
+
+### Bug Fixes
+
+* **docs:** correct [@cast](https://github.com/cast) for direction ([306eb36](https://github.com/cbochs/grapple.nvim/commit/306eb36d0bbf9e1e13cb36785dd377c90b78df77))
+* **docs:** resolve some linting errors ([fcca9e8](https://github.com/cbochs/grapple.nvim/commit/fcca9e8c2a0cc8eab75fd89f49642d38d17e72db))
+
 ## [0.28.1](https://github.com/cbochs/grapple.nvim/compare/v0.28.0...v0.28.1) (2024-04-05)
 
 
