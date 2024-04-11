@@ -1,7 +1,15 @@
 --[[
 Remarks:
-1. The statusline is opt-in: Can't be builtin to the app
-2. Lualine: The statusline is far more responsive when using the on_update function!
+The statusline is opt-in: Can't be builtin to the app
+Lualine: The statusline is far more responsive when using the on_event function!
+Perhaps: 
+  The default formatter: Add empty_slots, more_marks and scope_name
+  See test case "custom formatter"
+Test with mini.statusline
+
+ TODO: public/non_public: Add "_" to names?
+ TODO: Remove the second statusline example from the docs, in favor of builtin_formatter = "short"
+ TODO: The docs...
 --]]
 
 local Grapple = require("grapple")
@@ -18,9 +26,10 @@ local Grapple = require("grapple")
 
 ---@class grapple.statusline
 ---@field cached_line string
+---@field current? grapple.tag
 ---@field current_scope string
 ---@field formatter grapple.formatter
----@field on_update function
+---@field on_event function
 ---@field opts grapple.statusline.options
 ---@field quick_select string[]
 local Statusline = {}
@@ -32,27 +41,65 @@ local statusline
 
 local STATUSLINE_GROUP = vim.api.nvim_create_augroup("GrappleStatusline", { clear = true })
 
-function Statusline.get()
-    if statusline then
-        return statusline
+---@type grapple.formatter
+function Statusline.default_formatter(opts, data)
+    if #data.tags == 0 then
+        return ""
     end
 
-    local app = require("grapple.app").get()
-    statusline = Statusline:new(app)
-    statusline:initialize()
+    local output = {}
+    local qs = data.quick_select
+    for i, tag in ipairs(data.tags) do
+        local tag_str = tag.name and tag.name or qs[i] and qs[i] or i
+        local tag_fmt = opts.inactive
+        if data.current and data.current.path == tag.path then
+            tag_fmt = opts.active
+        end
+        table.insert(output, string.format(tag_fmt, tag_str))
+    end
 
-    return statusline
+    local result = table.concat(output)
+    if opts.include_icon then
+        result = string.format("%s %s", opts.icon, result)
+    end
+
+    return result
+end
+
+---@type grapple.formatter
+function Statusline.short_formatter(_, data) -- name_or_index
+    if #data.tags == 0 then
+        return ""
+    end
+
+    local result = ""
+    for i, tag in ipairs(data.tags) do
+        if data.current and data.current.path == tag.path then
+            local tag_str = tag.name and tag.name or i
+            result = "" .. tag_str
+            break
+        end
+    end
+    return result
 end
 
 ---@param app grapple.app
 ---@return grapple.statusline
 function Statusline:new(app)
     local se = app.settings
+
+    local formatter = se.statusline.formatter -- a custom user function
+    if formatter == nil then
+        local builtin = Statusline.formatters[se.statusline.builtin_formatter]
+        formatter = builtin and builtin or Statusline.default_formatter
+    end
+
     return setmetatable({ -- apply defaults
         cached_line = "",
+        current = nil,
         current_scope = se.scope, -- updated on grapple.use_scope
-        formatter = se.statusline.formatter,
-        on_update = se.statusline.on_update,
+        formatter = formatter,
+        on_event = se.statusline.on_event_factory(), -- can be nil
         opts = se.statusline,
         quick_select = se:quick_select(), -- a constant
     }, self)
@@ -114,23 +161,76 @@ end
 
 -- Update the cache
 function Statusline:update_cached()
+    self.current = Grapple.find({ buffer = 0 })
     local tags, _ = Grapple.tags() -- using the current scope
 
-    ----@type grapple.statuslinedata
-    local data = {
-        current = Grapple.find({ buffer = 0 }),
+    self.cached_line = self.formatter(self.opts, {
+        current = self.current,
         scope_name = self.current_scope,
         tags = tags or {},
         quick_select = self.quick_select,
-    }
-
-    self.cached_line = self.formatter(self.opts, data)
+    })
 end
 
 -- Update the cache and notify consumers
 function Statusline:update()
     self:update_cached()
-    self:on_update()
+    if not self.on_event then
+        self.on_event = self:produce_on_event()
+    end
+    self:on_event()
+end
+
+-- Produce an on_event function notifying a statusline consumer
+---@return function
+function Statusline:produce_on_event()
+    local supported = {
+        {
+            [[lualine]],
+            function()
+                require("lualine").refresh()
+            end,
+        },
+        {
+            [[mini.statusline]],
+            function()
+                vim.wo.statusline = "%{%v:lua.MiniStatusline.active()%}"
+            end,
+        },
+    }
+    local default = function() -- heirline, nvchad
+        vim.cmd.redrawstatus()
+    end
+    local result
+    for _, item in ipairs(supported) do
+        local has, _ = pcall(require, item[1])
+        if has then
+            result = item[2]
+            break
+        end
+    end
+    return result or default
+end
+
+--          ╭─────────────────────────────────────────────────────────╮
+--          │                       Public api                        │
+--          ╰─────────────────────────────────────────────────────────╯
+---@class grapple.statuslinebuiltins
+Statusline.formatters = {
+    default = Statusline.default_formatter, -- first example
+    short = Statusline.short_formatter, -- second example
+}
+
+function Statusline.get()
+    if statusline then
+        return statusline
+    end
+
+    local app = require("grapple.app").get()
+    statusline = Statusline:new(app)
+    statusline:initialize()
+
+    return statusline
 end
 
 -- The function to be used by consumers
@@ -138,6 +238,12 @@ end
 ---@return string
 function Statusline:format()
     return self.cached_line
+end
+
+--- Is the current buffer tagged. Uses the last seen "current" tag
+---@return boolean
+function Statusline:is_current_buffer_tagged()
+    return self.current ~= nil
 end
 
 return Statusline

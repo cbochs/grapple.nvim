@@ -452,53 +452,33 @@ local DEFAULT_SETTINGS = {
         inactive = " %s ",
         active = "[%s]",
 
-        -- Mostly for lualine integration. Lualine will automatically prepend
-        -- the icon to the returned output
+        -- Mostly for lualine integration. The Lualine "grapple" component
+        -- automatically prepends the icon to the returned output
+        -- In order to prevent the *formatter* from prepending the icon
+        -- when using the "grapple" component, the component sets include_icon to false
         include_icon = true,
 
-        -- A default statusline implementation
-        ---@type grapple.formatter
-        formatter = function(opts, data)
-            if #data.tags == 0 then
-                return ""
-            end
+        -- The builtin formatter to be used in require("grapple").statusline()
+        -- default: current lualine example 1
+        -- short: current lualine example 2 ( without the need to setup lualine in a different way )
+        ---@type "default" | "short"
+        builtin_formatter = "default",
 
-            local output = {}
-            local qs = data.quick_select
-            for i, tag in ipairs(data.tags) do
-                local tag_str = tag.name and tag.name or qs[i] and qs[i] or i
-                local tag_fmt = opts.inactive
-                if data.current and data.current.path == tag.path then
-                    tag_fmt = opts.active
-                end
-                table.insert(output, string.format(tag_fmt, tag_str))
-            end
+        -- Override: Use a custom statusline implementation:
+        -- ---@type grapple.formatter
+        -- formatter = function(opts, data) return "" end,
+        formatter = nil,
 
-            local statusline = table.concat(output)
-            if opts.include_icon then
-                statusline = string.format("%s %s", opts.icon, statusline)
-            end
+        ---@type fun(): fun() | nil
+        on_event_factory = function()
+            -- use the builtin support for lualine, mini.statusline, heirline and nvchad:
+            return nil
 
-            return statusline
+            -- -- or: Return a custom function, notifying a consumer of the line
+            -- return function()
+            --     -- Refresh consumer....
+            -- end
         end,
-
-        -- NOTE: The on_update function uses "lualine" by default if present.
-        -- Users should override this function when another statusline is used.
-        ---@type fun(): nil
-        on_update = function()
-            local ok, Lualine = pcall(require, "lualine")
-            if ok then
-                Lualine.refresh()
-            end
-        end,
-        -- ---@type fun(): nil
-        -- on_update = function() -- echasnovski/mini.statusline
-        --     vim.wo.statusline = "%{%v:lua.MiniStatusline.active()%}"
-        -- end,
-        -- ---@type fun(): nil
-        -- on_update = function() -- rebelot/heirline.nvim
-        --     vim.cmd.redrawstatus()
-        -- end,
     },
 }
 

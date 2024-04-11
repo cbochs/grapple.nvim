@@ -48,12 +48,16 @@ function Component:update_status()
 
     -- Lazyily add statusline options to the component
     if not self.options.icon or not self.options.active or not self.options.inactive then
-        local App = require("grapple.app")
-        local app = App.get()
+        local app = require("grapple.app").get()
         app.settings.statusline["include_icon"] = false -- lualine handles the icon
 
-        -- stylua: ignore
-        self.options = vim.tbl_deep_extend("keep", -- options for lualine
+        -- No icon for the short formatter:
+        if app.settings.statusline.builtin_formatter == "short" then
+            self.options["icons_enabled"] = false
+        end
+
+        self.options = vim.tbl_deep_extend(
+            "keep", -- options for lualine
             self.options,
             app.settings.statusline
         )
