@@ -320,12 +320,14 @@ function Grapple.find(opts)
     return tag, nil
 end
 
+-- TODO: Also try to incorporate in grapple.statusline
 ---Return if a tag exists. Used for statusline components
 ---@param opts? grapple.options
 function Grapple.exists(opts)
     return Grapple.find(opts) ~= nil
 end
 
+-- TODO: Also try to incorporate in grapple.statusline
 ---Return the name or index of a tag. Used for statusline components
 ---@param opts? grapple.options
 ---@return string | integer | nil
@@ -375,45 +377,52 @@ function Grapple.tags(opts)
 end
 
 ---Return a formatted string to be displayed on the statusline
----@param opts grapple.statusline.options
----@return string | nil
-function Grapple.statusline(opts)
-    local App = require("grapple.app")
-    local app = App.get()
-
-    opts = vim.tbl_deep_extend("keep", opts or {}, app.settings.statusline)
-
-    local tags, err = Grapple.tags()
-    if not tags then
-        return err
-    end
-
-    local current = Grapple.find({ buffer = 0 })
-
-    local quick_select = app.settings:quick_select()
-    local output = {}
-
-    for i, tag in ipairs(tags) do
-        -- stylua: ignore
-        local tag_str = tag.name and tag.name
-            or quick_select[i] and quick_select[i]
-            or i
-
-        local tag_fmt = opts.inactive
-        if current and current.path == tag.path then
-            tag_fmt = opts.active
-        end
-
-        table.insert(output, string.format(tag_fmt, tag_str))
-    end
-
-    local statusline = table.concat(output)
-    if opts.include_icon then
-        statusline = string.format("%s %s", opts.icon, statusline)
-    end
-
-    return statusline
+function Grapple.statusline()
+    local line = require("grapple.statusline").get()
+    return line:format()
 end
+
+-- TODO: Keep for reference, remove later
+-- ---Return a formatted string to be displayed on the statusline
+-- ---@param opts grapple.statusline.options
+-- ---@return string | nil
+-- function Grapple.statusline(opts)
+--     local App = require("grapple.app")
+--     local app = App.get()
+--
+--     opts = vim.tbl_deep_extend("keep", opts or {}, app.settings.statusline)
+--
+--     local tags, err = Grapple.tags()
+--     if not tags then
+--         return err
+--     end
+--
+--     local current = Grapple.find({ buffer = 0 })
+--
+--     local quick_select = app.settings:quick_select()
+--     local output = {}
+--
+--     for i, tag in ipairs(tags) do
+--         -- stylua: ignore
+--         local tag_str = tag.name and tag.name
+--             or quick_select[i] and quick_select[i]
+--             or i
+--
+--         local tag_fmt = opts.inactive
+--         if current and current.path == tag.path then
+--             tag_fmt = opts.active
+--         end
+--
+--         table.insert(output, string.format(tag_fmt, tag_str))
+--     end
+--
+--     local statusline = table.concat(output)
+--     if opts.include_icon then
+--         statusline = string.format("%s %s", opts.icon, statusline)
+--     end
+--
+--     return statusline
+-- end
 
 ---Unload tags for a give (scope) name or loaded scope (id)
 ---@param opts? { scope?: string, id?: string, notify?: boolean }

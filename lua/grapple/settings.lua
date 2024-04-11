@@ -455,6 +455,50 @@ local DEFAULT_SETTINGS = {
         -- Mostly for lualine integration. Lualine will automatically prepend
         -- the icon to the returned output
         include_icon = true,
+
+        -- A default statusline implementation
+        ---@type grapple.formatter
+        formatter = function(opts, data)
+            if #data.tags == 0 then
+                return ""
+            end
+
+            local output = {}
+            local qs = data.quick_select
+            for i, tag in ipairs(data.tags) do
+                local tag_str = tag.name and tag.name or qs[i] and qs[i] or i
+                local tag_fmt = opts.inactive
+                if data.current and data.current.path == tag.path then
+                    tag_fmt = opts.active
+                end
+                table.insert(output, string.format(tag_fmt, tag_str))
+            end
+
+            local statusline = table.concat(output)
+            if opts.include_icon then
+                statusline = string.format("%s %s", opts.icon, statusline)
+            end
+
+            return statusline
+        end,
+
+        -- NOTE: The on_update function uses "lualine" by default if present.
+        -- Users should override this function when another statusline is used.
+        ---@type fun(): nil
+        on_update = function()
+            local ok, Lualine = pcall(require, "lualine")
+            if ok then
+                Lualine.refresh()
+            end
+        end,
+        -- ---@type fun(): nil
+        -- on_update = function() -- echasnovski/mini.statusline
+        --     vim.wo.statusline = "%{%v:lua.MiniStatusline.active()%}"
+        -- end,
+        -- ---@type fun(): nil
+        -- on_update = function() -- rebelot/heirline.nvim
+        --     vim.cmd.redrawstatus()
+        -- end,
     },
 }
 
