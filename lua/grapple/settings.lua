@@ -454,13 +454,9 @@ local DEFAULT_SETTINGS = {
 
         -- Mostly for lualine integration. The Lualine "grapple" component
         -- automatically prepends the icon to the returned output
-        -- In order to prevent the *formatter* from prepending the icon
-        -- when using the "grapple" component, the component sets include_icon to false
         include_icon = true,
 
-        -- The builtin formatter to be used in require("grapple").statusline()
-        -- default: current lualine example 1
-        -- short: current lualine example 2 ( without the need to setup lualine in a different way )
+        -- The builtin formatter to be used
         ---@type "default" | "short"
         builtin_formatter = "default",
 
@@ -471,10 +467,10 @@ local DEFAULT_SETTINGS = {
 
         ---@type fun(): fun() | nil
         on_event_factory = function()
-            -- use the builtin support for lualine, mini.statusline, heirline and nvchad:
+            -- Use the builtin support for lualine, mini.statusline, heirline or nvchad:
             return nil
 
-            -- -- or: Return a custom function, notifying a consumer of the line
+            -- -- Or: Return a custom function, notifying a consumer of the line
             -- return function()
             --     -- Refresh consumer....
             -- end

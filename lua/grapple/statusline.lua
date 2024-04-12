@@ -1,17 +1,3 @@
---[[
-Remarks:
-The statusline is opt-in: Can't be builtin to the app
-Lualine: The statusline is far more responsive when using the on_event function!
-Perhaps: 
-  The default formatter: Add empty_slots, more_marks and scope_name
-  See test case "custom formatter"
-Test with mini.statusline
-
- TODO: public/non_public: Add "_" to names?
- TODO: Remove the second statusline example from the docs, in favor of builtin_formatter = "short"
- TODO: The docs...
---]]
-
 local Grapple = require("grapple")
 
 -- The data a formatter function uses to built the line
@@ -107,7 +93,7 @@ end
 
 function Statusline:initialize()
     self:subscribe_to_events()
-    self:subscribe_to_api() -- TODO: GrappleUpdate crashes!
+    self:subscribe_to_api()
     self:update_cached()
 end
 
@@ -119,21 +105,6 @@ function Statusline:subscribe_to_events()
             self:update()
         end,
     })
-    -- vim.api.nvim_create_autocmd({ "User" }, {
-    --     group = STATUSLINE_GROUP,
-    --     pattern = "GrappleScopeChanged",
-    --     callback = function()
-    --         self:update()
-    --     end,
-    -- })
-    -- vim.api.nvim_create_autocmd({ "User" },
-    --     group = STATUSLINE_GROUP,
-    --     nested = false,
-    --     pattern = "GrappleUpdate",
-    --     callback = function()
-    --         self:update()
-    --     end,
-    -- })
 end
 
 -- Decorate Grapple's api in order to update internally
