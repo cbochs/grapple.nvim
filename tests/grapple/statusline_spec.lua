@@ -122,45 +122,33 @@ local function custom(opts_in, data)
         inactive = "%s",
         active = "[%s]",
         empty_slot = "·", -- #slots > #tags, middledot
-        more_marks_indicator = "…", -- #slots < #tags, horizontal elipsis
+        more_marks = "…", -- #slots < #tags, horizontal elipsis
+        scope_names = { git = "", git_branch = "dev" },
     }
-    if data.scope_name == "git" then
-        data.scope_name = ""
+    local scope_name_override = opts.scope_names[data.scope_name]
+    local scope_name = scope_name_override and scope_name_override or data.scope_name
+    local header = string.format("%s%s%s", opts_in.icon, scope_name == "" and "" or " ", scope_name)
+
+    local nr_of_tags = #data.tags
+    local curpath = data.current and data.current.path or nil
+    local slot = 0
+
+    ---@type string[]
+    local status = vim.tbl_map(function(tag) -- slots and corresponding tags
+        slot = slot + 1
+        return string.format(curpath == tag.path and opts.active or opts.inactive, "" .. slot)
+    end, vim.list_slice(data.tags, 1, math.min(opts.max_slots, #data.tags)))
+
+    if opts.max_slots > nr_of_tags then -- slots without tags
+        status[slot + 1] = string.rep(opts.empty_slot, opts.max_slots - nr_of_tags)
+    elseif opts.max_slots < nr_of_tags then -- tags without slots
+        local active = vim.tbl_filter(function(tag)
+            return curpath == tag.path and true or false
+        end, vim.list_slice(data.tags, opts.max_slots + 1))
+        status[slot + 1] = string.format(#active > 0 and opts.active or opts.inactive, opts.more_marks)
     end
 
-    local status = {} -- build slots:
-    local max_tags = #data.tags
-    local current_path = data.current and data.current.path or nil
-    for i = 1, opts.max_slots do
-        local tag_fmt = opts.inactive
-        local tag_str = "" .. i
-        if i > max_tags then -- more slots then ...
-            tag_str = opts.empty_slot
-        else
-            local tag = data.tags[i]
-            if current_path == tag.path then
-                tag_fmt = opts.active
-            end
-        end
-        table.insert(status, string.format(tag_fmt, tag_str))
-    end
-    if max_tags > opts.max_slots then -- more marks then... One indicator
-        local tag_fmt = opts.inactive
-        local tag_str = opts.more_marks_indicator
-        if current_path then
-            for i = opts.max_slots + 1, max_tags do
-                local tag = data.tags[i]
-                if current_path == tag.path then
-                    tag_fmt = opts.active
-                    break
-                end
-            end
-        end
-        table.insert(status, string.format(tag_fmt, tag_str))
-    end
-
-    local prefix = string.format("%s%s%s", opts_in.icon, data.scope_name == "" and "" or " ", data.scope_name)
-    return prefix .. " " .. table.concat(status)
+    return header .. " " .. table.concat(status)
 end
 describe("Statusline .format custom formatter", function()
     before_each(function()
