@@ -1,14 +1,17 @@
 local Util = require("grapple.util")
 
 ---@class grapple.help_content
+---@field app grapple.app
 ---@field buf_id integer buffer id of the current content window
 local HelpContent = {}
 HelpContent.__index = HelpContent
 
+---@param app grapple.app
 ---@param buf_id integer
 ---@return grapple.help_content
-function HelpContent:new(buf_id)
+function HelpContent:new(app, buf_id)
     return setmetatable({
+        app = app,
         buf_id = buf_id,
     }, self)
 end
@@ -38,9 +41,6 @@ function HelpContent:perform() end
 
 ---@return grapple.window.entity[] | nil, string? error
 function HelpContent:entities()
-    local App = require("grapple.app")
-    local app = App.get()
-
     ---@type grapple.vim.keymap[]
     local keymaps = vim.api.nvim_buf_get_keymap(self.buf_id, "n")
 
@@ -48,7 +48,7 @@ function HelpContent:entities()
     local quick_selects = {}
     local index = 1
     for _, keymap in ipairs(keymaps) do
-        if vim.tbl_contains(app.settings:quick_select(), keymap.lhs) then
+        if vim.tbl_contains(self.app.settings:quick_select(), keymap.lhs) then
             if quick_selects[index] == nil then
                 quick_selects[index] = { keymap.lhs, keymap.lhs }
             elseif string.byte(quick_selects[index][2]) + 1 == string.byte(keymap.lhs) then
@@ -64,7 +64,7 @@ function HelpContent:entities()
     local entities = {}
     for _, keymap in ipairs(keymaps) do
         -- Skip quick select keymaps
-        if vim.tbl_contains(app.settings:quick_select(), keymap.lhs) then
+        if vim.tbl_contains(self.app.settings:quick_select(), keymap.lhs) then
             goto continue
         end
 

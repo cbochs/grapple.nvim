@@ -2,7 +2,7 @@ local Path = require("grapple.path")
 local Util = require("grapple.util")
 
 ---@class grapple.window
----@field content grapple.tag_content | grapple.scope_content | grapple.container_content
+---@field content grapple.tag_content | grapple.scope_content | grapple.container_content | grapple.help_content
 ---@field entries grapple.window.entry[]
 ---@field ns_id integer
 ---@field au_id integer
@@ -154,7 +154,7 @@ function Window:close()
     self.entries = nil
 end
 
----@param content grapple.tag_content | grapple.scope_content | grapple.container_content
+---@param content grapple.tag_content | grapple.scope_content | grapple.container_content | grapple.help_content
 ---@return string? error
 function Window:attach(content)
     if self:has_content() then
@@ -348,7 +348,7 @@ function Window:render()
             cursor = { i, 0 }
         end
 
-        local entry = self.content:create_entry(entity, i)
+        local entry = self.content:create_entry(entity --[[ @as any ]], i)
         table.insert(self.entries, entry)
     end
 

@@ -2,6 +2,7 @@ local Path = require("grapple.path")
 local Util = require("grapple.util")
 
 ---@class grapple.tag_content
+---@field app grapple.app
 ---@field scope grapple.resolved_scope
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
@@ -10,13 +11,15 @@ local Util = require("grapple.util")
 local TagContent = {}
 TagContent.__index = TagContent
 
+---@param app grapple.app
 ---@param scope grapple.resolved_scope
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
 ---@param style_fn grapple.style_fn
 ---@return grapple.tag_content
-function TagContent:new(scope, hook_fn, title_fn, style_fn)
+function TagContent:new(app, scope, hook_fn, title_fn, style_fn)
     return setmetatable({
+        app = app,
         scope = scope,
         hook_fn = hook_fn,
         title_fn = title_fn,
@@ -56,11 +59,9 @@ end
 
 ---@return string | nil title
 function TagContent:title()
-    if not self.title_fn then
-        return
+    if self.title_fn then
+        return self.title_fn(self.scope)
     end
-
-    return self.title_fn(self.scope)
 end
 
 ---@param window grapple.window
@@ -102,7 +103,7 @@ end
 
 ---@return grapple.window.entity[] | nil, string? error
 function TagContent:entities()
-    local tags, err = self.scope:tags()
+    local tags, err = self.app:tags({ scope_id = self.scope.id })
     if not tags then
         return nil, err
     end
@@ -160,9 +161,6 @@ end
 ---@param index integer
 ---@return grapple.window.entry
 function TagContent:create_entry(entity, index)
-    local App = require("grapple.app")
-    local app = App.get()
-
     local tag = entity.tag
 
     -- A string representation of the index
@@ -172,7 +170,7 @@ function TagContent:create_entry(entity, index)
     local stylized = self.style_fn(entity, self)
 
     local icon, icon_group
-    if app.settings.icons then
+    if self.app.settings.icons then
         icon, icon_group = get_icon(tag.path)
     end
 
@@ -185,7 +183,7 @@ function TagContent:create_entry(entity, index)
         -- instead of just "overlay". Render the name ahead of the displayed
         -- path instead of as an extmark when the user wants to show it at the
         -- start of the line
-        app.settings.name_pos == "start" and tag.name or nil,
+        self.app.settings.name_pos == "start" and tag.name or nil,
 
         stylized.display,
     })
@@ -198,7 +196,7 @@ function TagContent:create_entry(entity, index)
     local highlights = {}
 
     local sign_highlight
-    if not app.settings.status then
+    if not self.app.settings.status then
         -- Do not set highlight
     elseif entity.current then
         sign_highlight = "GrappleCurrent"
@@ -220,7 +218,7 @@ function TagContent:create_entry(entity, index)
 
     ---@type grapple.vim.highlight | nil
     local name_highlight
-    if app.settings.name_pos == "start" and tag.name then
+    if self.app.settings.name_pos == "start" and tag.name then
         local col_start, col_end = assert(string.find(line, Util.escape(tag.name)))
         name_highlight = {
             hl_group = "GrappleName",
@@ -241,7 +239,7 @@ function TagContent:create_entry(entity, index)
 
     ---@type grapple.vim.mark
     local sign_mark
-    local quick_select = app.settings:quick_select()[index]
+    local quick_select = self.app.settings:quick_select()[index]
     if quick_select then
         sign_mark = {
             sign_text = string.format("%s", quick_select),
@@ -251,7 +249,7 @@ function TagContent:create_entry(entity, index)
 
     ---@type grapple.vim.mark
     local name_mark
-    if app.settings.name_pos == "end" and tag.name then
+    if self.app.settings.name_pos == "end" and tag.name then
         name_mark = {
             virt_text = { { tag.name, "GrappleName" } },
             virt_text_pos = "eol",
@@ -421,7 +419,7 @@ end
 ---@param changes grapple.tag.content.change[]
 ---@return string? error
 function TagContent:apply_changes(changes)
-    return self.scope:enter(function(container)
+    return self.app:enter_with_save(function(container)
         container:clear()
 
         -- TODO: should probably store and return errors
@@ -436,7 +434,7 @@ function TagContent:apply_changes(changes)
                 error(string.format("unsupported action: %s", change.action))
             end
         end
-    end)
+    end, { scope_id = self.scope.id })
 end
 
 ---@param action grapple.action

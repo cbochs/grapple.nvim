@@ -109,9 +109,6 @@ end
 ---@param index integer
 ---@return grapple.window.entry
 function ScopeContent:create_entry(entity, index)
-    local App = require("grapple.app")
-    local app = App.get()
-
     local scope = entity.scope
 
     -- A string representation of the index
@@ -124,7 +121,7 @@ function ScopeContent:create_entry(entity, index)
     local name_group = "GrappleBold"
     local sign_highlight
 
-    if app.settings.status and entity.current then
+    if self.app.settings.status and entity.current then
         sign_highlight = "GrappleCurrent"
         name_group = "GrappleCurrent"
     end
@@ -143,7 +140,7 @@ function ScopeContent:create_entry(entity, index)
 
     ---@type grapple.vim.mark
     local sign_mark
-    local quick_select = app.settings:quick_select()[index]
+    local quick_select = self.app.settings:quick_select()[index]
     if quick_select then
         sign_mark = {
             sign_text = string.format("%s", quick_select),

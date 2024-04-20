@@ -182,8 +182,8 @@ local DEFAULT_SETTINGS = {
     ---@type grapple.hook_fn
     tag_hook = function(window)
         local TagActions = require("grapple.tag_actions")
-        local App = require("grapple.app")
-        local app = App.get()
+        local Grapple = require("grapple")
+        local app = Grapple.app()
 
         -- Select
         window:map("n", "<cr>", function()
@@ -245,8 +245,8 @@ local DEFAULT_SETTINGS = {
     ---@type grapple.hook_fn
     scope_hook = function(window)
         local ScopeActions = require("grapple.scope_actions")
-        local App = require("grapple.app")
-        local app = App.get()
+        local Grapple = require("grapple")
+        local app = Grapple.app()
 
         -- Select
         window:map("n", "<cr>", function()
@@ -304,8 +304,8 @@ local DEFAULT_SETTINGS = {
     ---@type grapple.hook_fn
     loaded_hook = function(window)
         local ContainerActions = require("grapple.container_actions")
-        local App = require("grapple.app")
-        local app = App.get()
+        local Grapple = require("grapple")
+        local app = Grapple.app()
 
         -- Select
         window:map("n", "<cr>", function()

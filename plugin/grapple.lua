@@ -16,9 +16,7 @@ vim.api.nvim_create_autocmd({ "BufWinLeave", "QuitPre" }, {
     pattern = "?*", -- non-empty file
     group = "Grapple",
     callback = function(opts)
-        local app = require("grapple.app").get()
-        local buf_name = vim.api.nvim_buf_get_name(opts.buf)
-        app.tag_manager:update_all({ path = buf_name })
+        require("grapple").touch({ buffer = opts.buf })
     end,
 })
 
@@ -34,6 +32,18 @@ vim.api.nvim_create_user_command(
         local args = {}
         local kwargs = {}
 
+        local function parse(arg)
+            local truthy = {
+                ["true"] = true,
+                ["false"] = false,
+            }
+            if truthy[arg] ~= nil then
+                return truthy[arg]
+            end
+
+            return tonumber(arg) or arg
+        end
+
         for _, arg in ipairs({ unpack(opts.fargs, 2) }) do
             local key, value = string.match(arg, "^(.*)=(.*)$")
 
@@ -42,9 +52,9 @@ vim.api.nvim_create_user_command(
             end
 
             if not key then
-                table.insert(args, tonumber(arg) or arg)
+                table.insert(args, parse(arg))
             else
-                kwargs[key] = tonumber(value) or value
+                kwargs[key] = parse(value)
             end
         end
 
@@ -86,7 +96,6 @@ vim.api.nvim_create_user_command(
             -- stylua: ignore
             -- Lookup table of API functions and their available arguments
             local subcommand_lookup = {
-                clear_cache    = { args = { "scope" },     kwargs = {} },
                 cycle_tags     = { args = { "direction" }, kwargs = use_kwargs },
                 open_loaded    = { args = {},              kwargs = { "all" } },
                 open_scopes    = { args = {},              kwargs = {} },
@@ -100,7 +109,8 @@ vim.api.nvim_create_user_command(
                 toggle_loaded  = { args = {},              kwargs = { "all" } },
                 toggle_scopes  = { args = {},              kwargs = { "all" } },
                 toggle_tags    = { args = {},              kwargs = window_kwargs },
-                unload         = { args = {},              kwargs = scope_kwargs },
+                touch          = { args = {},              kwargs = use_kwargs },
+                unload         = { args = {},              kwargs = { "scope", "id", "reset" } },
                 untag          = { args = {},              kwargs = use_kwargs },
                 use_scope      = { args = { "scope" },     kwargs = {} },
             }
@@ -109,6 +119,8 @@ vim.api.nvim_create_user_command(
             local argument_lookup = {
                 all = { "true", "false" },
                 direction = { "next", "prev" },
+                limit = { app.settings.prune },
+                reset = { "true", "false" },
                 scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
                 style = Util.sort(vim.tbl_keys(app.settings.styles), Util.as_lower),
             }
@@ -144,8 +156,8 @@ vim.api.nvim_create_user_command(
 
             -- Ensure we aren't missing in the lookup table above
             if not Util.same(subcmds, check) then
-                local missing = Util.subtract(subcmds, check)
-                error(string.format("missing lookup for subcommands: %s", table.concat(missing, ", ")))
+                local missing = Util.add(Util.subtract(subcmds, check), Util.subtract(check, subcmds))
+                error(string.format("missing subcommands: %s", table.concat(missing, ", ")))
             end
 
             -- Time to start processing the command

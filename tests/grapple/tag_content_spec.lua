@@ -51,7 +51,7 @@ describe("TagContent", function()
             local line = test_case[2]
 
             it(string.format('expected col %d, line "%s"', expected, line), function()
-                assert.same(expected, TagContent:new(nil, nil, nil, nil):minimum_column(line))
+                assert.same(expected, TagContent.minimum_column(nil, line))
             end)
         end
     end)

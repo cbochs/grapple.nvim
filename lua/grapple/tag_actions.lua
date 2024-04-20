@@ -24,7 +24,7 @@ function TagActions.select(opts)
         path = opts.path,
         name = opts.name,
         index = opts.index,
-        scope = opts.scope.name,
+        scope_id = opts.scope.id,
         command = opts.command,
     })
 end
@@ -39,13 +39,12 @@ function TagActions.rename(opts)
             return
         end
 
-        opts.scope:enter(function(container)
-            local index, err = container:find({ path = opts.path })
-            if not index then
-                return err
-            end
-            container:insert({ path = opts.path, name = input_name, index = index })
-        end)
+        -- HACK: just re-tag the existing tag with a new name
+        require("grapple").tag({
+            path = opts.path,
+            name = input_name,
+            scope_id = opts.scope.id,
+        })
 
         -- Re-render window once tag has been renamed, regardless of whether
         -- the renaming was successful
@@ -56,7 +55,7 @@ end
 ---@param opts grapple.action.tag_options
 ---@return string? error
 function TagActions.quickfix(opts)
-    require("grapple").quickfix({ scope = opts.scope.name })
+    require("grapple").quickfix({ scope_id = opts.scope.id })
 end
 
 function TagActions.open_scopes()

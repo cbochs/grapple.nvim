@@ -1,5 +1,3 @@
-local Path = require("grapple.path")
-
 ---@class grapple.tag
 ---@field path string absolute path
 ---@field name string | nil (optional) tag name
@@ -27,12 +25,8 @@ function Tag:update()
     end
 end
 
----@param command? fun(path: string)
+---@param command fun(path: string)
 function Tag:select(command)
-    local App = require("grapple.app")
-    local app = App.get()
-
-    command = command or app.settings.command
     command(self.path)
 
     if self.cursor then
