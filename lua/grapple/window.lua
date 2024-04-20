@@ -255,9 +255,10 @@ function Window:parse_lines()
 end
 
 ---@param line string
+---@param name string | nil
 ---@return integer min_col
-function Window:minimum_column(line)
-    return self.content:minimum_column(line)
+function Window:minimum_column(line, name)
+    return self.content:minimum_column(line, name)
 end
 
 ---@return string? error
@@ -405,7 +406,7 @@ function Window:create_buffer_defaults(buf_id)
         end
 
         local line = self:current_line()
-        local expected_column = self:minimum_column(line)
+        local expected_column = self:minimum_column(line, self:current_entry().data.name)
         local cursor = vim.api.nvim_win_get_cursor(self.win_id)
 
         if cursor[2] < expected_column then

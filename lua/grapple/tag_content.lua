@@ -32,8 +32,9 @@ end
 
 ---Return the first editable cursor column for a line (0-indexed)
 ---@param line string
+---@param name string | nil
 ---@return integer min_col
-function TagContent:minimum_column(line)
+function TagContent:minimum_column(line, name)
     local id = string.match(line, "^/(%d+)")
     if not id then
         return 0
@@ -41,15 +42,33 @@ function TagContent:minimum_column(line)
 
     -- Assume: editable content is always at the end of the line
     -- Assume: name can be part of the line if "name_pos" is set to "start"
+    -- Assume: name and path can contain spaces and break the split count
     -- base:           2 splits: (id, path)
     -- w/ name:        3 splits: (id, name, path)
     -- w/ icon:        3 splits: (id, icon, path)
     -- w/ icon + name: 4 splits: (id, icon, name, path)
+    local App = require("grapple.app")
+    local app = App.get()
+
+    -- If the "name_pos" is set to "start" and the entry represented by
+    -- the line has a name, the path begins after the end of the name.
+    if app.settings.name_pos == "start" and name then
+        local _, e = string.find(line, name)
+        return e + 1
+    end
+
+    -- There is always at least one split for the id at the start of line.
+    local splits_before_path = 1
+    -- If the "icons" setting is true, we expect one more split.
+    if app.settings.icons then
+        splits_before_path = splits_before_path + 1
+    end
+
     local split = vim.split(line, "%s+")
     if #split <= 1 then
         return 0
     else
-        local _, e = string.find(line, split[#split - 1])
+        local _, e = string.find(line, split[splits_before_path])
         return e + 1
     end
 end
@@ -310,9 +329,15 @@ function TagContent:parse_line(line, original_entries)
         index = nil
     end
 
+    -- Get the name of the current entry (if present) to correctly find the min_col.
+    local name = nil
+    if original_entries[index] then
+        name = original_entries[index].data.name
+    end
+
     -- Minimum column returns the 0-indexed cursor column, convert to
     -- 1-indexed before using it
-    local min_col = self:minimum_column(line) + 1
+    local min_col = self:minimum_column(line, name) + 1
     display = vim.trim(string.sub(line, min_col))
 
     -- Create an empty parsed entry, assume modified
