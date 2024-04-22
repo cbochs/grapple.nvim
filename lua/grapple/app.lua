@@ -392,7 +392,7 @@ end
 ---@param opts { scope?: string, scope_id?: string, reset?: boolean }
 ---@return grapple.resolved_scope | nil, string? error
 function App:unload_scope(opts)
-    local scope, err = self:lookup_scope({ scope = opts.scope, scope_id = opts.scope_id })
+    local scope, err = self:resolve_scope({ scope = opts.scope, scope_id = opts.scope_id })
     if not scope then
         return nil, err
     end
@@ -422,7 +422,7 @@ end
 function App:open_tags(opts)
     opts = opts or {}
 
-    local scope, err = self:lookup_scope({ scope = opts.scope, scope_id = opts.scope_id })
+    local scope, err = self:resolve_scope({ scope = opts.scope, scope_id = opts.scope_id })
     if not scope then
         return err
     end
@@ -476,59 +476,37 @@ function App:current_scope()
     return self.scope_manager:get_resolved(self.context, self.settings.scope)
 end
 
----@param opts? { scope?: string, scope_id?: string }
----@return grapple.resolved_scope | nil, string? error
-function App:lookup_scope(opts)
-    opts = opts or {}
-
-    if opts.scope_id then
-        return self:lookup_scope_by_id(opts.scope_id)
-    else
-        return self:lookup_scope_by_name(opts.scope or self.settings.scope)
-    end
-end
-
 ---@return grapple.tag_container[]
 function App:list_containers()
     return self.tag_manager:list(self.context)
 end
 
----@param scope_id string
+---@param opts? { scope?: string, scope_id?: string }
 ---@return grapple.resolved_scope | nil, string? error
-function App:lookup_scope_by_id(scope_id)
-    local scope = self.context.cache:get(scope_id)
-    if scope then
-        return scope, nil
+function App:resolve_scope(opts)
+    opts = opts or {}
+
+    if opts.scope_id then
+        local scope = self.scope_manager:get_resolved_by_id(self.context, opts.scope_id)
+        if scope then
+            return scope, nil
+        end
+
+        ---@param container grapple.tag_container
+        ---@return string id
+        local to_id = function(container)
+            return container.id
+        end
+
+        local ids = vim.tbl_map(to_id, self.tag_manager:list(self.context))
+        if vim.tbl_contains(ids, opts.scope_id) then
+            return ResolvedScope:new(nil, opts.scope_id, nil), nil
+        end
+
+        return nil, string.format("could not find resolved scope for id: %s", opts.scope_id)
     end
 
-    ---@param container grapple.tag_container
-    ---@return string id
-    local to_id = function(container)
-        return container.id
-    end
-
-    local ids = vim.tbl_map(to_id, self.tag_manager:list(self.context))
-    if vim.tbl_contains(ids, scope_id) then
-        return ResolvedScope:new(nil, scope_id, nil), nil
-    end
-
-    return nil, string.format("could not find resolved scope for id: %s", scope_id)
-end
-
----@param scope_name string
----@return grapple.resolved_scope | nil, string? error
-function App:lookup_scope_by_name(scope_name)
-    local scope, err = self.scope_manager:get_resolved(self.context, scope_name)
-    if not scope then
-        return nil, err
-    end
-
-    if not self.context.cache:is_open(scope.id) then
-        self.context.cache:open(scope.id, {})
-    end
-    self.context.cache:store(scope.id, scope)
-
-    return scope, nil
+    return self.scope_manager:get_resolved(self.context, opts.scope or self.settings.scope)
 end
 
 ---@class grapple.app.enter_options
@@ -541,7 +519,7 @@ end
 ---@param opts grapple.app.enter_options
 ---@return string? error
 function App:enter(callback, opts)
-    local scope, err = self:lookup_scope({ scope = opts.scope, scope_id = opts.scope_id })
+    local scope, err = self:resolve_scope({ scope = opts.scope, scope_id = opts.scope_id })
     if not scope then
         return err
     end

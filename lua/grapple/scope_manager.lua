@@ -35,9 +35,15 @@ function ScopeManager:get_resolved(context, name)
         return nil, err
     end
 
-    local cached = context.cache:get(name)
-    if cached then
-        return cached, nil
+    -- Check the cache first
+    local resolved = context.cache:get(name)
+    if resolved then
+        if not context.cache:is_open(resolved.id) then
+            context.cache:open(resolved.id, {})
+        end
+        context.cache:store(resolved.id, resolved)
+
+        return resolved, nil
     end
 
     ---@diagnostic disable-next-line: redefined-local
@@ -48,7 +54,16 @@ function ScopeManager:get_resolved(context, name)
 
     context.cache:store(name, resolved)
 
+    if not context.cache:is_open(resolved.id) then
+        context.cache:open(resolved.id, {})
+    end
+    context.cache:store(resolved.id, resolved)
+
     return resolved
+end
+
+function ScopeManager:get_resolved_by_id(context, id)
+    return context.cache:get(id)
 end
 
 ---@param context grapple.context
