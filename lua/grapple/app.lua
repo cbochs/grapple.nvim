@@ -79,6 +79,7 @@ end
 ---@field cursor? integer[]
 ---@field scope? string
 ---@field scope_id? string
+---@field type? string
 ---@field command? fun(path: string)
 
 ---Extract a valid path from the provided path or buffer options.
@@ -476,7 +477,7 @@ function App:current_scope()
     return self.scope_manager:get_resolved(self.context, self.settings.scope)
 end
 
----@return grapple.tag_container[]
+---@return grapple.tag_container_state[]
 function App:list_containers()
     return self.tag_manager:list(self.context)
 end

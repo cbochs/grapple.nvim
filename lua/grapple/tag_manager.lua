@@ -12,11 +12,25 @@ function TagManager:new()
     }, self)
 end
 
+---@class grapple.tag_container_state
+---@field id string
+---@field loaded boolean
+---@field length integer
+
 ---@param context grapple.context
----@return grapple.tag_container[]
+---@return grapple.tag_container_state[]
 function TagManager:list(context)
     return vim.tbl_map(function(id)
-        return self:get(id) or TagContainer:new(id)
+        local container = self:get(id)
+
+        ---@type grapple.tag_container_state
+        local container_state = {
+            id = id,
+            loaded = self:is_loaded(id),
+            length = container and container:len() or 0,
+        }
+
+        return container_state
     end, context.state:list())
 end
 
@@ -42,10 +56,7 @@ function TagManager:load(context, id)
 
     if not context.state:exists(id) then
         local container = TagContainer:new(id)
-
-        container.loaded = true
         self.containers[id] = container
-
         return container, nil
     end
 
@@ -60,7 +71,6 @@ function TagManager:load(context, id)
         return nil, err
     end
 
-    container.loaded = true
     self.containers[id] = container
 
     return container, nil

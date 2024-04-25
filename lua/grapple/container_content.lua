@@ -77,8 +77,8 @@ function ContainerContent:entities()
         return nil, err
     end
 
-    ---@param cont_a grapple.tag_container
-    ---@param cont_b grapple.tag_container
+    ---@param cont_a grapple.tag_container_state
+    ---@param cont_b grapple.tag_container_state
     ---@return boolean
     local function by_loaded_then_id(cont_a, cont_b)
         local loaded_a = cont_a.loaded and 1 or 0
@@ -90,20 +90,20 @@ function ContainerContent:entities()
         end
     end
 
-    local container_list = self.app:list_containers()
-    table.sort(container_list, by_loaded_then_id)
+    local container_state_list = self.app:list_containers()
+    table.sort(container_state_list, by_loaded_then_id)
 
     local entities = {}
 
-    for _, container in ipairs(container_list) do
-        if not self.show_all and not container.loaded then
+    for _, container_state in ipairs(container_state_list) do
+        if not self.show_all and not container_state.loaded then
             goto continue
         end
 
         ---@class grapple.container_content.entity
         local entity = {
-            container = container,
-            current = container.id == current_scope.id,
+            container = container_state,
+            current = container_state.id == current_scope.id,
         }
 
         table.insert(entities, entity)
@@ -177,7 +177,7 @@ function ContainerContent:create_entry(entity, index)
 
     local count_mark
     if container.loaded then
-        local count = container:len()
+        local count = container.length
         local count_text = count == 1 and "tag" or "tags"
         count_mark = {
             virt_text = { { string.format("[%d %s]", count, count_text) } },

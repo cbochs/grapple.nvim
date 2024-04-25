@@ -4,9 +4,10 @@ local Tag = require("grapple.tag")
 ---@class grapple.tag_container
 ---@field id string
 ---@field tags grapple.tag[]
+---@field indices table<string, table<string, grapple.tag>>
+---@field implementation grapple.tag_implementation
 ---@field paths_index table<string, grapple.tag>
 ---@field names_index table<string, grapple.tag>
----@field loaded boolean
 local TagContainer = {}
 TagContainer.__index = TagContainer
 
@@ -18,7 +19,6 @@ function TagContainer:new(id)
         tags = {},
         paths_index = {},
         names_index = {},
-        loaded = false,
     }, self)
 end
 

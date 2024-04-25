@@ -57,6 +57,7 @@ local DEFAULT_SETTINGS = {
 
     ---@class grapple.scope_definition
     ---@field name string
+    ---@field resolver grapple.scope_resolver
     ---@field desc? string
     ---@field force? boolean
     ---@field fallback? string name of scope to fall back on
@@ -64,7 +65,6 @@ local DEFAULT_SETTINGS = {
     ---@field priority? integer
     ---@field hidden? boolean
     ---@field delete? boolean
-    ---@field resolver grapple.scope_resolver
 
     ---Default scopes provided by Grapple
     ---For more information about default scopes, please see the Scopes section
@@ -160,6 +160,63 @@ local DEFAULT_SETTINGS = {
                 local path = clients[1].root_dir
 
                 return path, path
+            end,
+        },
+    },
+
+    ---@class grapple.tag_implementation
+    ---@field name string
+    ---@field indices string[]
+    ---@field normalize fun(opts: grapple.options): grapple.options, string? error
+    ---@field identifier fun(opts: grapple.options): string
+    ---@field update fun(tag): string? error
+    ---@field select fun(tag): string? error
+
+    ---@type table<string, grapple.tag_implementation>
+    types = {
+        file = {
+            name = "file",
+            indices = {
+                "id",
+                "path",
+                "name",
+            },
+            normalize = function(opts)
+                local Path = require("grapple.path")
+                opts.path = Path.fs_absolute(opts.path)
+                opts.name = opts.name ~= "" and opts.name or nil
+                return opts
+            end,
+            identifier = function(opts)
+                return opts.path
+            end,
+            update = function(tag)
+                if vim.api.nvim_buf_get_name(0) == tag.path then
+                    tag.cursor = vim.api.nvim_win_get_cursor(0)
+                end
+            end,
+            select = function(tag)
+                if vim.api.nvim_buf_get_name(0) ~= tag.path then
+                    vim.cmd.edit(tag)
+                end
+
+                if not tag.cursor then
+                    return
+                end
+
+                local current_cursor = vim.api.nvim_win_get_cursor(0)
+                local last_line = vim.api.nvim_buf_line_count(0)
+
+                -- Clamp the cursor to the last line
+                local cursor = {
+                    math.min(tag.cursor[1], last_line),
+                    tag.cursor[2],
+                }
+
+                -- If the cursor has already been set, don't set again
+                if current_cursor[1] == 1 and current_cursor[2] == 0 then
+                    pcall(vim.api.nvim_win_set_cursor, 0, cursor)
+                end
             end,
         },
     },

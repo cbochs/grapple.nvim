@@ -33,26 +33,45 @@ function TagContent:modifiable()
     return true
 end
 
+---@param line string
+---@return integer | nil index, boolean ok
+local function parse_id(line)
+    local id = string.match(line, "^/(%d+)")
+    if not id then
+        return nil, false
+    end
+    if not #id == 3 then
+        return nil, false
+    end
+
+    local index = assert(tonumber(string.sub(id, 2)))
+
+    return index, true
+end
+
 ---Return the first editable cursor column for a line (0-indexed)
 ---@param line string
 ---@return integer min_col
 function TagContent:minimum_column(line)
-    local id = string.match(line, "^/(%d+)")
-    if not id then
+    local index, ok = parse_id(line)
+    if not ok or not index then
         return 0
     end
 
     -- Assume: editable content is always at the end of the line
     -- Assume: name can be part of the line if "name_pos" is set to "start"
     -- base:           2 splits: (id, path)
-    -- w/ name:        3 splits: (id, name, path)
     -- w/ icon:        3 splits: (id, icon, path)
-    -- w/ icon + name: 4 splits: (id, icon, name, path)
     local split = vim.split(line, "%s+")
     if #split <= 1 then
         return 0
+    end
+
+    if self.app.settings.icons then
+        local _, e = string.find(line, split[2])
+        return e + 1
     else
-        local _, e = string.find(line, split[#split - 1])
+        local _, e = string.find(line, split[1])
         return e + 1
     end
 end
@@ -175,25 +194,10 @@ function TagContent:create_entry(entity, index)
     end
 
     -- In compliance with "grapple" syntax
-    local line_items = vim.tbl_filter(Util.not_nil, {
-        id,
-        icon,
-
-        -- Neovim does not support defining extmarks that "push" some text
-        -- instead of just "overlay". Render the name ahead of the displayed
-        -- path instead of as an extmark when the user wants to show it at the
-        -- start of the line
-        self.app.settings.name_pos == "start" and tag.name or nil,
-
-        stylized.display,
-    })
+    local line_items = vim.tbl_filter(Util.not_nil, { id, icon, stylized.display })
 
     local line = table.concat(line_items, " ")
     local min_col = assert(string.find(line, Util.escape(stylized.display))) - 1
-
-    -- Define line highlights for display and extmarks
-    ---@type grapple.vim.highlight[]
-    local highlights = {}
 
     local sign_highlight
     if not self.app.settings.status then
@@ -216,59 +220,52 @@ function TagContent:create_entry(entity, index)
         }
     end
 
-    ---@type grapple.vim.highlight | nil
-    local name_highlight
-    if self.app.settings.name_pos == "start" and tag.name then
-        local col_start, col_end = assert(string.find(line, Util.escape(tag.name)))
-        name_highlight = {
-            hl_group = "GrappleName",
-            line = index - 1,
-            col_start = col_start - 1,
-            col_end = col_end,
-        }
-    end
+    -- Define line highlights for display and extmarks
+    ---@type grapple.vim.highlight[]
+    local highlights = vim.tbl_filter(Util.not_nil, { icon_highlight })
 
-    highlights = vim.tbl_filter(Util.not_nil, {
-        icon_highlight,
-        name_highlight,
-    })
-
-    -- Define line extmarks
-    ---@type grapple.vim.extmark[]
-    local extmarks = {}
-
-    ---@type grapple.vim.mark
     local sign_mark
     local quick_select = self.app.settings:quick_select()[index]
     if quick_select then
         sign_mark = {
-            sign_text = string.format("%s", quick_select),
-            sign_hl_group = sign_highlight,
+            line = index - 1,
+            col = 0,
+            opts = {
+                sign_text = string.format("%s", quick_select),
+                sign_hl_group = sign_highlight,
+            },
         }
     end
 
-    ---@type grapple.vim.mark
     local name_mark
-    if self.app.settings.name_pos == "end" and tag.name then
-        name_mark = {
-            virt_text = { { tag.name, "GrappleName" } },
-            virt_text_pos = "eol",
-        }
+    if tag.name then
+        if self.app.settings.name_pos == "start" then
+            name_mark = {
+                line = index - 1,
+                col = min_col,
+                opts = {
+                    virt_text = { { tag.name .. " ", "GrappleName" } },
+                    virt_text_pos = "inline",
+                },
+            }
+        elseif self.app.settings.name_pos == "end" then
+            name_mark = {
+                line = index - 1,
+                col = 0,
+                opts = {
+                    virt_text = { { tag.name, "GrappleName" } },
+                    virt_text_pos = "eol",
+                },
+            }
+        end
     end
 
-    extmarks = vim.tbl_filter(Util.not_nil, {
+    ---@type grapple.vim.extmark[]
+    local extmarks = vim.tbl_filter(Util.not_nil, {
         sign_mark,
         unpack(stylized.marks),
         name_mark,
     })
-
-    extmarks = vim.tbl_map(function(mark)
-        return {
-            line = index - 1,
-            col = 0,
-            opts = mark,
-        }
-    end, extmarks)
 
     ---@type grapple.window.entry
     local entry = {
@@ -284,10 +281,7 @@ function TagContent:create_entry(entity, index)
         index = index,
         min_col = min_col,
 
-        ---@type grapple.vim.highlight[]
         highlights = highlights,
-
-        ---@type grapple.vim.extmark[]
         extmarks = extmarks,
     }
 
@@ -298,20 +292,12 @@ end
 ---@param original_entries grapple.window.entry[]
 ---@return grapple.window.parsed_entry
 function TagContent:parse_line(line, original_entries)
-    local id = string.match(line, "^/(%d+)")
-
-    local index, display
-    if id then
-        index = assert(tonumber(id))
-    else
-        -- Parse as a new entry when an ID is not present
-        index = nil
-    end
+    local index, _ = parse_id(line)
 
     -- Minimum column returns the 0-indexed cursor column, convert to
     -- 1-indexed before using it
     local min_col = self:minimum_column(line) + 1
-    display = vim.trim(string.sub(line, min_col))
+    local display = vim.trim(string.sub(line, min_col))
 
     -- Create an empty parsed entry, assume modified
     ---@type grapple.window.parsed_entry
