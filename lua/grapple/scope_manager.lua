@@ -3,7 +3,6 @@ local Scope = require("grapple.scope")
 ---@class grapple.scope_manager
 ---@field cache grapple.cache
 ---@field scopes table<string, grapple.scope>
----@field resolved_lookup table<string, grapple.resolved_scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
@@ -13,7 +12,6 @@ function ScopeManager:new(cache)
     return setmetatable({
         cache = cache,
         scopes = {},
-        resolved_lookup = {},
     }, self)
 end
 
@@ -39,11 +37,13 @@ function ScopeManager:get_resolved(name)
         return nil, err
     end
 
-    local cached = self.cache:get(name)
-    if cached then
-        return cached, nil
+    -- Check the cache first
+    local resolved = self.cache:get(name)
+    if resolved then
+        return resolved, nil
     end
 
+    -- Cache missed, must resolve
     ---@diagnostic disable-next-line: redefined-local
     local resolved, err = scope:resolve()
     if not resolved then
@@ -51,15 +51,8 @@ function ScopeManager:get_resolved(name)
     end
 
     self.cache:store(name, resolved)
-    self.resolved_lookup[resolved.id] = resolved
 
     return resolved
-end
-
----@param id string
----@return grapple.resolved_scope | nil, string? error
-function ScopeManager:lookup(id)
-    return self.resolved_lookup[id]
 end
 
 ---@param name string
@@ -86,8 +79,8 @@ function ScopeManager:define(name, resolver, opts)
     end
 
     if opts.cache then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        self.cache:open(name, opts.cache == true and {} or opts.cache)
+        opts.cache = opts.cache == true and {} or opts.cache
+        self.cache:open(name, opts.cache --[[ @as grapple.cache.options ]])
     end
 
     local scope = Scope:new(name, resolver, {
@@ -102,7 +95,15 @@ function ScopeManager:define(name, resolver, opts)
 end
 
 ---@param name string
----@return string? error
+function ScopeManager:unload(name)
+    if not self:exists(name) then
+        return
+    end
+
+    self.cache:unwatch(name)
+end
+
+---@param name string
 function ScopeManager:delete(name)
     if not self:exists(name) then
         return

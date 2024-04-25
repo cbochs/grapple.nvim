@@ -387,36 +387,22 @@ end
 
 ---Unload tags for a given scope (name) or loaded scope (id)
 ---By default, uses the current scope
----@param opts? { scope?: string, id?: string }
----@return string? error
+---@param opts? { scope?: string, id?: string, reset?: boolean }
+---@return grapple.resolved_scope | nil, string? error
 function App:unload_scope(opts)
+    opts = opts or {}
+
     local scope, err = self:resolve_scope(opts)
     if err or not scope then
-        return err
+        return nil, err
     end
 
     if scope.name then
-        self.scope_manager.cache:unwatch(scope.name)
+        self.scope_manager:unload(scope.name)
     end
+    self.tag_manager:unload(scope.id, { reset = opts.reset })
 
-    self.tag_manager:unload(scope.id)
-end
-
----Reset tags for a given scope (name) or loaded scope (id)
----By default, uses the current scope
----@param opts? { scope?: string, id?: string }
----@return string? error
-function App:reset_scope(opts)
-    local scope, err = self:resolve_scope(opts)
-    if err or not scope then
-        return err
-    end
-
-    if scope.name then
-        self.scope_manager.cache:unwatch(scope.name)
-    end
-
-    self.tag_manager:reset(scope.id)
+    return scope, nil
 end
 
 ---@return grapple.resolved_scope | nil, string? error
@@ -425,35 +411,47 @@ function App:current_scope()
 end
 
 ---@param opts? { scope?: string, id?: string }
----@return grapple.resolved_scope        | nil, string? error
+---@return grapple.resolved_scope | nil, string? error
 function App:resolve_scope(opts)
     opts = vim.tbl_extend("keep", opts or {}, {
         scope = self.settings.scope,
     })
 
+    ---@type grapple.resolved_scope | nil, string?
+    local scope, err
+
     if opts.id then
-        local scope, _ = self.scope_manager:lookup(opts.id)
+        scope = self.scope_manager.cache:get(opts.id)
         if scope then
-            return scope
+            return scope, nil
         end
 
-        ---@param item grapple.tag_container_state
+        ---@param container grapple.tag_container_state
         ---@return string id
-        local to_id = function(item)
-            return item.id
+        local to_id = function(container)
+            return container.id
         end
 
-        -- TODO: This lookup is using the tag_manager. Maybe it should be moved
-        -- somewhere else? Looks like an opportunity for refactoring
         local ids = vim.tbl_map(to_id, self.tag_manager:list())
-        if vim.tbl_contains(ids, opts.id) then
-            return ResolvedScope:new(nil, opts.id, nil), nil
+        if not vim.tbl_contains(ids, opts.id) then
+            return nil, string.format("could not find resolved scope for id: %s", opts.id)
         end
 
-        return nil, string.format("could not find resolved scope for id: %s", opts.id)
+        scope = ResolvedScope:new(nil, opts.id, nil)
+    else
+        scope, err = self.scope_manager:get_resolved(opts.scope)
     end
 
-    return self.scope_manager:get_resolved(opts.scope)
+    if err or not scope then
+        return nil, err
+    end
+
+    if not self.scope_manager.cache:exists(scope.id) then
+        self.scope_manager.cache:open(scope.id, {})
+    end
+    self.scope_manager.cache:store(scope.id, scope)
+
+    return scope, nil
 end
 
 ---@return grapple.tag_container_state[]

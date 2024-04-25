@@ -156,21 +156,33 @@ function Grapple.use_scope(scope, opts)
 end
 
 ---Unload tags for a give (scope) name or loaded scope (id)
----@param opts? { scope?: string, id?: string, notify?: boolean }
+---@param opts? { scope?: string, id?: string, reset?: boolean, notify?: boolean }
 ---@return string? error
 function Grapple.unload(opts)
-    opts = opts or {}
+    opts = vim.tbl_deep_extend("keep", opts or {}, { notify = true })
 
-    local err = Grapple.app():unload_scope({ scope = opts.scope, id = opts.id })
-    if err then
-        if opts.notify then
-            vim.notify(err, vim.log.levels.ERROR)
-        end
-        return err
-    end
+    local scope, err = Grapple.app():unload_scope({
+        scope = opts.scope,
+        id = opts.id,
+        reset = opts.reset,
+    })
 
     if opts.notify then
-        vim.notify(string.format("Scope unloaded: %s", opts.scope or opts.id), vim.log.levels.INFO)
+        ---@cast scope grapple.resolved_scope
+
+        -- stylua: ignore
+        local message = err and err
+            or string.format(
+                "Scope %s: %s",
+                opts.reset and "reset" or "unloaded",
+                scope.name or scope.id
+            )
+
+        vim.notify(message, err and vim.log.levels.ERROR or vim.log.levels.INFO)
+    end
+
+    if err then
+        return err
     end
 end
 
@@ -179,19 +191,8 @@ end
 ---@param opts? { scope?: string, id?: string, notify?: boolean }
 ---@return string? error
 function Grapple.reset(opts)
-    opts = opts or {}
-
-    local err = Grapple.app():reset_scope({ scope = opts.scope, id = opts.id })
-    if err then
-        if opts.notify then
-            vim.notify(err, vim.log.levels.ERROR)
-        end
-        return err
-    end
-
-    if opts.notify then
-        vim.notify(string.format("Scope reset: %s", opts.scope or opts.id), vim.log.levels.INFO)
-    end
+    ---@diagnostic disable-next-line: param-type-mismatch
+    Grapple.unload(vim.tbl_deep_extend("force", opts or {}, { reset = true }))
 end
 
 ---@deprecated

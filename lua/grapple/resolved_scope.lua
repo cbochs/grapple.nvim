@@ -1,12 +1,12 @@
 ---@class grapple.resolved_scope
----@field name string scope name
+---@field name? string scope name
 ---@field id string uniquely identifies a scope
 ---@field path string an absolute path
 ---@field tag_manager grapple.tag_manager
 local ResolvedScope = {}
 ResolvedScope.__index = ResolvedScope
 
----@param name string
+---@param name? string
 ---@param id string
 ---@param path string | nil
 ---@return grapple.resolved_scope
