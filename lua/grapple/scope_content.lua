@@ -118,7 +118,7 @@ function ScopeContent:create_entry(entity, index)
     local id = string.format("/%03d", index)
 
     -- In compliance with "grapple" syntax
-    local line = string.format("%s %s %s", id, scope.name, scope.desc)
+    local line = string.format("%s %s %s", id, scope.name, scope.desc or "")
     local min_col = assert(string.find(line, "%s")) -- width of id
 
     local name_group = "GrappleBold"

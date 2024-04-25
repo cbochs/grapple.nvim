@@ -23,7 +23,7 @@ function Scope:new(app, name, resolver, opts)
     return setmetatable({
         app = app,
         name = name,
-        desc = opts.desc or "",
+        desc = opts.desc,
         resolver = resolver,
         fallback = opts.fallback,
         hidden = opts.hidden,
