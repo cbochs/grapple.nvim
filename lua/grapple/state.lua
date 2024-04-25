@@ -124,7 +124,7 @@ function State:prune(limit_sec)
 end
 
 ---@param name string
----@return any decoded, string? error, string? error_kind
+---@return table | nil decoded, string? error, string? error_kind
 function State:read(name)
     self:ensure_created()
     local path = self:save_path(name)
