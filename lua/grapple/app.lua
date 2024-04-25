@@ -475,13 +475,7 @@ end
 function App:open_tags(opts)
     opts = opts or {}
 
-    local scope, err
-    if opts.id then
-        scope, err = self.scope_manager:lookup(opts.id)
-    else
-        scope, err = self.scope_manager:get_resolved(opts.scope or self.settings.scope)
-    end
-
+    local scope, err = self:resolve_scope({ scope = opts.scope, id = opts.id })
     if err or not scope then
         return err
     end
