@@ -13,8 +13,8 @@ local function create_finder()
         local result = {
             i,
             tag.path,
-            (tag.cursor or { 0 })[1],
-            (tag.cursor or { 0 })[2],
+            (tag.cursor or { 1, 0 })[1],
+            (tag.cursor or { 1, 0 })[2],
         }
 
         table.insert(results, result)
