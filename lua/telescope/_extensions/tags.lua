@@ -13,8 +13,8 @@ local function create_finder()
         local result = {
             i,
             tag.path,
-            tag.cursor[1],
-            tag.cursor[2],
+            (tag.cursor or { 1, 0 })[1],
+            (tag.cursor or { 1, 0 })[2],
         }
 
         table.insert(results, result)
@@ -54,11 +54,13 @@ local function delete_tag(prompt_bufnr)
 end
 
 return function(opts)
+    local conf = require("telescope.config").values
+
     require("telescope.pickers")
         .new(opts or {}, {
             finder = create_finder(),
-            sorter = require("telescope.sorters").get_generic_fuzzy_sorter(),
-            previewer = require("telescope.config").values.grep_previewer({}),
+            sorter = conf.file_sorter({}),
+            previewer = conf.grep_previewer({}),
             results_title = "Grapple Tags",
             prompt_title = "Find Grappling Tags",
             layout_strategy = "flex",
