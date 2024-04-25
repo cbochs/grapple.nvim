@@ -89,19 +89,22 @@ end
 ---@field command? fun(path: string)
 
 ---Extract a valid path from the provided path or buffer options.
----@param opts grapple.options
+---@param path? string
+---@param buffer? integer
 ---@return string | nil path, string? error
-function App:extract_path(opts)
+function App:extract_path(path, buffer)
     -- Special case: get the path under the cursor
-    if opts.path and opts.path == "<cfile>" then
+    if path and path == "<cfile>" then
         return vim.fn.expand("<cfile>")
     end
 
-    if opts.path then
-        return opts.path
+    if path then
+        return path
     end
 
-    local buffer = opts.buffer or 0
+    if not buffer then
+        return nil, string.format("must provide a valid path or buffer")
+    end
 
     if not vim.api.nvim_buf_is_valid(buffer) then
         return nil, string.format("invalid buffer: %s", buffer)
@@ -132,7 +135,7 @@ end
 function App:tag(opts)
     opts = opts or {}
 
-    local path, err = self:extract_path(opts)
+    local path, err = self:extract_path(opts.path, opts.buffer or 0)
     if err or not path then
         return err
     end
@@ -150,7 +153,7 @@ end
 function App:untag(opts)
     opts = opts or {}
 
-    local path, err = self:extract_path(opts)
+    local path, err = self:extract_path(opts.path, opts.buffer or 0)
     if err or not path then
         return err
     end
@@ -168,7 +171,7 @@ end
 function App:toggle(opts)
     opts = opts or {}
 
-    local path, err = self:extract_path(opts)
+    local path, err = self:extract_path(opts.path, opts.buffer or 0)
     if err or not path then
         return err
     end
@@ -190,10 +193,10 @@ end
 function App:select(opts)
     opts = opts or {}
 
-    local path, _ = self:extract_path(opts)
+    local path, _ = self:extract_path(opts.path, opts.buffer)
     opts.path = path
 
-    self:enter_with_event(function(container)
+    return self:enter_with_event(function(container)
         local index, err = container:find(opts)
         if err then
             return err
@@ -248,7 +251,7 @@ function App:cycle_tags(direction, opts)
 
     opts = opts or {}
 
-    local path, _ = self:extract_path(opts)
+    local path, _ = self:extract_path(opts.path, opts.buffer or 0)
     opts.path = path
 
     return self:enter_with_event(function(container)
@@ -277,7 +280,7 @@ end
 function App:touch(opts)
     opts = opts or {}
 
-    local path, _ = self:extract_path(opts)
+    local path, _ = self:extract_path(opts.path, opts.buffer or 0)
     opts.path = path
 
     return self:enter_with_save(function(container)
@@ -291,7 +294,7 @@ end
 function App:find(opts)
     opts = opts or {}
 
-    local path, _ = self:extract_path(opts)
+    local path, _ = self:extract_path(opts.path, opts.buffer or 0)
     opts.path = path
 
     ---@type grapple.tag | nil, string? error
@@ -317,7 +320,7 @@ end
 function App:name_or_index(opts)
     opts = opts or {}
 
-    local path, _ = self:extract_path(opts)
+    local path, _ = self:extract_path(opts.path, opts.buffer or 0)
     opts.path = path
 
     ---@type string | integer | nil, string? error
