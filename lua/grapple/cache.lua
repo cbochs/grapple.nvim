@@ -17,7 +17,7 @@ Cache.__index = Cache
 ---@field debounce? integer in milliseconds
 --
 ---@field au_id? integer
----@field timer? uv_timer_t
+---@field timer? uv.uv_timer_t
 --
 ---@field debouncing boolean
 ---@field watching boolean
