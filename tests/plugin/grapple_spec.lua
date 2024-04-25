@@ -1,0 +1,6 @@
+describe("user command", function()
+    it("completion works", function()
+        local ok, _ = pcall(vim.fn.getcompletion, "Grapple ", "cmdline")
+        assert.is_true(ok)
+    end)
+end)
