@@ -276,7 +276,6 @@ function Grapple.prune(opts)
         elseif #pruned_ids == 1 then
             vim.notify(string.format("Pruned %d save file: %s", #pruned_ids, pruned_ids[1]), vim.log.levels.INFO)
         else
-            vim.print(pruned_ids)
             local output_tbl = vim.tbl_map(Util.with_prefix("  "), pruned_ids)
             local output = table.concat(output_tbl, "\n")
             vim.notify(string.format("Pruned %d save files\n%s", #pruned_ids, output), vim.log.levels.INFO)
