@@ -128,6 +128,7 @@ vim.api.nvim_create_user_command(
                 "setup",
                 "statusline",
                 "tags",
+                "touch",
             }
 
             -- Grab all actionable subcommands made available by Grapple
