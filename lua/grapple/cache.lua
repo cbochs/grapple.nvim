@@ -33,14 +33,14 @@ function Cache:new()
     }, self)
 end
 
-function Cache:is_open(id)
+function Cache:exists(id)
     return self.cache[id] ~= nil
 end
 
 ---@param id string
 ---@param opts grapple.cache.options
 function Cache:open(id, opts)
-    if self.cache[id] then
+    if self:exists(id) then
         self:close(id)
     end
 
@@ -60,11 +60,11 @@ end
 
 ---@param id string
 function Cache:close(id)
-    local cache_value = self.cache[id]
-    if not cache_value then
+    if not self:exists(id) then
         return
     end
 
+    local cache_value = self.cache[id]
     if cache_value.watching then
         self:unwatch(id)
     end
@@ -74,11 +74,11 @@ end
 
 ---@param id string
 function Cache:watch(id)
-    local cache_value = self.cache[id]
-    if not cache_value then
+    if not self:exists(id) then
         return
     end
 
+    local cache_value = self.cache[id]
     if cache_value.watching then
         self:unwatch(id)
     end
@@ -93,7 +93,7 @@ function Cache:watch(id)
         if cache_value.debounce then
             cache_value.debouncing = true
 
-            local timer = vim.loop.new_timer()
+            local timer = assert(vim.loop.new_timer())
             timer:start(cache_value.debounce, 0, function()
                 cache_value.debouncing = false
             end)
@@ -118,13 +118,13 @@ end
 
 ---@param id string
 function Cache:unwatch(id)
-    local cache_value = self.cache[id]
-    if not cache_value then
+    if not self:exists(id) then
         return
     end
 
     self:invalidate(id)
 
+    local cache_value = self.cache[id]
     if cache_value.au_id then
         vim.api.nvim_del_autocmd(cache_value.au_id)
     end
@@ -139,10 +139,11 @@ end
 ---@param id string
 ---@return any cached_value
 function Cache:get(id)
-    local cache_value = self.cache[id]
-    if not cache_value then
+    if not self:exists(id) then
         return
     end
+
+    local cache_value = self.cache[id]
     if not cache_value.watching then
         self:watch(id)
     end
@@ -153,10 +154,11 @@ end
 ---@param id string
 ---@param value any
 function Cache:store(id, value)
-    local cache_value = self.cache[id]
-    if not cache_value then
+    if not self:exists(id) then
         return
     end
+
+    local cache_value = self.cache[id]
     if not cache_value.watching then
         self:watch(id)
     end
@@ -166,12 +168,11 @@ end
 
 ---@param id string
 function Cache:invalidate(id)
-    local cache_value = self.cache[id]
-    if not cache_value then
+    if not self:exists(id) then
         return
     end
 
-    cache_value.value = nil
+    self.cache[id].value = nil
 end
 
 return Cache
