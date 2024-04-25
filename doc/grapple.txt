@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 April 05
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 April 25
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -704,22 +704,6 @@ Examples ~
 >lua
     -- Clear the cached value (if any) for the "git" scope
     require("grapple").use_scope("git_branch")
-<
-
-
-GRAPPLE.CLEAR_CACHE
-
-Clear any cached value for a given scope.
-
-**API**`require("grapple").clear_cache(scope)`
-
-**scope?**`string` scope name (default: `settings.scope`)
-
-Examples ~
-
->lua
-    -- Clear the cached value for the initial working directory scope
-    require("grapple").clear_cache("static")
 <
 
 
