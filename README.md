@@ -722,24 +722,6 @@ require("grapple").use_scope("git_branch")
 
 </details>
 
-#### `Grapple.clear_cache`
-
-Clear any cached value for a given scope.
-
-**API**: `require("grapple").clear_cache(scope)`
-
-**`scope?`**: `string` scope name (default: `settings.scope`)
-
-<details>
-<summary><b>Examples</b></summary>
-
-```lua
--- Clear the cached value for the initial working directory scope
-require("grapple").clear_cache("static")
-```
-
-</details>
-
 </details>
 
 ## Tags

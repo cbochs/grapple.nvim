@@ -39,13 +39,12 @@ function TagActions.rename(opts)
             return
         end
 
-        opts.scope:enter(function(container)
-            local index, err = container:find({ path = opts.path })
-            if not index then
-                return err
-            end
-            container:insert({ path = opts.path, name = input_name, index = index })
-        end)
+        -- HACK: just re-tag the existing tag with a new name
+        require("grapple").tag({
+            path = opts.path,
+            name = input_name,
+            scope_id = opts.scope.id,
+        })
 
         -- Re-render window once tag has been renamed, regardless of whether
         -- the renaming was successful

@@ -176,7 +176,7 @@ function TagContainer:find(opts)
         return index
     end
 
-    return nil, "must provide either an index, name, or path"
+    return nil, "must provide a valid index, name, or path"
 end
 
 ---Lookup the tag index based on a given name or path

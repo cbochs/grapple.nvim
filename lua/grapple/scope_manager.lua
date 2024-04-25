@@ -1,20 +1,16 @@
-local ResolvedScope = require("grapple.resolved_scope")
 local Scope = require("grapple.scope")
 
 ---@class grapple.scope_manager
----@field app grapple.app
 ---@field cache grapple.cache
 ---@field scopes table<string, grapple.scope>
 ---@field resolved_lookup table<string, grapple.resolved_scope>
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
----@param app grapple.app
 ---@param cache grapple.cache
 ---@return grapple.scope_manager
-function ScopeManager:new(app, cache)
+function ScopeManager:new(cache)
     return setmetatable({
-        app = app,
         cache = cache,
         scopes = {},
         resolved_lookup = {},
@@ -63,26 +59,7 @@ end
 ---@param id string
 ---@return grapple.resolved_scope | nil, string? error
 function ScopeManager:lookup(id)
-    local resolved = self.resolved_lookup[id]
-
-    if resolved then
-        return resolved, nil
-    end
-
-    ---@param item grapple.tag_container_item
-    ---@return string id
-    local to_id = function(item)
-        return item.id
-    end
-
-    -- TODO: This lookup is using the tag_manager. Maybe it should be moved
-    -- somewhere else? Looks like an opportunity for refactoring
-    local ids = vim.tbl_map(to_id, self.app.tag_manager:list())
-    if vim.tbl_contains(ids, id) then
-        return ResolvedScope:new(self.app, "unknown", id, nil), nil
-    end
-
-    return nil, string.format("could not find resolved scope for id: %s", id)
+    return self.resolved_lookup[id]
 end
 
 ---@param name string
@@ -113,7 +90,7 @@ function ScopeManager:define(name, resolver, opts)
         self.cache:open(name, opts.cache == true and {} or opts.cache)
     end
 
-    local scope = Scope:new(self.app, name, resolver, {
+    local scope = Scope:new(name, resolver, {
         desc = opts.desc,
         fallback = fallback,
         hidden = opts.hidden,

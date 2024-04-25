@@ -2,6 +2,7 @@ local Path = require("grapple.path")
 local Util = require("grapple.util")
 
 ---@class grapple.tag_content
+---@field app grapple.app
 ---@field scope grapple.resolved_scope
 ---@field hook_fn grapple.hook_fn
 ---@field title_fn grapple.title_fn
@@ -10,13 +11,15 @@ local Util = require("grapple.util")
 local TagContent = {}
 TagContent.__index = TagContent
 
+---@param app grapple.app
 ---@param scope grapple.resolved_scope
 ---@param hook_fn? grapple.hook_fn
 ---@param title_fn? grapple.title_fn
 ---@param style_fn grapple.style_fn
 ---@return grapple.tag_content
-function TagContent:new(scope, hook_fn, title_fn, style_fn)
+function TagContent:new(app, scope, hook_fn, title_fn, style_fn)
     return setmetatable({
+        app = app,
         scope = scope,
         hook_fn = hook_fn,
         title_fn = title_fn,
@@ -102,7 +105,7 @@ end
 
 ---@return grapple.window.entity[] | nil, string? error
 function TagContent:entities()
-    local tags, err = self.scope:tags()
+    local tags, err = self.app:tags({ id = self.scope.id })
     if not tags then
         return nil, err
     end
@@ -421,7 +424,7 @@ end
 ---@param changes grapple.tag.content.change[]
 ---@return string? error
 function TagContent:apply_changes(changes)
-    return self.scope:enter(function(container)
+    return self.app:enter_with_save(function(container)
         container:clear()
 
         -- TODO: should probably store and return errors
@@ -436,7 +439,7 @@ function TagContent:apply_changes(changes)
                 error(string.format("unsupported action: %s", change.action))
             end
         end
-    end)
+    end, { scope_id = self.scope.id })
 end
 
 ---@param action grapple.action

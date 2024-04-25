@@ -13,15 +13,14 @@ function Component:update_status()
         return
     end
 
-    local ok, grapple = pcall(require, "grapple")
+    local ok, Grapple = pcall(require, "grapple")
     if not ok then
         return
     end
 
     -- Lazyily add statusline options to the component
     if not self.options.icon or not self.options.active or not self.options.inactive then
-        local App = require("grapple.app")
-        local app = App.get()
+        local app = Grapple.app()
 
         -- stylua: ignore
         self.options = vim.tbl_deep_extend("keep",
@@ -31,7 +30,7 @@ function Component:update_status()
         )
     end
 
-    return grapple.statusline(self.options)
+    return Grapple.statusline(self.options)
 end
 
 return Component
