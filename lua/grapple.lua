@@ -3,7 +3,7 @@ local Grapple = {}
 ---@param err? string
 ---@return string? err
 local function notify_err(err)
-    if err then
+    if err and not vim.env.CI then
         vim.notify(err, vim.log.levels.ERROR)
     end
     return err
@@ -103,6 +103,7 @@ end
 
 ---Return if a tag exists. Used for statusline components
 ---@param opts? grapple.options
+---@return boolean
 function Grapple.exists(opts)
     return Grapple.find(opts) ~= nil
 end
@@ -321,7 +322,7 @@ function Grapple.quickfix(opts)
 end
 
 ---Return a formatted string to be displayed on the statusline
----@param opts grapple.statusline.options
+---@param opts? grapple.statusline.options
 ---@return string | nil
 function Grapple.statusline(opts)
     local app = Grapple.app()
