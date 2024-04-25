@@ -123,7 +123,6 @@ vim.api.nvim_create_user_command(
                 "delete_scope",
                 "exists",
                 "find",
-                "key",
                 "name_or_index",
                 "setup",
                 "statusline",
