@@ -904,9 +904,7 @@ require("grapple").open_loaded({ all = true })
 
 ## Persistent State
 
-Grapple saves all scopes to a common directory. The default directory is named `grapple` and lives in Neovim's `"data"` directory ([`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each scope will be saved as its own individually serialized JSON blob.
-
-By default, no scopes are loaded on startup. When `require("grapple").setup()` is called, the default scope will be loaded. Otherwise, scopes will be loaded on demand.
+Grapple saves all scopes to a common directory. The default directory is named `grapple` and lives in Neovim's `"data"` directory ([`:h standard-path`](https://neovim.io/doc/user/starting.html#standard-path)). Each scope will be saved as its own individually serialized JSON blob. No scopes are loaded on startup and will are instead loaded on demand.
 
 ## Integrations
 
