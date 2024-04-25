@@ -24,7 +24,7 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function Grapple.tag(opts)
-    return Grapple.app():tag(opts)
+    return notify_err(Grapple.app():tag(opts))
 end
 
 ---Delete a tag on a path, URI, or buffer
@@ -32,7 +32,7 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function Grapple.untag(opts)
-    return Grapple.app():untag(opts)
+    return notify_err(Grapple.app():untag(opts))
 end
 
 ---Toggle a tag on a path, URI, or buffer. Lookup is done by index, name, path, or buffer
@@ -40,7 +40,7 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function Grapple.toggle(opts)
-    return Grapple.app():toggle(opts)
+    return notify_err(Grapple.app():toggle(opts))
 end
 
 ---Select a tag by index, name, path, or buffer
@@ -48,7 +48,7 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function Grapple.select(opts)
-    return Grapple.app():select(opts)
+    return notify_err(Grapple.app():select(opts))
 end
 
 -- Cycle through and select the next or previous available tag for a given scope.
@@ -57,7 +57,7 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function Grapple.cycle_tags(direction, opts)
-    return Grapple.app():cycle_tags(direction, opts)
+    return notify_err(Grapple.app():cycle_tags(direction, opts))
 end
 
 -- Cycle through and select the next or previous available tag for a given scope.
@@ -88,6 +88,12 @@ function Grapple.cycle_backward(opts)
     return Grapple.cycle_tags("prev", opts)
 end
 
+---@param opts? grapple.options
+---@return string? error
+function Grapple.touch(opts)
+    return Grapple.app():touch(opts)
+end
+
 ---Search for a tag in a given scope
 ---@param opts? grapple.options
 ---@return grapple.tag | nil, string? error
@@ -109,7 +115,7 @@ function Grapple.name_or_index(opts)
 end
 
 ---Return the tags for a given scope. Used for integrations
----@param opts? { scope?: string }
+---@param opts? { scope?: string, id?: string }
 ---@return grapple.tag[] | nil, string? error
 function Grapple.tags(opts)
     return Grapple.app():tags(opts)
@@ -288,25 +294,14 @@ function Grapple.quickfix(opts)
 
     opts = opts or {}
 
-    local scope, err
-    if opts.id then
-        scope, err = app.scope_manager:lookup(opts.id)
-    else
-        scope, err = app.scope_manager:get_resolved(opts.scope or app.settings.scope)
-    end
-
-    if not scope then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        return vim.notify(err, vim.log.levels.ERROR)
-    end
-
     ---@diagnostic disable-next-line: redefined-local
-    local tags, err = scope:tags()
+    local tags, err = app:tags({ scope = opts.scope, id = opts.id })
     if not tags then
         return err
     end
 
     local quickfix_list = {}
+    local cwd = assert(vim.loop.cwd())
 
     for _, tag in ipairs(tags) do
         ---See :h vim.fn.setqflist
@@ -315,7 +310,7 @@ function Grapple.quickfix(opts)
             filename = tag.path,
             lnum = tag.cursor[1],
             col = tag.cursor[2] + 1,
-            text = Path.fs_relative(scope.path, tag.path),
+            text = Path.fs_relative(cwd, tag.path),
         })
     end
 

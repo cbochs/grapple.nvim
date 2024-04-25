@@ -1,5 +1,6 @@
 local Cache = require("grapple.cache")
 local ContainerContent = require("grapple.container_content")
+local ResolvedScope = require("grapple.resolved_scope")
 local ScopeContent = require("grapple.scope_content")
 local ScopeManager = require("grapple.scope_manager")
 local Settings = require("grapple.settings")
@@ -43,16 +44,16 @@ function App:new()
         tag_manager = nil,
     }, self)
 
-    -- TODO: I think the "scope" cache and "glboal" cache should be separate.
+    -- TODO: I think the "scope" cache and "global" cache should be separate.
     -- Think about this more and decided on the best approach. Note: right now
     -- the scope manager only really needs the "app" to get the tag_manager for
     -- a single method. A bit of refactoring could probably remove this
     -- dependency
     local cache = Cache:new()
-    local scope_manager = ScopeManager:new(app, cache)
+    local scope_manager = ScopeManager:new(cache)
 
     local state = State:new(settings.save_path)
-    local tag_manager = TagManager:new(app, state)
+    local tag_manager = TagManager:new(state)
 
     app.scope_manager = scope_manager
     app.tag_manager = tag_manager
@@ -84,6 +85,7 @@ end
 ---@field index? integer
 ---@field cursor? integer[]
 ---@field scope? string
+---@field scope_id? string
 ---@field command? fun(path: string)
 
 ---Extract a valid path from the provided path or buffer options.
@@ -129,15 +131,16 @@ end
 ---@return string? error
 function App:tag(opts)
     opts = opts or {}
-    return self:enter_with_save(opts.scope, function(container)
-        local path, err = self:extract_path(opts)
-        if err or not path then
-            return err
-        end
-        opts.path = path
 
+    local path, err = self:extract_path(opts)
+    if err or not path then
+        return err
+    end
+    opts.path = path
+
+    return self:enter_with_save(function(container)
         return container:insert(opts)
-    end)
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 end
 
 ---Delete a tag on a path, URI, or buffer
@@ -146,15 +149,16 @@ end
 ---@return string? error
 function App:untag(opts)
     opts = opts or {}
-    return self:enter_with_save(opts.scope, function(container)
-        local path, err = self:extract_path(opts)
-        if err or not path then
-            return err
-        end
-        opts.path = path
 
+    local path, err = self:extract_path(opts)
+    if err or not path then
+        return err
+    end
+    opts.path = path
+
+    return self:enter_with_save(function(container)
         return container:remove(opts)
-    end)
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 end
 
 ---Toggle a tag on a path, URI, or buffer. Lookup is done by index, name, path, or buffer
@@ -163,19 +167,20 @@ end
 ---@return string? error
 function App:toggle(opts)
     opts = opts or {}
-    return self:enter_with_save(opts.scope, function(container)
-        local path, err = self:extract_path(opts)
-        if err or not path then
-            return err
-        end
-        opts.path = path
 
+    local path, err = self:extract_path(opts)
+    if err or not path then
+        return err
+    end
+    opts.path = path
+
+    return self:enter_with_save(function(container)
         if container:has(opts) then
             return container:remove(opts)
         else
             return container:insert(opts)
         end
-    end)
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 end
 
 ---Select a tag by index, name, path, or buffer
@@ -184,19 +189,20 @@ end
 ---@return string? error
 function App:select(opts)
     opts = opts or {}
-    self:enter_without_save(opts.scope, function(container)
-        local path, _ = self:extract_path(opts)
-        opts.path = path
 
+    local path, _ = self:extract_path(opts)
+    opts.path = path
+
+    self:enter_with_event(function(container)
         local index, err = container:find(opts)
-        if err or not index then
+        if err then
             return err
         end
 
         local tag = assert(container:get({ index = index }))
 
         tag:select(opts.command)
-    end)
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 end
 
 ---@param current_index? integer
@@ -227,7 +233,6 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function App:cycle_tags(direction, opts)
-    opts = opts or {}
 
     -- stylua: ignore
     direction = direction == "forward" and "next"
@@ -238,16 +243,18 @@ function App:cycle_tags(direction, opts)
     ---@cast direction "next" | "prev"
 
     if not vim.tbl_contains({ "next", "prev" }, direction) then
-        return vim.notify(string.format("invalid direction: %s", direction), vim.log.levels.ERROR)
+        return string.format("invalid direction: %s", direction)
     end
 
-    return self:enter_without_save(opts.scope, function(container)
+    opts = opts or {}
+
+    local path, _ = self:extract_path(opts)
+    opts.path = path
+
+    return self:enter_with_event(function(container)
         if container:is_empty() then
             return
         end
-
-        local path, _ = self:extract_path(opts)
-        opts.path = path
 
         local index = next_index(container:find(opts), direction, container:len())
 
@@ -261,7 +268,21 @@ function App:cycle_tags(direction, opts)
         if err then
             return err
         end
-    end)
+    end, { scope = opts.scope, scope_id = opts.scope_id })
+end
+
+---Update a tag in a given scope
+---@param opts? grapple.options
+---@return string? error
+function App:touch(opts)
+    opts = opts or {}
+
+    local path, _ = self:extract_path(opts)
+    opts.path = path
+
+    return self:enter_with_save(function(container)
+        return container:update(opts)
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 end
 
 ---Search for a tag in a given scope
@@ -270,20 +291,18 @@ end
 function App:find(opts)
     opts = opts or {}
 
-    ---@type grapple.tag | nil
-    local tag
+    local path, _ = self:extract_path(opts)
+    opts.path = path
 
-    local err = self:enter_without_save(opts.scope, function(container)
-        local path, _ = self:extract_path(opts)
-        opts.path = path
-
+    ---@type grapple.tag | nil, string? error
+    local tag, err = self:enter_with_result(function(container)
         local index, err = container:find(opts)
         if err or not index then
-            return err
+            return nil, err
         end
 
-        tag = assert(container:get({ index = index }))
-    end, { notify = false })
+        return assert(container:get({ index = index })), nil
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 
     if err then
         return nil, err
@@ -298,40 +317,31 @@ end
 function App:name_or_index(opts)
     opts = opts or {}
 
-    ---@type string | integer | nil
-    local name_or_index
+    local path, _ = self:extract_path(opts)
+    opts.path = path
 
-    self:enter_without_save(opts.scope, function(container)
-        local path, _ = self:extract_path(opts)
-        opts.path = path
-
+    ---@type string | integer | nil, string? error
+    local name_or_index, _ = self:enter_with_result(function(container)
         local tag = container:get(opts)
-        if tag then
-            name_or_index = tag.name or assert(container:find(opts))
+        if not tag then
+            return nil, nil
         end
-    end)
+
+        return tag.name or assert(container:find(opts))
+    end, { scope = opts.scope, scope_id = opts.scope_id })
 
     return name_or_index
 end
 
 ---Return the tags for a given scope. Used for integrations
----@param opts? { scope?: string }
+---@param opts? { scope?: string, id?: string }
 ---@return grapple.tag[] | nil, string? error
 function App:tags(opts)
     opts = opts or {}
 
-    local scope, err = self.scope_manager:get_resolved(opts.scope or self.settings.scope)
-    if err or not scope then
-        return nil, err
-    end
-
-    ---@diagnostic disable-next-line: redefined-local
-    local tags, err = scope:tags()
-    if err or not tags then
-        return nil, err
-    end
-
-    return vim.deepcopy(tags), nil
+    return self:enter_with_result(function(container)
+        return vim.deepcopy(container.tags), nil
+    end, { scope = opts.scope, scope_id = opts.id })
 end
 
 ---Return a formatted string to be displayed on the statusline
@@ -377,16 +387,16 @@ end
 ---@param opts? { scope?: string, id?: string }
 ---@return string? error
 function App:unload_scope(opts)
-    local id, name, err = self:resolve_scope(opts)
-    if not id then
+    local scope, err = self:resolve_scope(opts)
+    if err or not scope then
         return err
     end
 
-    if name then
-        self.scope_manager.cache:unwatch(name)
+    if scope.name then
+        self.scope_manager.cache:unwatch(scope.name)
     end
 
-    self.tag_manager:unload(id)
+    self.tag_manager:unload(scope.id)
 end
 
 ---Reset tags for a given scope (name) or loaded scope (id)
@@ -394,16 +404,16 @@ end
 ---@param opts? { scope?: string, id?: string }
 ---@return string? error
 function App:reset_scope(opts)
-    local id, name, err = self:resolve_scope(opts)
-    if not id then
+    local scope, err = self:resolve_scope(opts)
+    if err or not scope then
         return err
     end
 
-    if name then
-        self.scope_manager.cache:unwatch(name)
+    if scope.name then
+        self.scope_manager.cache:unwatch(scope.name)
     end
 
-    self.tag_manager:reset(id)
+    self.tag_manager:reset(scope.id)
 end
 
 ---@return grapple.resolved_scope | nil, string? error
@@ -412,39 +422,35 @@ function App:current_scope()
 end
 
 ---@param opts? { scope?: string, id?: string }
----@return string | nil id, string | nil name, string? error
+---@return grapple.resolved_scope        | nil, string? error
 function App:resolve_scope(opts)
     opts = vim.tbl_extend("keep", opts or {}, {
         scope = self.settings.scope,
     })
 
-    -- The loaded scope's ID and associated scope's name
-    ---@type string, string | nil
-    local id, name
-
     if opts.id then
-        -- Case: reset by id: scope may be or may not be loaded
         local scope, _ = self.scope_manager:lookup(opts.id)
-
-        id = opts.id
-        name = scope and scope.name
-    elseif opts.scope then
-        -- Case: reset by name: scope id and name must be available
-        local scope, err = self.scope_manager:get_resolved(opts.scope)
-        if not scope then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            return nil, nil, err
+        if scope then
+            return scope
         end
 
-        id = scope.id
-        name = scope.name
+        ---@param item grapple.tag_container_item
+        ---@return string id
+        local to_id = function(item)
+            return item.id
+        end
+
+        -- TODO: This lookup is using the tag_manager. Maybe it should be moved
+        -- somewhere else? Looks like an opportunity for refactoring
+        local ids = vim.tbl_map(to_id, self.tag_manager:list())
+        if vim.tbl_contains(ids, opts.id) then
+            return ResolvedScope:new(nil, opts.id, nil), nil
+        end
+
+        return nil, string.format("could not find resolved scope for id: %s", opts.id)
     end
 
-    if not id then
-        return nil, nil, string.format("must provide a valid scope or id: %s", vim.inspect(opts))
-    end
-
-    return id, name, nil
+    return self.scope_manager:get_resolved(opts.scope)
 end
 
 ---Convenience function to open content in a new floating window
@@ -479,6 +485,7 @@ function App:open_tags(opts)
 
     -- stylua: ignore
     local content = TagContent:new(
+        app,
         scope,
         self.settings.tag_hook,
         self.settings.tag_title,
@@ -508,51 +515,81 @@ function App:open_loaded(opts)
     return self:open_window(content)
 end
 
----@param scope_name? string
----@param callback fun(container: grapple.tag_container): string? error
----@param opts { sync?: boolean, notify?: boolean }
----@return string? error
-function App:enter(scope_name, callback, opts)
-    opts = vim.tbl_extend("keep", opts or {}, {
-        sync = true,
-        notify = true,
-    })
+---@class grapple.app.enter_options
+---@field scope? string
+---@field scope_id? string
+---@field sync? boolean
+---@field event? boolean
 
-    local scope, err = self.scope_manager:get_resolved(scope_name or self.settings.scope)
-    if not scope then
-        if opts.notify then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            vim.notify(err, vim.log.levels.ERROR)
-        end
+---@param callback fun(container: grapple.tag_container): string? error
+---@param opts grapple.app.enter_options
+---@return string? error
+function App:enter(callback, opts)
+    local scope, err = self:resolve_scope({ scope = opts.scope, id = opts.scope_id })
+    if err or not scope then
         return err
     end
 
     ---@diagnostic disable-next-line: redefined-local
-    local err = scope:enter(callback, { sync = opts.sync })
-    if err then
-        if opts.notify then
-            vim.notify(err, vim.log.levels.WARN)
-        end
+    local container, err = self.tag_manager:load(scope.id)
+    if not container then
         return err
+    end
+
+    ---@diagnostic disable-next-line: redefined-local
+    local err = callback(container)
+    if err then
+        return err
+    end
+
+    if opts.sync then
+        ---@diagnostic disable-next-line: redefined-local
+        local err = self.tag_manager:sync(scope.id)
+        if err then
+            return err
+        end
+    end
+
+    if opts.event then
+        vim.api.nvim_exec_autocmds("User", {
+            pattern = "GrappleUpdate",
+            modeline = false,
+        })
     end
 
     return nil
 end
 
----@param scope_name? string
----@param callback fun(container: grapple.tag_container): string? error
----@param opts? { notify?: boolean }
----@return string? error
-function App:enter_with_save(scope_name, callback, opts)
-    return self:enter(scope_name, callback, { sync = true, notify = opts and opts.notify })
+---@generic T
+---@param callback fun(container: grapple.tag_container): T | nil, string? error
+---@param opts? grapple.app.enter_options
+---@return T | nil, string? error
+function App:enter_with_result(callback, opts)
+    local result
+
+    local wrapped = function(container)
+        local err
+        result, err = callback(container)
+        return err
+    end
+
+    local err = self:enter(wrapped, opts or {})
+
+    return result, err
 end
 
----@param scope_name? string
 ---@param callback fun(container: grapple.tag_container): string? error
----@param opts? { notify?: boolean }
+---@param opts? grapple.app.enter_options
 ---@return string? error
-function App:enter_without_save(scope_name, callback, opts)
-    return self:enter(scope_name, callback, { sync = false, notify = opts and opts.notify })
+function App:enter_with_save(callback, opts)
+    return self:enter(callback, vim.tbl_deep_extend("force", opts or {}, { sync = true, event = true }))
+end
+
+---@param callback fun(container: grapple.tag_container): string? error
+---@param opts? grapple.app.enter_options
+---@return string? error
+function App:enter_with_event(callback, opts)
+    return self:enter(callback, vim.tbl_deep_extend("force", opts or {}, { sync = false, event = true }))
 end
 
 return App
