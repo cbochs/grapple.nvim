@@ -77,35 +77,31 @@ function ContainerContent:entities()
         return nil, err
     end
 
-    ---@param item_a grapple.tag_container_item
-    ---@param item_b grapple.tag_container_item
+    ---@param cont_a grapple.tag_container_state
+    ---@param cont_b grapple.tag_container_state
     ---@return boolean
-    local function by_loaded_then_id(item_a, item_b)
-        local loaded_a = item_a.loaded and 1 or 0
-        local loaded_b = item_b.loaded and 1 or 0
-        if loaded_a ~= loaded_b then
-            return loaded_a > loaded_b
+    local function by_loaded_then_id(cont_a, cont_b)
+        if cont_a.loaded == cont_b.loaded then
+            return string.lower(cont_a.id) < string.lower(cont_b.id)
         else
-            return string.lower(item_a.id) < string.lower(item_b.id)
+            local loaded_a = cont_a.loaded and 1 or 0
+            local loaded_b = cont_b.loaded and 1 or 0
+            return loaded_a > loaded_b
         end
     end
 
-    local container_list = self.app.tag_manager:list()
-    table.sort(container_list, by_loaded_then_id)
-
+    local containers = Util.sort(self.app:list_containers(), by_loaded_then_id)
     local entities = {}
 
-    for _, item in ipairs(container_list) do
-        if not self.show_all and not item.loaded then
+    for _, container in ipairs(containers) do
+        if not self.show_all and not container.loaded then
             goto continue
         end
 
         ---@class grapple.container_content.entity
         local entity = {
-            id = item.id,
-            container = item.container,
-            loaded = item.loaded,
-            current = item.id == current_scope.id,
+            container = container,
+            current = container.id == current_scope.id,
         }
 
         table.insert(entities, entity)
@@ -127,10 +123,10 @@ function ContainerContent:create_entry(entity, index)
 
     -- Don't try to modify IDs which are not paths, like "global"
     local container_id
-    if Path.is_absolute(entity.id) then
-        container_id = vim.fn.fnamemodify(entity.id, ":~")
+    if Path.is_absolute(container.id) then
+        container_id = vim.fn.fnamemodify(container.id, ":~")
     else
-        container_id = entity.id
+        container_id = container.id
     end
 
     -- In compliance with "grapple" syntax
@@ -144,12 +140,12 @@ function ContainerContent:create_entry(entity, index)
     local sign_highlight
     if self.app.settings.status and entity.current then
         sign_highlight = "GrappleCurrent"
-    elseif not entity.loaded then
+    elseif not container.loaded then
         sign_highlight = "GrappleHint"
     end
 
     local loaded_highlight
-    if not entity.loaded then
+    if not container.loaded then
         local col_start, col_end = assert(string.find(line, Util.escape(container_id)))
         loaded_highlight = {
             hl_group = "GrappleHint",
@@ -178,8 +174,8 @@ function ContainerContent:create_entry(entity, index)
     end
 
     local count_mark
-    if container then
-        local count = container:len()
+    if container.loaded then
+        local count = container.length
         local count_text = count == 1 and "tag" or "tags"
         count_mark = {
             virt_text = { { string.format("[%d %s]", count, count_text) } },
@@ -200,7 +196,7 @@ function ContainerContent:create_entry(entity, index)
     local entry = {
         ---@class grapple.scope_content.data
         data = {
-            id = entity.id,
+            id = container.id,
         },
 
         line = line,

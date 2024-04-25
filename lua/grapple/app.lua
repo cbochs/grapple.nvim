@@ -437,7 +437,7 @@ function App:resolve_scope(opts)
             return scope
         end
 
-        ---@param item grapple.tag_container_item
+        ---@param item grapple.tag_container_state
         ---@return string id
         local to_id = function(item)
             return item.id
@@ -454,6 +454,11 @@ function App:resolve_scope(opts)
     end
 
     return self.scope_manager:get_resolved(opts.scope)
+end
+
+---@return grapple.tag_container_state[]
+function App:list_containers()
+    return self.tag_manager:list()
 end
 
 ---Convenience function to open content in a new floating window

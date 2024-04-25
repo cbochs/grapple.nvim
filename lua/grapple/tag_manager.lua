@@ -15,27 +15,25 @@ function TagManager:new(state)
     }, self)
 end
 
----@class grapple.tag_container_item
----@field id string
----@field loaded boolean
----@field container? grapple.tag_container
-
----@return grapple.tag_container_item[]
+---@return grapple.tag_container_state[]
 function TagManager:list()
-    local list = {}
+    return vim.tbl_map(function(id)
+        local container = self:get(id)
 
-    for _, id in ipairs(self.state:list()) do
-        ---@type grapple.tag_container_item
-        local item = {
+        ---@class grapple.tag_container_state
+        local container_state = {
+            ---@type string
             id = id,
-            container = self:get(id),
+
+            ---@type boolean
             loaded = self:is_loaded(id),
+
+            ---@type integer
+            length = container and container:len() or 0,
         }
 
-        table.insert(list, item)
-    end
-
-    return list
+        return container_state
+    end, self.state:list())
 end
 
 ---@param id string
@@ -65,7 +63,7 @@ function TagManager:load(id)
     end
 
     local tbl, err = self.state:read(id)
-    if err then
+    if err or not tbl then
         return nil, err
     end
 
@@ -131,7 +129,7 @@ function TagManager:prune(time_limit)
     end
 
     local pruned_ids, err = self.state:prune(limit_sec)
-    if not pruned_ids then
+    if err or not pruned_ids then
         return nil, err
     end
 
