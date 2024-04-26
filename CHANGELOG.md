@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.28.3](https://github.com/cbochs/grapple.nvim/compare/v0.28.2...v0.28.3) (2024-04-26)
+
+
+### Bug Fixes
+
+* allow paths with spaces in tags window ([7b53a86](https://github.com/cbochs/grapple.nvim/commit/7b53a86ba4e0cdb6a58ff38d9d0d2e9f802e1ff9))
+* **docs:** s/uv_timer_t/uv.uv_timer_t/ ([22d0272](https://github.com/cbochs/grapple.nvim/commit/22d02729333069b37d28b64174e04719b15a9e8c))
+* incorrect docs regarding scope loading ([bbcbf20](https://github.com/cbochs/grapple.nvim/commit/bbcbf20b20405565558423695832addd5fac418d))
+* minor cache module improvements ([1686932](https://github.com/cbochs/grapple.nvim/commit/1686932ad964bf4965b02900072cda716b0aed19))
+* remove unused "key" from excluded subcommands ([a370614](https://github.com/cbochs/grapple.nvim/commit/a3706147140bcac63311ab4cdf244e7f435bb9b5))
+* remove vim.print in Grapple.prune ([5cc6023](https://github.com/cbochs/grapple.nvim/commit/5cc6023febab1aebe4c02fde427fe8c4e8ce7133))
+* use provided app instead of global app in scope content ([494b186](https://github.com/cbochs/grapple.nvim/commit/494b1862a841117a968cc1e243e9033ea905b193))
+* use provided app instead of global app in scope_manager ([e967778](https://github.com/cbochs/grapple.nvim/commit/e967778ca5fa92c771da2f3d367d9940745ead0f))
+
 ## [0.28.2](https://github.com/cbochs/grapple.nvim/compare/v0.28.1...v0.28.2) (2024-04-09)
 
 
