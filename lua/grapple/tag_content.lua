@@ -45,16 +45,15 @@ function TagContent:minimum_column(line)
     -- Assume: editable content is always at the end of the line
     -- Assume: name can be part of the line if "name_pos" is set to "start"
     -- base:           2 splits: (id, path)
-    -- w/ name:        3 splits: (id, name, path)
     -- w/ icon:        3 splits: (id, icon, path)
-    -- w/ icon + name: 4 splits: (id, icon, name, path)
     local split = vim.split(line, "%s+")
     if #split <= 1 then
         return 0
-    else
-        local _, e = string.find(line, split[#split - 1])
-        return e + 1
     end
+
+    local anchor = self.app.settings.icons and split[2] or split[1]
+    local _, e = string.find(line, anchor)
+    return e + 1
 end
 
 ---@return string | nil title
@@ -163,9 +162,6 @@ end
 ---@param index integer
 ---@return grapple.window.entry
 function TagContent:create_entry(entity, index)
-    local App = require("grapple.app")
-    local app = App.get()
-
     local tag = entity.tag
 
     -- A string representation of the index
@@ -175,39 +171,15 @@ function TagContent:create_entry(entity, index)
     local stylized = self.style_fn(entity, self)
 
     local icon, icon_group
-    if app.settings.icons then
+    if self.app.settings.icons then
         icon, icon_group = get_icon(tag.path)
     end
 
     -- In compliance with "grapple" syntax
-    local line_items = vim.tbl_filter(Util.not_nil, {
-        id,
-        icon,
-
-        -- Neovim does not support defining extmarks that "push" some text
-        -- instead of just "overlay". Render the name ahead of the displayed
-        -- path instead of as an extmark when the user wants to show it at the
-        -- start of the line
-        app.settings.name_pos == "start" and tag.name or nil,
-
-        stylized.display,
-    })
+    local line_items = vim.tbl_filter(Util.not_nil, { id, icon, stylized.display })
 
     local line = table.concat(line_items, " ")
-    local min_col = assert(string.find(line, Util.escape(stylized.display))) - 1
-
-    -- Define line highlights for display and extmarks
-    ---@type grapple.vim.highlight[]
-    local highlights = {}
-
-    local sign_highlight
-    if not app.settings.status then
-        -- Do not set highlight
-    elseif entity.current then
-        sign_highlight = "GrappleCurrent"
-    elseif not Path.exists(tag.path) then
-        sign_highlight = "GrappleNoExist"
-    end
+    local min_col = self:minimum_column(line)
 
     ---@type grapple.vim.highlight | nil
     local icon_highlight
@@ -221,59 +193,73 @@ function TagContent:create_entry(entity, index)
         }
     end
 
-    ---@type grapple.vim.highlight | nil
-    local name_highlight
-    if app.settings.name_pos == "start" and tag.name then
-        local col_start, col_end = assert(string.find(line, Util.escape(tag.name)))
-        name_highlight = {
-            hl_group = "GrappleName",
+    -- Define line highlights for display and extmarks
+    ---@type grapple.vim.highlight[]
+    local highlights = vim.tbl_filter(Util.not_nil, { icon_highlight })
+
+    ---@type grapple.vim.extmark
+    local sign_mark
+    local quick_select = self.app.settings:quick_select()[index]
+    if quick_select then
+        local sign_highlight
+        if not self.app.settings.status then
+        -- Do not set highlight
+        elseif entity.current then
+            sign_highlight = "GrappleCurrent"
+        elseif not Path.exists(tag.path) then
+            sign_highlight = "GrappleNoExist"
+        end
+
+        sign_mark = {
             line = index - 1,
-            col_start = col_start - 1,
-            col_end = col_end,
+            col = 0,
+            opts = {
+                sign_text = string.format("%s", quick_select),
+                sign_hl_group = sign_highlight,
+            },
         }
     end
 
-    highlights = vim.tbl_filter(Util.not_nil, {
-        icon_highlight,
-        name_highlight,
-    })
+    ---@type grapple.vim.extmark
+    local name_mark
+    if tag.name then
+        if self.app.settings.name_pos == "start" then
+            local text = self.app.settings.icons and { " " .. tag.name, "GrappleName" }
+                or { tag.name .. " ", "GrappleName" }
+
+            name_mark = {
+                line = index - 1,
+                col = min_col - 1,
+                opts = {
+                    virt_text = { text },
+                    virt_text_pos = "inline",
+                },
+            }
+        elseif self.app.settings.name_pos == "end" then
+            name_mark = {
+                line = index - 1,
+                col = 0,
+                opts = {
+                    virt_text = { { tag.name, "GrappleName" } },
+                    virt_text_pos = "eol",
+                },
+            }
+        end
+    end
 
     -- Define line extmarks
     ---@type grapple.vim.extmark[]
-    local extmarks = {}
-
-    ---@type grapple.vim.mark
-    local sign_mark
-    local quick_select = app.settings:quick_select()[index]
-    if quick_select then
-        sign_mark = {
-            sign_text = string.format("%s", quick_select),
-            sign_hl_group = sign_highlight,
-        }
-    end
-
-    ---@type grapple.vim.mark
-    local name_mark
-    if app.settings.name_pos == "end" and tag.name then
-        name_mark = {
-            virt_text = { { tag.name, "GrappleName" } },
-            virt_text_pos = "eol",
-        }
-    end
-
-    extmarks = vim.tbl_filter(Util.not_nil, {
+    local extmarks = vim.tbl_filter(Util.not_nil, {
         sign_mark,
-        unpack(stylized.marks),
+        unpack(vim.tbl_map(function(mark)
+            return {
+                line = index - 1,
+                col = 0,
+                opts = mark,
+            }
+        end, stylized.marks)),
         name_mark,
     })
-
-    extmarks = vim.tbl_map(function(mark)
-        return {
-            line = index - 1,
-            col = 0,
-            opts = mark,
-        }
-    end, extmarks)
 
     ---@type grapple.window.entry
     local entry = {
