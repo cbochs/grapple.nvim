@@ -71,9 +71,6 @@ function ScopeContent:sync(original, parsed) end
 
 ---@return grapple.window.entity[] | nil, string? error
 function ScopeContent:entities()
-    local App = require("grapple.app")
-    local app = App.get()
-
     ---@param scope_a grapple.scope
     ---@param scope_b grapple.scope
     local function by_name(scope_a, scope_b)
@@ -94,7 +91,7 @@ function ScopeContent:entities()
         ---@class grapple.scope_content.entity
         local entity = {
             scope = scope,
-            current = scope.name == app.settings.scope,
+            current = scope.name == self.app.settings.scope,
         }
 
         table.insert(entities, entity)
