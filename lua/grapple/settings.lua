@@ -57,6 +57,7 @@ local DEFAULT_SETTINGS = {
 
     ---@class grapple.scope_definition
     ---@field name string
+    ---@field resolver grapple.scope_resolver
     ---@field desc? string
     ---@field force? boolean
     ---@field fallback? string name of scope to fall back on
@@ -64,7 +65,6 @@ local DEFAULT_SETTINGS = {
     ---@field priority? integer
     ---@field hidden? boolean
     ---@field delete? boolean
-    ---@field resolver grapple.scope_resolver
 
     ---Default scopes provided by Grapple
     ---For more information about default scopes, please see the Scopes section
