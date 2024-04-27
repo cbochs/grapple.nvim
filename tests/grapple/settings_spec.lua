@@ -1,4 +1,5 @@
 local Settings = require("grapple.settings")
+local Util = require("grapple.util")
 
 describe("Settings", function()
     describe("Defaults", function()
@@ -69,6 +70,25 @@ describe("Settings", function()
             assert.same(1, #deleted)
             assert.same("cwd", deleted[1].name)
             assert.same(true, deleted[1].delete)
+        end)
+
+        it("hides all scopes except those with 'shown'", function()
+            local settings = Settings:new()
+            settings:update({ default_scopes = { git = { shown = true } } })
+
+            -- stylua: ignore
+            local hidden = vim.tbl_map(
+                Util.pick("name"),
+                vim.tbl_filter(function(def) return def.hidden == true end, settings:scopes())
+            )
+            assert.same({ "cwd", "global", "static", "git_branch", "lsp" }, hidden)
+
+            -- stylua: ignore
+            local not_hidden = vim.tbl_map(
+                Util.pick("name"),
+                vim.tbl_filter(function(def) return def.hidden == false end, settings:scopes())
+            )
+            assert.same({ "git" }, not_hidden)
         end)
     end)
 end)

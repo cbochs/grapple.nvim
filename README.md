@@ -1104,7 +1104,8 @@ Used for defining new scopes.
 - **`fallback?`**: `string` fallback scope name
 - **`cache?`**: [`grapple.cache.options`](#grapplecacheoptions) | `boolean`
 - **`priority?`**: `integer` scope priority, higher scopes are loaded first
-- **`hidden?`**: `boolean` do not show the scope in the [Scopes Window](#scopes-window)
+- **`hidden?`**: `boolean` _hide_ scopes which have this field set
+- **`shown?`**: `boolean` _show_ scopes which have this field set (mutually exclusive with `hidden`)
 
 **Note**: Scopes are given a `priority` based on their fallback ordering. By default, scopes without a fallback are given a priority of `1000`; scopes with a fallback, but are also fallbacks themselves, are given a priority of `100`; and all other scopes are given a priority of `1`. Higher priority scopes are loaded first. This can be overridden by setting a scope's `priority` manually in the [settings](#settings).
 

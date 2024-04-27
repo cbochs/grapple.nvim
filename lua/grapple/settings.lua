@@ -63,7 +63,8 @@ local DEFAULT_SETTINGS = {
     ---@field fallback? string name of scope to fall back on
     ---@field cache? grapple.cache.options | boolean
     ---@field priority? integer
-    ---@field hidden? boolean
+    ---@field hidden? boolean hide only scopes which have this set
+    ---@field shown? boolean show only scopes which have this set
     ---@field delete? boolean
 
     ---Default scopes provided by Grapple
@@ -498,6 +499,11 @@ function Settings:scopes()
     ---@type table<string, boolean>
     local fallback_lookup = {}
 
+    -- Detect how a user is configuring scopes. There are two options:
+    --   exclude: scopes set the "hidden" field and are excluded by default
+    --   include: scopes set the "shown" field and are included by default
+    local using_shown = false
+
     -- Add default scopes
     for name, definition in pairs(self.inner.default_scopes) do
         if definition == false then
@@ -507,6 +513,14 @@ function Settings:scopes()
         definition = vim.tbl_extend("keep", definition, { name = name })
         assert(type(definition.name) == "string")
 
+        if definition.shown then
+            using_shown = true
+        end
+
+        if definition.fallback then
+            fallback_lookup[definition.fallback] = true
+        end
+
         table.insert(scopes, definition)
     end
 
@@ -514,6 +528,10 @@ function Settings:scopes()
     for name, definition in pairs(self.inner.scopes) do
         definition = vim.tbl_extend("keep", definition, { name = name })
         assert(type(definition.name) == "string")
+
+        if definition.shown then
+            using_shown = true
+        end
 
         if definition.fallback then
             fallback_lookup[definition.fallback] = true
@@ -532,6 +550,14 @@ function Settings:scopes()
             scope.priority = 100
         else
             scope.priority = 1
+        end
+    end
+
+    -- Update to whitelist or blacklist scopes by default
+    if using_shown then
+        for _, scope in ipairs(scopes) do
+            scope.hidden = not scope.shown
+            scope.shown = nil
         end
     end
 
