@@ -1,3 +1,4 @@
+local App = require("grapple.app")
 local TagContent = require("grapple.tag_content")
 
 describe("TagContent", function()
@@ -19,31 +20,8 @@ describe("TagContent", function()
             { 5, "/000           " },
             { 5, "/000           /some_path" },
 
-            -- ID + name
-            { 9, "/001 bob /some_path" },
-            { 9, "/002 bob bob" },
-            { 9, "/003 bob      bob  " },
-            { 9, "/004 bob " },
-            { 7, "/005 a /some_path" },
-            { 7, "/006 a " },
-            { 7, "/007 a           " },
-
-            -- ID + icon
-            { 9, "/001  /some_path" },
-            { 9, "/002  /some_path" },
-            { 9, "/003  /some_path" },
-            { 9, "/004  " },
-            { 9, "/005            " },
-
-            -- ID + icon + name
-            { 13, "/001  bob /some_path" },
-            { 13, "/002  bob " },
-            { 11, "/003  c /some_path" },
-            { 11, "/004  c " },
-            { 11, "/005  c           " },
-
             -- Assumed behaviour (last part editable)
-            { 16, "/000 /some_path /another_path" },
+            { 5, "/000 /some_path /another_path" },
         }
 
         for _, test_case in ipairs(test_cases) do
@@ -51,7 +29,38 @@ describe("TagContent", function()
             local line = test_case[2]
 
             it(string.format('expected col %d, line "%s"', expected, line), function()
-                assert.same(expected, TagContent:new(nil, nil, nil, nil):minimum_column(line))
+                local empty = function() end
+                local app = App:new()
+                app:update({ scope = "global", icons = false })
+
+                assert.is_same(
+                    expected,
+                    TagContent:new(app, assert(app:current_scope()), empty, empty, empty):minimum_column(line)
+                )
+            end)
+        end
+
+        local test_cases_icons = {
+            -- ID + icon
+            { 9, "/001  /some_path" },
+            { 9, "/002  /some_path" },
+            { 9, "/003  /some_path" },
+            { 9, "/004  " },
+            { 9, "/005            " },
+        }
+
+        for _, test_case in ipairs(test_cases_icons) do
+            local expected = test_case[1]
+            local line = test_case[2]
+
+            it(string.format('expected col %d, line "%s"', expected, line), function()
+                local empty = function() end
+                local app = App:new()
+                app:update({ scope = "global", icons = true })
+                assert.is_same(
+                    expected,
+                    TagContent:new(app, assert(app:current_scope()), empty, empty, empty):minimum_column(line)
+                )
             end)
         end
     end)
