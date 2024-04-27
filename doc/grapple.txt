@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 April 25
+*grapple.txt*            For NVIM v0.9.0            Last change: 2024 April 27
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -439,11 +439,44 @@ Where:
 Examples ~
 
 >lua
-    -- Cycle to the previous tagged file
+    -- Cycle to the next tagged file
     require("grapple").cycle_tags("next")
     
-    -- Cycle to the next tagged file
+    -- Cycle to the previous tagged file
     require("grapple").cycle_tags("prev")
+<
+
+
+GRAPPLE.CYCLE_SCOPES
+
+Cycle through and use the next or previous available scope. By default, will
+only cycle through non-`hidden` scopes. Use `{ all = true }` to cycle through
+_all_ defined scopes.
+
+**API**`require("grapple").cycle_scopes(direction, opts)`
+
+Where:
+
+- **direction**`"next"` | `"prev"`
+- **opts?**`table`
+    - **scope?**`string` scope name (default: `settings.scope`)
+    - **all?**`boolean` (default: `false`)
+
+Examples ~
+
+>lua
+    -- Cycle to the next scope
+    require("grapple").cycle_scopes("next")
+    
+    -- Cycle to the previous scope
+    require("grapple").cycle_scopes("prev")
+    
+    -- Hide a scope during Grapple setup
+    require("grapple").setup({
+        default_scopes = {
+            cwd = { hidden = true }
+        }
+    })
 <
 
 
