@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.29.0](https://github.com/cbochs/grapple.nvim/compare/v0.28.3...v0.29.0) (2024-04-27)
+
+
+### Features
+
+* add :list_scopes to Grapple app ([386b583](https://github.com/cbochs/grapple.nvim/commit/386b5838096052db5ae9db26c4556ca08498490e))
+* add "shown" to scope definition to allow whitelisting scopes in settings ([d9600cd](https://github.com/cbochs/grapple.nvim/commit/d9600cd4c49dc1f4b17800a685c419ed600d4dc1))
+* cycle scopes with Grapple.cycle_scopes ([6c88bfd](https://github.com/cbochs/grapple.nvim/commit/6c88bfde677036fd638fc11851383e370a374c69))
+
+
+### Bug Fixes
+
+* **docs:** reorder grapple.scope_definition fields ([c0a6b04](https://github.com/cbochs/grapple.nvim/commit/c0a6b040eade05192c9a8b744f151a511b3cb8fd))
+* **test:** update tag_content_spec for new name handling ([dadf665](https://github.com/cbochs/grapple.nvim/commit/dadf6658bc657b7f76a8d25b1977a9415d66eb0b))
+
 ## [0.28.3](https://github.com/cbochs/grapple.nvim/compare/v0.28.2...v0.28.3) (2024-04-26)
 
 
