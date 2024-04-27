@@ -81,27 +81,28 @@ vim.api.nvim_create_user_command(
             local scope_kwargs = { "scope", "id" }
             local window_kwargs = { "style", unpack(scope_kwargs) }
 
-                -- stylua: ignore
-                -- Lookup table of API functions and their available arguments
-                local subcommand_lookup = {
-                    clear_cache    = { args = { "scope" },     kwargs = {} },
-                    cycle_tags     = { args = { "direction" }, kwargs = use_kwargs },
-                    open_loaded    = { args = {},              kwargs = { "all" } },
-                    open_scopes    = { args = {},              kwargs = {} },
-                    open_tags      = { args = {},              kwargs = window_kwargs },
-                    prune          = { args = {},              kwargs = { "limit" } },
-                    quickfix       = { args = {},              kwargs = scope_kwargs },
-                    reset          = { args = {},              kwargs = scope_kwargs },
-                    select         = { args = {},              kwargs = use_kwargs },
-                    tag            = { args = {},              kwargs = new_kwargs },
-                    toggle         = { args = {},              kwargs = tag_kwargs },
-                    toggle_loaded  = { args = {},              kwargs = { "all" } },
-                    toggle_scopes  = { args = {},              kwargs = { "all" } },
-                    toggle_tags    = { args = {},              kwargs = window_kwargs },
-                    unload         = { args = {},              kwargs = scope_kwargs },
-                    untag          = { args = {},              kwargs = use_kwargs },
-                    use_scope      = { args = { "scope" },     kwargs = {} },
-                }
+            -- stylua: ignore
+            -- Lookup table of API functions and their available arguments
+            local subcommand_lookup = {
+                clear_cache    = { args = { "scope" },     kwargs = {} },
+                cycle_tags     = { args = { "direction" }, kwargs = use_kwargs },
+                cycle_scopes   = { args = { "direction" }, kwargs = { "scope", "all" } },
+                open_loaded    = { args = {},              kwargs = { "all" } },
+                open_scopes    = { args = {},              kwargs = {} },
+                open_tags      = { args = {},              kwargs = window_kwargs },
+                prune          = { args = {},              kwargs = { "limit" } },
+                quickfix       = { args = {},              kwargs = scope_kwargs },
+                reset          = { args = {},              kwargs = scope_kwargs },
+                select         = { args = {},              kwargs = use_kwargs },
+                tag            = { args = {},              kwargs = new_kwargs },
+                toggle         = { args = {},              kwargs = tag_kwargs },
+                toggle_loaded  = { args = {},              kwargs = { "all" } },
+                toggle_scopes  = { args = {},              kwargs = { "all" } },
+                toggle_tags    = { args = {},              kwargs = window_kwargs },
+                unload         = { args = {},              kwargs = scope_kwargs },
+                untag          = { args = {},              kwargs = use_kwargs },
+                use_scope      = { args = { "scope" },     kwargs = {} },
+            }
 
             -- Lookup table of arguments and their known values
             local argument_lookup = {
@@ -154,10 +155,10 @@ vim.api.nvim_create_user_command(
             -- "Grapple sub|"
 
             if #input == 2 then
-                    -- stylua: ignore
-                    return current == ""
-                        and subcmds
-                        or vim.tbl_filter(Util.startswith(current), subcmds)
+                -- stylua: ignore
+                return current == ""
+                    and subcmds
+                    or vim.tbl_filter(Util.startswith(current), subcmds)
             end
 
             local completion = subcommand_lookup[input_subcmd]
@@ -175,10 +176,10 @@ vim.api.nvim_create_user_command(
                 local arg_name = completion.args[#input_args]
                 local arg_values = argument_lookup[arg_name] or {}
 
-                    -- stylua: ignore
-                    return current == ""
-                        and arg_values
-                        or vim.tbl_filter(Util.startswith(current), arg_values)
+                -- stylua: ignore
+                return current == ""
+                    and arg_values
+                    or vim.tbl_filter(Util.startswith(current), arg_values)
             end
 
             -- "Grapple subcmd arg |"
@@ -189,10 +190,10 @@ vim.api.nvim_create_user_command(
                 local input_keys = vim.tbl_map(Util.match_key, input_kwargs)
                 local kwarg_keys = Util.subtract(completion.kwargs, input_keys)
 
-                    -- stylua: ignore
-                    local filtered = current == ""
-                        and kwarg_keys
-                        or vim.tbl_filter(Util.startswith(current), completion.kwargs)
+                -- stylua: ignore
+                local filtered = current == ""
+                and kwarg_keys
+                or vim.tbl_filter(Util.startswith(current), completion.kwargs)
 
                 return vim.tbl_map(Util.with_suffix("="), filtered)
             end

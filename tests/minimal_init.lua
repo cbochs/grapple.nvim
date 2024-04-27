@@ -6,6 +6,8 @@ vim.fs.joinpath = vim.fs.joinpath
         return path
     end
 
+vim.notify = function() end
+
 local root_path = vim.fn.fnamemodify(".", ":p")
 local temp_path = vim.fs.joinpath(root_path, ".tests")
 

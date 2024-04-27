@@ -7,6 +7,7 @@ local Settings = require("grapple.settings")
 local State = require("grapple.state")
 local TagContent = require("grapple.tag_content")
 local TagManager = require("grapple.tag_manager")
+local Util = require("grapple.util")
 local Window = require("grapple.window")
 
 ---@class grapple.app
@@ -196,7 +197,7 @@ function App:select(opts)
     local path, _ = self:extract_path(opts.path, opts.buffer)
     opts.path = path
 
-    return self:enter_with_event(function(container)
+    return self:enter(function(container)
         local index, err = container:find(opts)
         if err then
             return err
@@ -205,38 +206,37 @@ function App:select(opts)
         local tag = assert(container:get({ index = index }))
 
         tag:select(opts.command)
-    end, { scope = opts.scope, scope_id = opts.scope_id })
+    end, { scope = opts.scope, scope_id = opts.scope_id, event = true })
 end
 
----@param current_index? integer
+---@param current_idx? integer
 ---@param direction "next" | "prev"
 ---@param length integer
 ---@return integer
-local function next_index(current_index, direction, length)
+local function next_index(current_idx, direction, length)
     -- Fancy maths to get the next index for a given direction
     -- 1. Change to 0-based indexing
     -- 2. Perform index % container length, being careful of negative values
     -- 3. Change back to 1-based indexing
     -- stylua: ignore
-    current_index = (
-        current_index
+    current_idx = (
+        current_idx
         or direction == "next" and length
         or direction == "prev" and 1
     ) - 1
 
     local next_inc = direction == "next" and 1 or -1
-    local next_idx = math.fmod(current_index + next_inc + length, length) + 1
+    local next_idx = math.fmod(current_idx + next_inc + length, length) + 1
 
     return next_idx
 end
 
--- Cycle through and select the next or previous available tag for a given scope.
+-- Cycle through and find the next or previous available tag for a given scope.
 ---By default, uses the current scope
 ---@param direction "next" | "prev" | "previous" | "forward" | "backward"
 ---@param opts? grapple.options
----@return string? error
+---@return integer | nil next_index, string? error
 function App:cycle_tags(direction, opts)
-
     -- stylua: ignore
     direction = direction == "forward" and "next"
         or direction == "backward" and "prev"
@@ -246,7 +246,7 @@ function App:cycle_tags(direction, opts)
     ---@cast direction "next" | "prev"
 
     if not vim.tbl_contains({ "next", "prev" }, direction) then
-        return string.format("invalid direction: %s", direction)
+        return nil, string.format("invalid direction: %s", direction)
     end
 
     opts = opts or {}
@@ -254,24 +254,55 @@ function App:cycle_tags(direction, opts)
     local path, _ = self:extract_path(opts.path, opts.buffer or 0)
     opts.path = path
 
-    return self:enter_with_event(function(container)
+    return self:enter_with_result(function(container)
         if container:is_empty() then
-            return
+            return nil, nil
         end
 
-        local index = next_index(container:find(opts), direction, container:len())
-
-        local tag, err = container:get({ index = index })
-        if err or not tag then
-            return err
+        local current_idx, _ = container:find(opts)
+        local next_idx = next_index(container:find(opts), direction, container:len())
+        if next_idx == current_idx then
+            return nil, nil
         end
 
-        ---@diagnostic disable-next-line: redefined-local
-        local err = tag:select()
-        if err then
-            return err
-        end
-    end, { scope = opts.scope, scope_id = opts.scope_id })
+        return next_idx, nil
+    end, { scope = opts.scope, scope_id = opts.scope_id, event = true })
+end
+
+-- Cycle through and find the next or previous available scope.
+---By default, will only cycle through non-`hidden` scopes.
+---@param direction "next" | "prev"
+---@param opts? { scope?: string, all?: boolean }
+---@return string | nil next_scope, string? error
+function App:cycle_scopes(direction, opts)
+    if not vim.tbl_contains({ "next", "prev" }, direction) then
+        return nil, string.format("invalid direction: %s", direction)
+    end
+
+    opts = opts or {}
+
+    local current_scope, err = self.scope_manager:get(opts.scope or self.settings.scope)
+    if err or not current_scope then
+        return nil, err
+    end
+
+    local scopes = self:list_scopes()
+    if not opts.all then
+        scopes = vim.tbl_filter(function(scope)
+            return not scope.hidden
+        end, scopes)
+    end
+
+    local current_idx = Util.index_of(scopes, function(s)
+        return s.name == current_scope.name
+    end)
+
+    local next_idx = next_index(current_idx, direction, #scopes)
+    if next_idx == current_idx then
+        return nil, nil
+    end
+
+    return scopes[next_idx].name, nil
 end
 
 ---Update a tag in a given scope
@@ -588,13 +619,6 @@ end
 ---@return string? error
 function App:enter_with_save(callback, opts)
     return self:enter(callback, vim.tbl_deep_extend("force", opts or {}, { sync = true, event = true }))
-end
-
----@param callback fun(container: grapple.tag_container): string? error
----@param opts? grapple.app.enter_options
----@return string? error
-function App:enter_with_event(callback, opts)
-    return self:enter(callback, vim.tbl_deep_extend("force", opts or {}, { sync = false, event = true }))
 end
 
 return App

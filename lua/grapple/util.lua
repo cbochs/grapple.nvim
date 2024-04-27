@@ -36,6 +36,18 @@ function Util.reduce(list, fn, init)
 end
 
 ---@generic T
+---@param list table
+---@param fn fun(value: T): boolean
+---@return integer | nil
+function Util.index_of(list, fn)
+    for i, v in ipairs(list) do
+        if fn(v) then
+            return i
+        end
+    end
+end
+
+---@generic T
 ---@param tbl_a T[]
 ---@param tbl_b T[]
 ---@return T[]

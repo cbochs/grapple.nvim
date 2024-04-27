@@ -438,11 +438,44 @@ Where:
 <summary><b>Examples</b></summary>
 
 ```lua
--- Cycle to the previous tagged file
+-- Cycle to the next tagged file
 require("grapple").cycle_tags("next")
 
--- Cycle to the next tagged file
+-- Cycle to the previous tagged file
 require("grapple").cycle_tags("prev")
+```
+
+</details>
+
+#### `Grapple.cycle_scopes`
+
+Cycle through and use the next or previous available scope. By default, will only cycle through non-`hidden` scopes. Use `{ all = true }` to cycle through _all_ defined scopes.
+
+**API**: `require("grapple").cycle_scopes(direction, opts)`
+
+Where:
+
+- **`direction`**: `"next"` | `"prev"`
+- **`opts?`**: `table`
+    - **`scope?`**: `string` scope name (default: `settings.scope`)
+    - **`all?`**: `boolean` (default: `false`)
+
+<details>
+<summary><b>Examples</b></summary>
+
+```lua
+-- Cycle to the next scope
+require("grapple").cycle_scopes("next")
+
+-- Cycle to the previous scope
+require("grapple").cycle_scopes("prev")
+
+-- Hide a scope during Grapple setup
+require("grapple").setup({
+    default_scopes = {
+        cwd = { hidden = true }
+    }
+})
 ```
 
 </details>

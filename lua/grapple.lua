@@ -3,7 +3,7 @@ local Grapple = {}
 ---@param err? string
 ---@return string? err
 local function notify_err(err)
-    if err and not vim.env.CI then
+    if err then
         vim.notify(err, vim.log.levels.ERROR)
     end
     return err
@@ -57,7 +57,13 @@ end
 ---@param opts? grapple.options
 ---@return string? error
 function Grapple.cycle_tags(direction, opts)
-    return notify_err(Grapple.app():cycle_tags(direction, opts))
+    local next_index, err = Grapple.app():cycle_tags(direction, opts)
+    if err then
+        vim.notify(err, vim.log.levels.ERROR)
+        return err
+    elseif next_index then
+        Grapple.select({ index = next_index })
+    end
 end
 
 -- Cycle through and select the next or previous available tag for a given scope.
@@ -86,6 +92,21 @@ end
 ---@return string? error
 function Grapple.cycle_backward(opts)
     return Grapple.cycle_tags("prev", opts)
+end
+
+---Cycle through and use the next or previous available scope.
+---By default, will only cycle through non-`hidden` scopes.
+---@param direction "next" | "prev"
+---@param opts? { scope?: string, all?: boolean }
+---@return string? error
+function Grapple.cycle_scopes(direction, opts)
+    local next_scope, err = Grapple.app():cycle_scopes(direction, opts)
+    if err then
+        vim.notify(err --[[ @as string ]], vim.log.levels.ERROR)
+        return err
+    elseif next_scope then
+        Grapple.use_scope(next_scope)
+    end
 end
 
 ---@param opts? grapple.options
