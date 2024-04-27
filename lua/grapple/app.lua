@@ -459,6 +459,11 @@ function App:list_containers()
     return self.tag_manager:list()
 end
 
+---@return grapple.scope[]
+function App:list_scopes()
+    return self.scope_manager:list()
+end
+
 ---Convenience function to open content in a new floating window
 ---@param content grapple.tag_content | grapple.scope_content | grapple.container_content
 ---@return string? error

@@ -107,7 +107,7 @@ vim.api.nvim_create_user_command(
             local argument_lookup = {
                 all = { "true", "false" },
                 direction = { "next", "prev" },
-                scope = Util.sort(vim.tbl_keys(app.scope_manager.scopes), Util.as_lower),
+                scope = vim.tbl_map(Util.pick("name"), app:list_scopes()),
                 style = Util.sort(vim.tbl_keys(app.settings.styles), Util.as_lower),
             }
 

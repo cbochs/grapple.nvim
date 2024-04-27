@@ -1,4 +1,5 @@
 local Scope = require("grapple.scope")
+local Util = require("grapple.util")
 
 ---@class grapple.scope_manager
 ---@field cache grapple.cache
@@ -15,8 +16,20 @@ function ScopeManager:new(cache)
     }, self)
 end
 
+---@return boolean
 function ScopeManager:exists(name)
     return self.scopes[name] ~= nil
+end
+
+---@return grapple.scope[]
+function ScopeManager:list()
+    ---@param scope_a grapple.scope
+    ---@param scope_b grapple.scope
+    local function by_name(scope_a, scope_b)
+        return string.lower(scope_a.name) < string.lower(scope_b.name)
+    end
+
+    return Util.sort(vim.tbl_values(self.scopes), by_name)
 end
 
 ---@param name string scope name

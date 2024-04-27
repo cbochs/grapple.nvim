@@ -103,6 +103,24 @@ function Util.with_prefix(prefix)
     end
 end
 
+---Transformer that picks out the requested values
+---@generic T, V
+---@param keep T | T[]
+---@return fun(value: table): V | V[]
+function Util.pick(keep)
+    keep = type(keep) == "table" and keep or { keep }
+
+    return function(value)
+        local kept = {}
+        for k, v in pairs(value) do
+            if vim.tbl_contains(keep, k) then
+                table.insert(kept, v)
+            end
+        end
+        return #keep == 1 and kept[1] or kept
+    end
+end
+
 ---Transformer adds a suffix to a string value
 ---@param suffix string
 ---@return fun(value: string): string
