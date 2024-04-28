@@ -477,9 +477,6 @@ function App:resolve_scope(opts)
         return nil, err
     end
 
-    if not self.scope_manager.cache:exists(scope.id) then
-        self.scope_manager.cache:open(scope.id, {})
-    end
     self.scope_manager.cache:store(scope.id, scope)
 
     return scope, nil

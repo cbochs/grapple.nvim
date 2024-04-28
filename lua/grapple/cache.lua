@@ -155,7 +155,7 @@ end
 ---@param value any
 function Cache:store(id, value)
     if not self:exists(id) then
-        return
+        self:open(id, {})
     end
 
     local cache_value = self.cache[id]
