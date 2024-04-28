@@ -41,24 +41,21 @@ describe("Settings", function()
     describe(".scopes", function()
         it("has the correct scope defaults in priority order", function()
             local settings = Settings:new()
-            -- stylua: ignore
-            local names = vim.tbl_map(function(def) return def.name end, settings:scopes())
+            local names = vim.tbl_map(Util.pick("name"), settings:scopes())
             assert.same({ "cwd", "global", "static", "git", "git_branch", "lsp" }, names)
         end)
 
         it("merges default and user-defined scopes", function()
             local settings = Settings:new()
             settings:update({ scopes = { test = {} } })
-            -- stylua: ignore
-            local names = vim.tbl_map(function(def) return def.name end, settings:scopes())
+            local names = vim.tbl_map(Util.pick("name"), settings:scopes())
             assert.same({ "cwd", "global", "static", "test", "git", "git_branch", "lsp" }, names)
         end)
 
         it("overrides default scope definitions", function()
             local settings = Settings:new()
             settings:update({ default_scopes = { global = { name = "bob" } } })
-            -- stylua: ignore
-            local names = vim.tbl_map(function(def) return def.name end, settings:scopes())
+            local names = vim.tbl_map(Util.pick("name"), settings:scopes())
             assert.same({ "bob", "cwd", "static", "git", "git_branch", "lsp" }, names)
         end)
 

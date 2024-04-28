@@ -1,5 +1,15 @@
 local App = require("grapple.app")
+local Settings = require("grapple.settings")
 local TagContent = require("grapple.tag_content")
+
+local function tag_content(opts)
+    local empty = function() end
+    local settings = Settings:new()
+    local app = App:new(settings)
+    app:update(opts)
+
+    return TagContent:new(app, assert(app:current_scope()), empty, empty, empty)
+end
 
 describe("TagContent", function()
     describe(".minimum_column", function()
@@ -29,14 +39,7 @@ describe("TagContent", function()
             local line = test_case[2]
 
             it(string.format('expected col %d, line "%s"', expected, line), function()
-                local empty = function() end
-                local app = App:new()
-                app:update({ scope = "global", icons = false })
-
-                assert.is_same(
-                    expected,
-                    TagContent:new(app, assert(app:current_scope()), empty, empty, empty):minimum_column(line)
-                )
+                assert.is_same(expected, tag_content({ scope = "global", icons = false }):minimum_column(line))
             end)
         end
 
@@ -54,13 +57,7 @@ describe("TagContent", function()
             local line = test_case[2]
 
             it(string.format('expected col %d, line "%s"', expected, line), function()
-                local empty = function() end
-                local app = App:new()
-                app:update({ scope = "global", icons = true })
-                assert.is_same(
-                    expected,
-                    TagContent:new(app, assert(app:current_scope()), empty, empty, empty):minimum_column(line)
-                )
+                assert.is_same(expected, tag_content({ scope = "global", icons = true }):minimum_column(line))
             end)
         end
     end)

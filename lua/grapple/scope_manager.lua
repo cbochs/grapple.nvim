@@ -68,41 +68,42 @@ function ScopeManager:get_resolved(name)
     return resolved
 end
 
----@param name string
----@param resolver grapple.scope_resolver
----@param opts? { force?: boolean, desc?: string, fallback?: string, cache?: grapple.cache.options | boolean, hidden?: boolean }
+---@param definition grapple.scope_definition
 ---@return string? error
-function ScopeManager:define(name, resolver, opts)
-    opts = opts or {}
+function ScopeManager:define(definition)
+    vim.validate({
+        name = { definition.name, "string" },
+        resolver = { definition.resolver, "function" },
+    })
 
-    if self:exists(name) then
-        if not opts.force then
-            return string.format("scope already exists: %s", name)
+    if self:exists(definition.name) then
+        if not definition.force then
+            return string.format("scope already exists: %s", definition.name)
         end
 
-        self.cache:close(name)
+        self.cache:close(definition.name)
     end
 
     local fallback, err
-    if opts.fallback then
-        fallback, err = self:get(opts.fallback)
+    if definition.fallback then
+        fallback, err = self:get(definition.fallback)
         if not fallback then
-            return string.format("could not create scope: %s, error: %s", name, err)
+            return string.format("could not create scope: %s, error: %s", definition.name, err)
         end
     end
 
-    if opts.cache then
-        opts.cache = opts.cache == true and {} or opts.cache
-        self.cache:open(name, opts.cache --[[ @as grapple.cache.options ]])
+    if definition.cache then
+        definition.cache = definition.cache == true and {} or definition.cache
+        self.cache:open(definition.name, definition.cache --[[ @as grapple.cache.options ]])
     end
 
-    local scope = Scope:new(name, resolver, {
-        desc = opts.desc,
+    local scope = Scope:new(definition.name, definition.resolver, {
+        desc = definition.desc,
         fallback = fallback,
-        hidden = opts.hidden,
+        hidden = definition.hidden,
     })
 
-    self.scopes[name] = scope
+    self.scopes[definition.name] = scope
 
     return nil
 end

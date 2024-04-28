@@ -12,7 +12,6 @@ local Window = require("grapple.window")
 
 ---@class grapple.app
 ---@field settings grapple.settings
----@field cache grapple.cache
 ---@field scope_manager grapple.scope_manager
 ---@field tag_manager grapple.tag_manager
 local App = {}
@@ -28,28 +27,23 @@ function App.get()
         return app
     end
 
-    app = App:new()
+    local settings = Settings:new()
+
+    app = App:new(settings)
     app:update()
 
     return app
 end
 
+---@param settings grapple.settings
 ---@return grapple.app
-function App:new()
-    local settings = Settings:new()
-
+function App:new(settings)
     local app = setmetatable({
         settings = settings,
-        cache = Cache:new(),
         scope_manager = nil,
         tag_manager = nil,
     }, self)
 
-    -- TODO: I think the "scope" cache and "global" cache should be separate.
-    -- Think about this more and decided on the best approach. Note: right now
-    -- the scope manager only really needs the "app" to get the tag_manager for
-    -- a single method. A bit of refactoring could probably remove this
-    -- dependency
     local cache = Cache:new()
     local scope_manager = ScopeManager:new(cache)
 
@@ -382,13 +376,7 @@ end
 ---@param definition grapple.scope_definition
 ---@return string? error
 function App:define_scope(definition)
-    return self.scope_manager:define(definition.name, definition.resolver, {
-        force = definition.force,
-        desc = definition.desc,
-        fallback = definition.fallback,
-        cache = definition.cache,
-        hidden = definition.hidden,
-    })
+    return self.scope_manager:define(definition)
 end
 
 ---@param scope_name string
