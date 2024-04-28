@@ -38,8 +38,7 @@ function HelpContent:perform() end
 
 ---@return grapple.window.entity[] | nil, string? error
 function HelpContent:entities()
-    local App = require("grapple.app")
-    local app = App.get()
+    local app = require("grapple").app()
 
     ---@type grapple.vim.keymap[]
     local keymaps = vim.api.nvim_buf_get_keymap(self.buf_id, "n")
