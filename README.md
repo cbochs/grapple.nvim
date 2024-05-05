@@ -794,14 +794,16 @@ require("grapple").setup({
     scope = "custom",
 
     scopes = {
-        name = "custom",
-        fallback = "cwd",
-        cache = { event = "DirChanged" },
-        resolver = function()
-            local path = vim.env.HOME
-            local id = path
-            return id, path
-        end
+        {
+            name = "custom",
+            fallback = "cwd",
+            cache = { event = "DirChanged" },
+            resolver = function()
+                local path = vim.env.HOME
+                local id = path
+                return id, path
+            end
+        }
     }
 })
 
