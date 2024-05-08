@@ -128,6 +128,12 @@ function Window:open()
     local win_opts = self:window_options()
     self.win_id = vim.api.nvim_open_win(self.buf_id, true, win_opts)
 
+    -- Set window highlights
+    self:set_highlight("NormalFloat", "GrappleNormal")
+    self:set_highlight("FloatBorder", "GrappleBorder")
+    self:set_highlight("FloatTitle", "GrappleTitle")
+    self:set_highlight("FloatFooter", "GrappleFooter")
+
     -- Setup window to conceal line IDs
     vim.api.nvim_set_option_value("concealcursor", "nvic", { win = self.win_id })
     vim.api.nvim_set_option_value("conceallevel", 3, { win = self.win_id })
@@ -605,6 +611,22 @@ function Window:alternate_path()
     end
 
     return Path.fs_absolute(alt_name)
+end
+
+--- Replaces a highlight group in the window
+--- @param new_from string
+--- @param new_to string
+function Window:set_highlight(new_from, new_to)
+    local new_entry = new_from .. ":" .. new_to
+    local replace_pattern = string.format("(%s:[^,]*)", vim.pesc(new_from))
+    local new_winhighlight, n_replace = vim.wo[self.win_id].winhighlight:gsub(replace_pattern, new_entry)
+    if n_replace == 0 then
+        new_winhighlight = new_winhighlight .. "," .. new_entry
+    end
+
+    pcall(function()
+        vim.wo[self.win_id].winhighlight = new_winhighlight
+    end)
 end
 
 return Window
