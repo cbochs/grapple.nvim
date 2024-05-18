@@ -936,6 +936,10 @@ require("grapple").open_loaded({ all = true })
 | `GrappleName`    | `DiagnosticHint`  | N/A        | Tags window for tag name        |
 | `GrappleNoExist` | `DiagnosticError` | N/A        | Tags window for tag status      |
 | `GrappleCurrent` | `SpecialChar`     | `gui=bold` | All windows for current status  |
+| `GrappleFloat`   | `NormalFloat`     | N/A        | All windows for background      |
+| `GrappleBorder`  | `FloatBorder`     | N/A        | All windows for border          |
+| `GrappleTitle`   | `FloatTitle`      | N/A        | All windows for title           |
+| `GrappleFooter`  | `FloatFooter`     | N/A        | All windows for footer          |
 
 ## Persistent State
 
