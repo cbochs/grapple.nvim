@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0](https://github.com/cbochs/grapple.nvim/compare/v0.29.0...v0.30.0) (2024-05-18)
+
+
+### Features
+
+* add grapple window highlight groups ([#164](https://github.com/cbochs/grapple.nvim/issues/164)) ([dd7fd96](https://github.com/cbochs/grapple.nvim/commit/dd7fd96975726b8758c3fc2e2899e206a184a589))
+
+
+### Bug Fixes
+
+* **readme:** custom scope needs one extra curly brackets to wrap it ([#162](https://github.com/cbochs/grapple.nvim/issues/162)) ([924807a](https://github.com/cbochs/grapple.nvim/commit/924807aa0522bf75a77126a8f4cbce1c67c42290))
+
 ## [0.29.0](https://github.com/cbochs/grapple.nvim/compare/v0.28.3...v0.29.0) (2024-04-27)
 
 
