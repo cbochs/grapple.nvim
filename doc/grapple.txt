@@ -1,4 +1,4 @@
-*grapple.txt*            For NVIM v0.9.0            Last change: 2024 April 27
+*grapple.txt*             For NVIM v0.9.0             Last change: 2024 May 18
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -791,14 +791,16 @@ Examples ~
         scope = "custom",
     
         scopes = {
-            name = "custom",
-            fallback = "cwd",
-            cache = { event = "DirChanged" },
-            resolver = function()
-                local path = vim.env.HOME
-                local id = path
-                return id, path
-            end
+            {
+                name = "custom",
+                fallback = "cwd",
+                cache = { event = "DirChanged" },
+                resolver = function()
+                    local path = vim.env.HOME
+                    local id = path
+                    return id, path
+                end
+            }
         }
     })
     
