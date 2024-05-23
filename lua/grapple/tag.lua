@@ -25,7 +25,9 @@ function Tag:select(command)
     local app = require("grapple").app()
 
     command = command or app.settings.command
-    command(self.path)
+    -- Use relative path for a better initial view in `:buffers`
+    local path_norm = vim.fn.fnameescape(vim.fn.fnamemodify(self.path, ":."))
+    command(path_norm)
 
     if self.cursor then
         local current_cursor = vim.api.nvim_win_get_cursor(0)
