@@ -432,6 +432,7 @@ local DEFAULT_SETTINGS = {
         title_padding = " ",
     },
 
+    --Override default floating window mappings
     win_mappings = {
         select = "<cr>",
         select_horizontal = "<c-s>",

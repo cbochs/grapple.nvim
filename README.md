@@ -290,6 +290,17 @@ require("grapple").setup({
         -- Custom: adds padding around window title
         title_padding = " ",
     },
+
+    --Override default floating window mappings
+    win_mappings = {
+        select = "<cr>",
+        select_horizontal = "<c-s>",
+        select_vertical = "|",
+        quickfix = "<c-q>",
+        go_up_scope = "-",
+        rename = "R",
+        help = "?",
+    },
 })
 ```
 
