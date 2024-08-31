@@ -186,20 +186,22 @@ local DEFAULT_SETTINGS = {
         local TagActions = require("grapple.tag_actions")
         local app = Grapple.app()
 
+        local mappings = app.settings.win_mappings
+
         -- Select
-        window:map("n", "<cr>", function()
+        window:map("n", mappings.select, function()
             local cursor = window:cursor()
             window:perform_close(TagActions.select, { index = cursor[1] })
         end, { desc = "Select" })
 
         -- Select (horizontal split)
-        window:map("n", "<c-s>", function()
+        window:map("n", mappings.select_horizontal, function()
             local cursor = window:cursor()
             window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.split })
         end, { desc = "Select (split)" })
 
         -- Select (vertical split)
-        window:map("n", "|", function()
+        window:map("n", mappings.select_vertical, function()
             local cursor = window:cursor()
             window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
         end, { desc = "Select (vsplit)" })
@@ -212,24 +214,24 @@ local DEFAULT_SETTINGS = {
         end
 
         -- Quickfix list
-        window:map("n", "<c-q>", function()
+        window:map("n", mappings.quickfix, function()
             window:perform_close(TagActions.quickfix)
         end, { desc = "Quickfix" })
 
         -- Go "up" to scopes
-        window:map("n", "-", function()
+        window:map("n", mappings.go_up_scope, function()
             window:perform_close(TagActions.open_scopes)
         end, { desc = "Go to scopes" })
 
         -- Rename
-        window:map("n", "R", function()
+        window:map("n", mappings.rename, function()
             local entry = window:current_entry()
             local path = entry.data.path
             window:perform_retain(TagActions.rename, { path = path })
         end, { desc = "Rename" })
 
         -- Help
-        window:map("n", "?", function()
+        window:map("n", mappings.help, function()
             local WindowActions = require("grapple.window_actions")
             window:perform_retain(WindowActions.help)
         end, { desc = "Help" })
@@ -428,6 +430,16 @@ local DEFAULT_SETTINGS = {
 
         -- Custom: adds padding around window title
         title_padding = " ",
+    },
+
+    win_mappings = {
+        select = "<cr>",
+        select_horizontal = "<c-s>",
+        select_vertical = "|",
+        quickfix = "<c-q>",
+        go_up_scope = "-",
+        rename = "R",
+        help = "?",
     },
 
     ---Values for which a buffer should be excluded from being tagged
