@@ -251,8 +251,10 @@ local DEFAULT_SETTINGS = {
         local ScopeActions = require("grapple.scope_actions")
         local app = Grapple.app()
 
+        local mappings = app.settings.win_mappings
+
         -- Select
-        window:map("n", "<cr>", function()
+        window:map("n", mappings.select, function()
             local entry = window:current_entry()
             local name = entry.data.name
             window:perform_close(ScopeActions.open_tags, { name = name })
@@ -273,24 +275,24 @@ local DEFAULT_SETTINGS = {
         end
 
         -- Change
-        window:map("n", "<s-cr>", function()
+        window:map("n", mappings.change_scope, function()
             local entry = window:current_entry()
             local name = entry.data.name
             window:perform_close(ScopeActions.change, { name = name })
         end, { desc = "Change scope" })
 
         -- Navigate "up" to loaded scopes
-        window:map("n", "-", function()
+        window:map("n", mappings.go_up_scope, function()
             window:perform_close(ScopeActions.open_loaded)
         end, { desc = "Go to loaded scopes" })
 
         -- Toggle
-        window:map("n", "g.", function()
+        window:map("n", mappings.toggle_hidden, function()
             window:perform_retain(ScopeActions.toggle_all)
         end, { desc = "Toggle show hidden" })
 
         -- Help
-        window:map("n", "?", function()
+        window:map("n", mappings.help, function()
             local WindowActions = require("grapple.window_actions")
             window:perform_retain(WindowActions.help)
         end, { desc = "Help" })
@@ -310,8 +312,10 @@ local DEFAULT_SETTINGS = {
         local ContainerActions = require("grapple.container_actions")
         local app = Grapple.app()
 
+        local mappings = app.settings.win_mappings
+
         -- Select
-        window:map("n", "<cr>", function()
+        window:map("n", mappings.select, function()
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_close(ContainerActions.select, { id = id })
@@ -332,31 +336,31 @@ local DEFAULT_SETTINGS = {
         end
 
         -- Unload
-        window:map("n", "x", function()
+        window:map("n", mappings.unload_scope, function()
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_retain(ContainerActions.unload, { id = id })
         end, { desc = "Unload scope" })
 
         -- Reset
-        window:map("n", "X", function()
+        window:map("n", mappings.reset_scope, function()
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_retain(ContainerActions.reset, { id = id })
         end, { desc = "Reset scope" })
 
         -- Navigate "up" to scopes
-        window:map("n", "-", function()
+        window:map("n", mappings.go_up_scope, function()
             window:perform_close(ContainerActions.open_scopes)
         end, { desc = "Go to scopes" })
 
         -- Toggle
-        window:map("n", "g.", function()
+        window:map("n", mappings.toggle_hidden, function()
             window:perform_retain(ContainerActions.toggle_all)
         end, { desc = "Toggle show unloaded" })
 
         -- Help
-        window:map("n", "?", function()
+        window:map("n", mappings.help, function()
             local WindowActions = require("grapple.window_actions")
             window:perform_retain(WindowActions.help)
         end, { desc = "Help" })
@@ -434,6 +438,10 @@ local DEFAULT_SETTINGS = {
 
     --Override default floating window mappings
     win_mappings = {
+        toggle_hidden = "g.",
+        unload_scope = "x",
+        reset_scope = "X",
+        change_scope = "<s-cr>",
         select = "<cr>",
         select_horizontal = "<c-s>",
         select_vertical = "|",

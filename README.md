@@ -293,6 +293,10 @@ require("grapple").setup({
 
     --Override default floating window mappings
     win_mappings = {
+        toggle_hidden = "g.",
+        unload_scope = "x",
+        reset_scope = "X",
+        change_scope = "<s-cr>",
         select = "<cr>",
         select_horizontal = "<c-s>",
         select_vertical = "|",

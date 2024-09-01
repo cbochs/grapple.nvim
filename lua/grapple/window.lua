@@ -44,6 +44,8 @@ function Window:window_options()
     ---@diagnostic disable-next-line: assign-type-mismatch
     local opts = vim.tbl_deep_extend("keep", self.win_opts, {})
 
+    local app = require("grapple").app()
+
     -- Window title
     if self:has_content() and self.content:title() then
         opts.title = self.content:title()
@@ -64,7 +66,7 @@ function Window:window_options()
 
     -- Add "help" footer for nvim-0.10
     if vim.fn.has("nvim-0.10") == 1 then
-        opts.footer = "Press '?' to toggle Help"
+        opts.footer = string.format("Press '%s' to toggle Help", app.settings.win_mappings.help)
         opts.footer_pos = "center"
     end
 
