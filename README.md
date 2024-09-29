@@ -290,6 +290,33 @@ require("grapple").setup({
         -- footer = "", -- disable footer
         footer_pos = "center",
     },
+
+    --Override tag mappings
+    tag_mappings = {
+        select_split = "<c-s>",
+        select_vsplit = "|",
+        quickfix = "<c-q>",
+        go_to_scopes = "-",
+    },
+    --Override scope mappings
+    scope_mappings = {
+        change = "<s-cr>",
+        go_to_loaded = "-",
+    },
+    --Override loaded (containers) mappings
+    loaded_mappings = {
+        unload = "x",
+        reset = "X",
+        go_to_scopes = "-",
+    },
+
+    --Override default general mappings
+    mappings = {
+        toggle_hidden = "g.",
+        select = "<cr>",
+        rename = "R",
+        help = "?",
+    },
 })
 ```
 
