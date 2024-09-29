@@ -1,4 +1,4 @@
-*grapple.txt*             For NVIM v0.9.0             Last change: 2024 May 18
+*grapple.txt*          For NVIM v0.9.0          Last change: 2024 September 29
 
 ==============================================================================
 Table of Contents                                  *grapple-table-of-contents*
@@ -52,7 +52,7 @@ FEATURES                                       *grapple-grapple.nvim-features*
 
 REQUIREMENTS                               *grapple-grapple.nvim-requirements*
 
-- Neovim >= 0.9 <https://github.com/neovim/neovim/releases/tag/v0.9.0>
+- Neovim >= 0.10 <https://github.com/neovim/neovim/releases/tag/v0.10.0>
 - nvim-web-devicons <https://github.com/nvim-tree/nvim-web-devicons> (optional)
 
 
@@ -286,13 +286,13 @@ Default Settings ~
             border = "single",
             focusable = false,
             style = "minimal",
+    
+            title = "Grapple", -- fallback title for Grapple windows
             title_pos = "center",
+            title_padding = " ", -- custom: adds padding around window title
     
-            -- Custom: fallback title for Grapple windows
-            title = "Grapple",
-    
-            -- Custom: adds padding around window title
-            title_padding = " ",
+            -- footer = "", -- disable footer
+            footer_pos = "center",
         },
     })
 <

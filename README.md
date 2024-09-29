@@ -39,7 +39,7 @@ While Grapple shares similarities to Harpoon (and other file navigation plugins)
 
 ## Requirements
 
-- [Neovim >= 0.9](https://github.com/neovim/neovim/releases/tag/v0.9.0)
+- [Neovim >= 0.10](https://github.com/neovim/neovim/releases/tag/v0.10.0)
 - [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons) (optional)
 
 ## Quickstart
@@ -282,13 +282,13 @@ require("grapple").setup({
         border = "single",
         focusable = false,
         style = "minimal",
+
+        title = "Grapple", -- fallback title for Grapple windows
         title_pos = "center",
+        title_padding = " ", -- custom: adds padding around window title
 
-        -- Custom: fallback title for Grapple windows
-        title = "Grapple",
-
-        -- Custom: adds padding around window title
-        title_padding = " ",
+        -- footer = "", -- disable footer
+        footer_pos = "center",
     },
 
     --Override default floating window mappings
@@ -472,8 +472,8 @@ Where:
 
 - **`direction`**: `"next"` | `"prev"`
 - **`opts?`**: `table`
-    - **`scope?`**: `string` scope name (default: `settings.scope`)
-    - **`all?`**: `boolean` (default: `false`)
+  - **`scope?`**: `string` scope name (default: `settings.scope`)
+  - **`all?`**: `boolean` (default: `false`)
 
 <details>
 <summary><b>Examples</b></summary>
