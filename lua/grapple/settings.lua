@@ -423,11 +423,13 @@ local DEFAULT_SETTINGS = {
         border = "single",
         focusable = false,
         style = "minimal",
-        title_pos = "center",
-        title = "Grapple",
 
-        -- Custom: adds padding around window title
-        title_padding = " ",
+        title = "Grapple", -- fallback title for Grapple windows
+        title_pos = "center",
+        title_padding = " ", -- custom: adds padding around window title
+
+        -- footer = "", -- disable footer
+        footer_pos = "center",
     },
 
     ---Values for which a buffer should be excluded from being tagged

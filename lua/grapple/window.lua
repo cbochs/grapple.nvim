@@ -54,18 +54,17 @@ function Window:window_options()
     end
 
     if not opts.title then
-        opts.title_pos = nil
+        opts.title = ""
+    end
+
+    if not opts.footer then
+        opts.footer = "Press '?' to toggle Help"
     end
 
     -- Remove custom fields
     if opts.title_padding then
+        ---@diagnostic disable-next-line: inject-field
         opts.title_padding = nil
-    end
-
-    -- Add "help" footer for nvim-0.10
-    if vim.fn.has("nvim-0.10") == 1 then
-        opts.footer = "Press '?' to toggle Help"
-        opts.footer_pos = "center"
     end
 
     -- Window size
