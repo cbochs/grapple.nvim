@@ -293,7 +293,7 @@ require("grapple").setup({
 
     --Override tag mappings
     tag_mappings = {
-        select_hsplit = "<c-s>",
+        select_split = "<c-s>",
         select_vsplit = "|",
         quickfix = "<c-q>",
         go_to_scopes = "-",

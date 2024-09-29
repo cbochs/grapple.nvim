@@ -195,7 +195,7 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Select" })
 
         -- Select (horizontal split)
-        window:map("n", mappings.select_hsplit, function()
+        window:map("n", mappings.select_split, function()
             local cursor = window:cursor()
             window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.split })
         end, { desc = "Select (split)" })
@@ -440,7 +440,7 @@ local DEFAULT_SETTINGS = {
 
     --Override tag mappings
     tag_mappings = {
-        select_hsplit = "<c-s>",
+        select_split = "<c-s>",
         select_vsplit = "|",
         quickfix = "<c-q>",
         go_to_scopes = "-",
