@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/cbochs/grapple.nvim/compare/v0.30.0...v0.31.0) (2024-09-29)
+
+
+### Features
+
+* allow disabling of footer. Fixes [#171](https://github.com/cbochs/grapple.nvim/issues/171) ([5caf3c8](https://github.com/cbochs/grapple.nvim/commit/5caf3c8249d5cc51a98d2a78387811a0ad4f5ae0))
+
 ## [0.30.0](https://github.com/cbochs/grapple.nvim/compare/v0.29.0...v0.30.0) (2024-05-18)
 
 
