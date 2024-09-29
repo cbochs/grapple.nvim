@@ -186,7 +186,7 @@ local DEFAULT_SETTINGS = {
         local TagActions = require("grapple.tag_actions")
         local app = Grapple.app()
 
-        local mappings = app.settings.win_mappings
+        local mappings = vim.tbl_deep_extend("force", app.settings.mappings, app.settings.tag_mappings)
 
         -- Select
         window:map("n", mappings.select, function()
@@ -195,13 +195,13 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Select" })
 
         -- Select (horizontal split)
-        window:map("n", mappings.select_horizontal, function()
+        window:map("n", mappings.select_hsplit, function()
             local cursor = window:cursor()
             window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.split })
         end, { desc = "Select (split)" })
 
         -- Select (vertical split)
-        window:map("n", mappings.select_vertical, function()
+        window:map("n", mappings.select_vsplit, function()
             local cursor = window:cursor()
             window:perform_close(TagActions.select, { index = cursor[1], command = vim.cmd.vsplit })
         end, { desc = "Select (vsplit)" })
@@ -219,7 +219,7 @@ local DEFAULT_SETTINGS = {
         end, { desc = "Quickfix" })
 
         -- Go "up" to scopes
-        window:map("n", mappings.go_up_scope, function()
+        window:map("n", mappings.go_to_scopes, function()
             window:perform_close(TagActions.open_scopes)
         end, { desc = "Go to scopes" })
 
@@ -251,7 +251,7 @@ local DEFAULT_SETTINGS = {
         local ScopeActions = require("grapple.scope_actions")
         local app = Grapple.app()
 
-        local mappings = app.settings.win_mappings
+        local mappings = vim.tbl_deep_extend("force", app.settings.mappings, app.settings.scope_mappings)
 
         -- Select
         window:map("n", mappings.select, function()
@@ -275,14 +275,14 @@ local DEFAULT_SETTINGS = {
         end
 
         -- Change
-        window:map("n", mappings.change_scope, function()
+        window:map("n", mappings.change, function()
             local entry = window:current_entry()
             local name = entry.data.name
             window:perform_close(ScopeActions.change, { name = name })
         end, { desc = "Change scope" })
 
         -- Navigate "up" to loaded scopes
-        window:map("n", mappings.go_up_scope, function()
+        window:map("n", mappings.go_to_loaded, function()
             window:perform_close(ScopeActions.open_loaded)
         end, { desc = "Go to loaded scopes" })
 
@@ -312,7 +312,7 @@ local DEFAULT_SETTINGS = {
         local ContainerActions = require("grapple.container_actions")
         local app = Grapple.app()
 
-        local mappings = app.settings.win_mappings
+        local mappings = vim.tbl_deep_extend("force", app.settings.mappings, app.settings.loaded_mappings)
 
         -- Select
         window:map("n", mappings.select, function()
@@ -336,21 +336,21 @@ local DEFAULT_SETTINGS = {
         end
 
         -- Unload
-        window:map("n", mappings.unload_scope, function()
+        window:map("n", mappings.unload, function()
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_retain(ContainerActions.unload, { id = id })
         end, { desc = "Unload scope" })
 
         -- Reset
-        window:map("n", mappings.reset_scope, function()
+        window:map("n", mappings.reset, function()
             local entry = window:current_entry()
             local id = entry.data.id
             window:perform_retain(ContainerActions.reset, { id = id })
         end, { desc = "Reset scope" })
 
         -- Navigate "up" to scopes
-        window:map("n", mappings.go_up_scope, function()
+        window:map("n", mappings.go_to_scopes, function()
             window:perform_close(ContainerActions.open_scopes)
         end, { desc = "Go to scopes" })
 
@@ -438,17 +438,29 @@ local DEFAULT_SETTINGS = {
         footer_pos = "center",
     },
 
-    --Override default floating window mappings
-    win_mappings = {
-        toggle_hidden = "g.",
-        unload_scope = "x",
-        reset_scope = "X",
-        change_scope = "<s-cr>",
-        select = "<cr>",
-        select_horizontal = "<c-s>",
-        select_vertical = "|",
+    --Override tag mappings
+    tag_mappings = {
+        select_hsplit = "<c-s>",
+        select_vsplit = "|",
         quickfix = "<c-q>",
-        go_up_scope = "-",
+        go_to_scopes = "-",
+    },
+    --Override scope mappings
+    scope_mappings = {
+        change = "<s-cr>",
+        go_to_loaded = "-",
+    },
+    --Override loaded (containers) mappings
+    loaded_mappings = {
+        unload = "x",
+        reset = "X",
+        go_to_scopes = "-",
+    },
+
+    --Override default general mappings
+    mappings = {
+        toggle_hidden = "g.",
+        select = "<cr>",
         rename = "R",
         help = "?",
     },

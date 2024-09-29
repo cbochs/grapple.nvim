@@ -291,17 +291,29 @@ require("grapple").setup({
         footer_pos = "center",
     },
 
-    --Override default floating window mappings
-    win_mappings = {
-        toggle_hidden = "g.",
-        unload_scope = "x",
-        reset_scope = "X",
-        change_scope = "<s-cr>",
-        select = "<cr>",
-        select_horizontal = "<c-s>",
-        select_vertical = "|",
+    --Override tag mappings
+    tag_mappings = {
+        select_hsplit = "<c-s>",
+        select_vsplit = "|",
         quickfix = "<c-q>",
-        go_up_scope = "-",
+        go_to_scopes = "-",
+    },
+    --Override scope mappings
+    scope_mappings = {
+        change = "<s-cr>",
+        go_to_loaded = "-",
+    },
+    --Override loaded (containers) mappings
+    loaded_mappings = {
+        unload = "x",
+        reset = "X",
+        go_to_scopes = "-",
+    },
+
+    --Override default general mappings
+    mappings = {
+        toggle_hidden = "g.",
+        select = "<cr>",
         rename = "R",
         help = "?",
     },

@@ -60,7 +60,7 @@ function Window:window_options()
     end
 
     if not opts.footer then
-        opts.footer = string.format("Press '%s' to toggle Help", app.settings.win_mappings.help)
+        opts.footer = string.format("Press '%s' to toggle Help", app.settings.mappings.help)
     end
 
     -- Remove custom fields
