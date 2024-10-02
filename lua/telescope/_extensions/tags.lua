@@ -33,7 +33,20 @@ local function create_finder()
             local entry = {
                 value = result,
                 ordinal = filename,
-                display = utils.transform_path({ path_display = {} }, filename),
+                display = function(entry)
+                    local display, path_style, hl_group, icon
+
+                    display, path_style = utils.transform_path({ path_display = {} }, entry.filename)
+                    display, hl_group, icon = utils.transform_devicons(entry.filename, display)
+
+                    if hl_group then
+                        path_style = { { { 0, #icon }, hl_group } }
+                    else
+                        path_style = nil
+                    end
+
+                    return display, path_style
+                end,
                 filename = filename,
                 lnum = lnum,
             }
