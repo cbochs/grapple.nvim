@@ -222,6 +222,15 @@ require("grapple").setup({
     ---@type boolean
     icons = true,
 
+    ---@alias icon_provider
+    ---| "mini.icons" # https://github.com/echasnovski/mini.icons
+    ---| "nvim-web-devicons" # https://github.com/nvim-tree/nvim-web-devicons
+
+    ---Icon provider for icons in tags in Grapple windows
+    ---Currently supported are "mini.icons", "nvim-web-devicons"
+    ---@type icon_provider
+    icon_provider = "nvim-web-devicons",
+
     ---Highlight the current selection in Grapple windows
     ---Also, indicates when a tag path does not exist
     ---@type boolean
