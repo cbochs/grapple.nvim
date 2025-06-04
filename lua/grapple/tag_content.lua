@@ -132,21 +132,60 @@ function TagContent:entities()
     return entities, nil
 end
 
+---@class provider
+---@field check_available fun(): boolean
+---@field get_icon fun(filename: string): string, string
+
+---@type { [icon_provider]: provider }
+local providers = {
+    ["mini.icons"] = {
+        check_available = function()
+            ---@diagnostic disable-next-line: undefined-field
+            if _G.MiniIcons == nil then
+                error([[
+                    The plugin echasnovski/mini.icons is required of specified provider
+                    either as a standalone plugin, or a whole ecosystem of echasnovski/mini.nvim
+                ]])
+                return false
+            end
+            return true
+        end,
+        get_icon = function(filename)
+            ---@diagnostic disable-next-line: undefined-global
+            local icon, hl = MiniIcons.get("file", filename)
+            return icon, hl
+        end,
+    },
+    ["nvim-web-devicons"] = {
+        check_available = function()
+            local ok, _ = pcall(require, "nvim-web-devicons")
+            if not ok then
+                error([[
+                    The plugin "nvim-tree/nvim-web-devicons" is required for icons in Grapple.nvim.
+                    To disable icons, change "icons" to false in the settings.
+                ]])
+                return false
+            end
+            return true
+        end,
+        get_icon = function(filename)
+            local _, icons = pcall(require, "nvim-web-devicons")
+            local icon, hl = icons.get_icon(filename)
+            return icon, hl
+        end,
+    },
+}
+
 ---@param path string
+---@param provider icon_provider
 ---@return string? icon, string? hl_group
-local function get_icon(path)
-    local ok, icons = pcall(require, "nvim-web-devicons")
-    if not ok then
-        -- stylua: ignore
-        error(
-            'The plugin "nvim-tree/nvim-web-devicons" is required for icons in Grapple.nvim. ' ..
-            'To disable icons, change "icons" to false in the settings.'
-        )
-    end
+local function get_icon(path, provider)
+    local provider_handler = providers[provider]
+    provider_handler.check_available()
 
     local filename = vim.fn.fnamemodify(path, ":p:t")
 
-    local icon, hl = icons.get_icon(filename)
+    local icon, hl = provider_handler.get_icon(filename)
     if not icon then
         if filename == "" then
             icon = ""
@@ -172,7 +211,7 @@ function TagContent:create_entry(entity, index)
 
     local icon, icon_group
     if self.app.settings.icons then
-        icon, icon_group = get_icon(tag.path)
+        icon, icon_group = get_icon(tag.path, self.app.settings.icon_provider)
     end
 
     -- In compliance with "grapple" syntax

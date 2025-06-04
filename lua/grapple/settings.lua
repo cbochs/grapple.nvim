@@ -1,6 +1,10 @@
 ---@class grapple.settings
 local Settings = {}
 
+---@alias icon_provider
+---| "mini.icons" # https://github.com/echasnovski/mini.icons
+---| "nvim-web-devicons" # https://github.com/nvim-tree/nvim-web-devicons
+
 ---@class grapple.settings
 local DEFAULT_SETTINGS = {
     ---Grapple save location
@@ -22,6 +26,11 @@ local DEFAULT_SETTINGS = {
     ---Requires "nvim-tree/nvim-web-devicons"
     ---@type boolean
     icons = true,
+
+    ---Icon provider for icons in tags in Grapple windows
+    ---Currently supported are "mini.icons", "nvim-web-devicons"
+    ---@type icon_provider
+    icon_provider = "nvim-web-devicons",
 
     ---Highlight the current selection in Grapple windows
     ---Also, indicates when a tag path does not exist
