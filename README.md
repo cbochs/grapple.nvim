@@ -117,6 +117,9 @@ Note, these examples assume you are using the [lazy.nvim](https://github.com/fol
     opts = {
         scope = "git", -- also try out "git_branch"
     },
+    dependencies = {
+        { "nvim-tree/nvim-web-devicons", lazy = true }
+    },
     event = { "BufReadPost", "BufNewFile" },
     cmd = "Grapple",
     keys = {
