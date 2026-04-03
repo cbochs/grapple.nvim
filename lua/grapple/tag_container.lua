@@ -1,5 +1,6 @@
 local Path = require("grapple.path")
 local Tag = require("grapple.tag")
+local Util = require("grapple.util")
 
 ---@class grapple.tag_container
 ---@field id string
@@ -31,7 +32,7 @@ end
 ---@param opts grapple.options
 ---@return string? error
 function TagContainer:insert(opts)
-    vim.validate({ path = { opts.path, "string" } })
+    Util.validate("path", opts.path, "string")
 
     if opts.index and (opts.index < 1 or opts.index > #self.tags + 1) then
         return string.format("tag insert opts.index is out-of-bounds: %s", opts.index)

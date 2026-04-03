@@ -1,4 +1,5 @@
 local TagContainer = require("grapple.tag_container")
+local Util = require("grapple.util")
 
 ---@class grapple.tag_manager
 ---@field state grapple.state
@@ -95,9 +96,7 @@ end
 ---@param time_limit integer | string
 ---@return string[] | nil pruned, string? error
 function TagManager:prune(time_limit)
-    vim.validate({
-        time_limit = { time_limit, { "number", "string" } },
-    })
+    Util.validate("time_limit", time_limit, { "number", "string" })
 
     local limit_sec
     if type(time_limit) == "number" then

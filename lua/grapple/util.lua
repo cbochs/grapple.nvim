@@ -1,5 +1,32 @@
 local Util = {}
 
+local has_validate_positional = vim.fn.has("nvim-0.11") == 1
+
+---Compatibility wrapper for vim.validate across Neovim 0.10 and 0.11+
+---@param name string
+---@param value any
+---@param validator string | string[] | fun(val: any): boolean, string?
+---@param optional? boolean | string
+---@param message? string
+function Util.validate(name, value, validator, optional, message)
+    if has_validate_positional then
+        return vim.validate(name, value, validator, optional, message)
+    end
+
+    local spec = { [name] = { value, validator } }
+
+    if message ~= nil then
+        if optional ~= nil then
+            table.insert(spec[name], optional)
+        end
+        table.insert(spec[name], message)
+    elseif optional ~= nil then
+        table.insert(spec[name], optional)
+    end
+
+    return vim.validate(spec)
+end
+
 ---Escapes a string so it can be used as a string pattern
 ---@param str string
 ---@return string escaped string

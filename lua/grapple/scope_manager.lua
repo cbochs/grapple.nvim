@@ -71,10 +71,8 @@ end
 ---@param definition grapple.scope_definition
 ---@return string? error
 function ScopeManager:define(definition)
-    vim.validate({
-        name = { definition.name, "string" },
-        resolver = { definition.resolver, "function" },
-    })
+    Util.validate("name", definition.name, "string")
+    Util.validate("resolver", definition.resolver, "function")
 
     if self:exists(definition.name) then
         if not definition.force then
