@@ -268,6 +268,11 @@ require("grapple").setup({
     ---@type fun(): string?
     loaded_title = nil,
 
+    ---Enable dynamic tags window width (see [Dynamic Window Width](#dynamic-window-width))
+    ---Set to a float in (0, 1) to enable; false uses the static win_opts.width
+    ---@type number | false
+    dynamic_win_width = false,
+
     ---Additional window options for Grapple windows
     ---See :h nvim_open_win
     ---@type grapple.vim.win_opts
@@ -860,6 +865,56 @@ require("grapple").open_tags()
 -- Open the tags window for a different scope
 require("grapple").open_tags("global")
 ```
+
+</details>
+
+### Dynamic Window Width
+
+By default the tags window opens at a fixed width (`win_opts.width`). Setting
+`dynamic_win_width` to a float between 0 and 1 (exclusive) enables automatic
+width calculation every time the tags window is opened.
+
+**How the width is calculated:**
+
+1. Each tag's visible line length is estimated from its rendered path (honouring
+   the active `style`) plus its name length if one is set.
+2. A fixed overhead is added for line chrome: `10` columns with icons enabled,
+   `7` without (`/001` + icon + separators + padding).
+3. The final width is clamped between `win_opts.width` (minimum) and
+   `columns * dynamic_win_width` (maximum), where `columns` is the current
+   editor width.
+
+`win_opts.width` therefore serves a dual role: the exact static width when
+`dynamic_win_width = false`, and the minimum floor when it is enabled.
+
+<details>
+<summary><b>Example</b></summary>
+
+```lua
+require("grapple").setup({
+    -- Enable dynamic width, capped at 90% of the editor width.
+    dynamic_win_width = 0.9,
+
+    win_opts = {
+        -- Minimum width when dynamic_win_width is set;
+        -- exact width when dynamic_win_width = false.
+        width = 40,
+        height = 12,
+        border = "rounded",
+    },
+})
+```
+
+With a 200-column editor and a longest tag line of 70 characters (path + name)
+and icons enabled:
+
+```
+raw_width   = 70 + 10 (overhead) = 80
+max_allowed = floor(200 * 0.9)   = 180
+final_width = clamp(80, 40, 180) = 80
+```
+
+When the scope has no tags yet the window opens at `win_opts.width` (40 above).
 
 </details>
 

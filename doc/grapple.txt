@@ -16,6 +16,7 @@ Table of Contents                                  *grapple-table-of-contents*
   - Tags                                           |grapple-grapple.nvim-tags|
   - Scopes                                       |grapple-grapple.nvim-scopes|
   - Grapple Windows                     |grapple-grapple.nvim-grapple-windows|
+  - Dynamic Window Width                           |grapple-dynamic-win-width|
   - Persistent State                   |grapple-grapple.nvim-persistent-state|
   - Integrations                           |grapple-grapple.nvim-integrations|
 
@@ -272,6 +273,11 @@ Default Settings ~
         ---@type fun(): string?
         loaded_title = nil,
     
+        ---Enable dynamic tags window width (see |grapple-dynamic-win-width|)
+        ---Set to a float in (0, 1) to enable; false to use a static width
+        ---@type number | false
+        dynamic_win_width = false,
+
         ---Additional window options for Grapple windows
         ---See :h nvim_open_win
         ---@type grapple.vim.win_opts
@@ -861,6 +867,73 @@ Examples ~
     -- Open the tags window for a different scope
     require("grapple").open_tags("global")
 <
+
+
+DYNAMIC WINDOW WIDTH ~
+                                              *grapple-dynamic-win-width*
+
+By default, the tags window opens at a fixed width set by `win_opts.width`.
+This can produce a window that is either too narrow (wrapping long paths into
+multiple lines) or unnecessarily wide (wasting screen space when tags have
+short paths).
+
+Setting `dynamic_win_width` to a float between 0 and 1 (exclusive) enables
+automatic width calculation every time the tags window is opened. The value is
+the maximum allowed window width expressed as a fraction of the editor width.
+`win_opts.width` is reinterpreted as the minimum: the window will never be
+narrower than that value, regardless of how short the tag paths are.
+
+Width calculation ~
+
+For each tag in the current scope the visible line width is estimated:
+
+1. The rendered path is computed according to the active `style`:
+   - `"relative"`: the scope root prefix is stripped, leaving only the
+     path relative to the git/project root.
+   - `"basename"`: only the filename (no directory) is used.
+
+2. If the tag has a name set (via `R` in the tags window), its length plus 2
+   characters (for the space Neovim inserts before EOL virtual text and icon
+   padding) is added to the path length.
+
+3. A fixed overhead is added for the rendered line chrome:
+   - With icons enabled: 10 columns (`/001` + space + icon + space + 2
+     padding columns).
+   - With icons disabled: 7 columns (`/001` + space + 2 padding columns).
+
+4. The final width is:
+   `clamp(max_path_len + overhead, win_opts.width, columns * dynamic_win_width)`
+
+   Where `columns` is the current editor width (`vim.o.columns`).
+
+Example ~
+
+>lua
+    require("grapple").setup({
+        -- Enable dynamic width, capped at 90% of the editor width.
+        dynamic_win_width = 0.9,
+
+        win_opts = {
+            -- Minimum width: used as the floor when dynamic_win_width is set,
+            -- and as the exact static width when dynamic_win_width is false.
+            width = 40,
+            height = 12,
+            border = "rounded",
+        },
+    })
+<
+
+With a 200-column editor and tags whose longest relative path is 60 characters
+and whose name is 8 characters:
+
+  max_path_len = 60 + 8 + 2 (name overhead) = 70
+  overhead     = 10 (icons enabled)
+  raw_width    = 70 + 10 = 80
+  max_allowed  = floor(200 * 0.9) = 180
+  final_width  = clamp(80, 40, 180) = 80
+
+If the scope has no tags yet, `max_path_len` is 0 and the window opens at
+the minimum width (40 in the example above).
 
 
 SCOPES WINDOW ~

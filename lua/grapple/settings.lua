@@ -409,6 +409,13 @@ local DEFAULT_SETTINGS = {
         end,
     },
 
+    ---When set to a number between 0 and 1 (exclusive), the tags window width
+    ---is calculated dynamically to fit the longest tag path. The value specifies
+    ---the maximum window width as a fraction of the editor width. win_opts.width
+    ---is used as the minimum width. Set to false to use a static width.
+    ---@type number | false
+    dynamic_win_width = false,
+
     ---Additional window options for Grapple windows
     ---See :h nvim_open_win
     ---@type grapple.vim.win_opts

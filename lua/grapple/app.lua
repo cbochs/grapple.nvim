@@ -482,9 +482,10 @@ end
 
 ---Convenience function to open content in a new floating window
 ---@param content grapple.tag_content | grapple.scope_content | grapple.container_content
+---@param win_opts? grapple.vim.win_opts
 ---@return string? error
-function App:open_window(content)
-    local window = Window:new(self.settings.win_opts)
+function App:open_window(content, win_opts)
+    local window = Window:new(win_opts or self.settings.win_opts)
 
     window:open()
     window:attach(content)
@@ -513,7 +514,38 @@ function App:open_tags(opts)
         self.settings.styles[opts.style or self.settings.style]
     )
 
-    return self:open_window(content)
+    local win_opts = self.settings.win_opts
+    local fraction = self.settings.dynamic_win_width
+    if type(fraction) == "number" and fraction > 0 and fraction < 1 then
+        local container, _ = self.tag_manager:load(scope.id)
+        if container then
+            local scope_path = scope.path
+            local style = opts.style or self.settings.style
+            local max_len = 0
+            for _, tag in ipairs(container.tags) do
+                local display = tag.path or ""
+                if style == "relative" and display:sub(1, #scope_path + 1) == scope_path .. "/" then
+                    display = display:sub(#scope_path + 2)
+                elseif style == "basename" then
+                    display = vim.fn.fnamemodify(display, ":t")
+                end
+                -- +2 for the space Neovim inserts before eol virt_text and
+                -- one extra for any icon padding when name_pos = "start".
+                local name_extra = tag.name and (#tag.name + 2) or 0
+                local w = #display + name_extra
+                if w > max_len then
+                    max_len = w
+                end
+            end
+            -- Overhead: "/001" (4) + icon (2) + separators (2) = 8; add 2 for padding.
+            local overhead = self.settings.icons and 10 or 7
+            local max_w = math.floor(vim.o.columns * fraction)
+            local width = math.max(win_opts.width, math.min(max_w, max_len + overhead))
+            win_opts = vim.tbl_extend("force", win_opts, { width = width })
+        end
+    end
+
+    return self:open_window(content, win_opts)
 end
 
 ---Open a floating window populated with all defined scopes
