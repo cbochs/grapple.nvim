@@ -161,6 +161,9 @@ end
 
 ---Toggle a tag on a path, URI, or buffer. Lookup is done by index, name, path, or buffer
 ---By default, uses the current scope
+---When settings.confirm_untag is true, a confirmation dialog is shown before
+---removing an existing tag. When settings.name_on_tag is true, vim.ui.input is
+---shown to supply an optional name when creating a new tag.
 ---@param opts? grapple.options
 ---@return string? error
 function App:toggle(opts)
@@ -172,13 +175,55 @@ function App:toggle(opts)
     end
     opts.path = path
 
-    return self:enter_with_save(function(container)
-        if container:has(opts) then
-            return container:remove(opts)
-        else
-            return container:insert(opts)
-        end
+    -- Fast path: no interactive prompts configured.
+    if not self.settings.name_on_tag and not self.settings.confirm_untag then
+        return self:enter_with_save(function(container)
+            if container:has(opts) then
+                return container:remove(opts)
+            else
+                return container:insert(opts)
+            end
+        end, { scope = opts.scope, scope_id = opts.scope_id })
+    end
+
+    -- Check whether the tag already exists so we can branch on it.
+    local tagged, _ = self:enter_with_result(function(container)
+        return container:has(opts), nil
     end, { scope = opts.scope, scope_id = opts.scope_id })
+
+    if tagged then
+        if self.settings.confirm_untag then
+            local choice = vim.fn.confirm("Remove grapple tag?", "&Yes\n&No", 2)
+            if choice ~= 1 then
+                return
+            end
+        end
+        return self:enter_with_save(function(container)
+            return container:remove(opts)
+        end, { scope = opts.scope, scope_id = opts.scope_id })
+    else
+        if self.settings.name_on_tag then
+            local default = nil
+            if self.settings.suggest_name and opts.path then
+                local basename = vim.fn.fnamemodify(opts.path, ":t")
+                -- Hidden files (e.g. ".config") keep their full name; others lose the extension
+                default = basename:sub(1, 1) == "." and basename or vim.fn.fnamemodify(opts.path, ":t:r")
+            end
+            vim.ui.input({ prompt = "Tag name (optional): ", default = default }, function(name)
+                if name == nil then
+                    return
+                end
+                opts.name = name ~= "" and name or nil
+                self:enter_with_save(function(container)
+                    return container:insert(opts)
+                end, { scope = opts.scope, scope_id = opts.scope_id })
+            end)
+        else
+            return self:enter_with_save(function(container)
+                return container:insert(opts)
+            end, { scope = opts.scope, scope_id = opts.scope_id })
+        end
+    end
 end
 
 ---Select a tag by index, name, path, or buffer
