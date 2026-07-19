@@ -55,6 +55,13 @@ local DEFAULT_SETTINGS = {
     ---@type integer | string
     prune = "30d",
 
+    ---Fuzzy picker to open when pressing <C-f> inside the Grapple tags window.
+    ---Supported values: "snacks" | "fzf_lua" | "telescope" | "auto" | false
+    ---"auto" tries snacks -> fzf-lua -> telescope in order of availability.
+    ---Set to false to disable the <C-f> keymap entirely.
+    ---@type string | false
+    fuzzy_picker = "auto",
+
     ---@class grapple.scope_definition
     ---@field name string
     ---@field resolver grapple.scope_resolver
@@ -227,6 +234,13 @@ local DEFAULT_SETTINGS = {
             local path = entry.data.path
             window:perform_retain(TagActions.rename, { path = path })
         end, { desc = "Rename" })
+
+        -- Open fuzzy picker (snacks / fzf-lua / telescope)
+        if app.settings.fuzzy_picker ~= false then
+            window:map("n", "<c-f>", function()
+                window:perform_close(TagActions.open_fuzzy_picker)
+            end, { desc = "Open fuzzy picker" })
+        end
 
         -- Help
         window:map("n", "?", function()

@@ -18,6 +18,7 @@ Table of Contents                                  *grapple-table-of-contents*
   - Grapple Windows                     |grapple-grapple.nvim-grapple-windows|
   - Persistent State                   |grapple-grapple.nvim-persistent-state|
   - Integrations                           |grapple-grapple.nvim-integrations|
+  - Fuzzy Pickers                                      |grapple-fuzzy-pickers|
 
 ==============================================================================
 1. Grapple.nvim                                         *grapple-grapple.nvim*
@@ -256,6 +257,12 @@ Default Settings ~
         ---(e.g. "30d" or "2h" or "15m")
         ---@type integer | string
         prune = "30d",
+    
+        ---Fuzzy picker opened by <C-f> inside the Grapple tags window.
+        ---"auto" tries snacks -> fzf-lua -> telescope in order of availability.
+        ---Set to false to disable the <C-f> keymap.
+        ---@type "snacks" | "fzf_lua" | "telescope" | "auto" | false
+        fuzzy_picker = "auto",
     
         ---User-defined tags title function for Grapple windows
         ---By default, uses the resolved scope's ID
@@ -839,6 +846,7 @@ modifiable. Several actions are available by default:
 - **Renaming** (`R`): rename the tag under the cursor
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list (||quickfix||)
 - **Go up** (`-`): navigate up to the |grapple-scopes-window|
+- **Fuzzy picker** (`<c-f>`): open the configured fuzzy picker (see |grapple-fuzzy-pickers|)
 - **Help** (`?`): open the help window
 
 **API**
@@ -961,6 +969,55 @@ loaded on startup and will are instead loaded on demand.
 
 INTEGRATIONS                               *grapple-grapple.nvim-integrations*
 
+                                                     *grapple-fuzzy-pickers*
+
+SNACKS.NVIM ~
+
+You can use snacks.nvim <https://github.com/folke/snacks.nvim> as a fuzzy
+picker for your tagged files.
+
+>lua
+    require("grapple").open_snacks()
+    -- or for a specific scope:
+    require("grapple").open_snacks({ scope = "global" })
+<
+
+Or via the Grapple command:
+
+>vim
+    :Grapple open_snacks
+<
+
+Inside the picker:
+
+- `<cr>`: select the tag
+- `<C-x>`: delete the tag under the cursor
+- `<C-r>`: rename the tag under the cursor
+
+
+FZF-LUA ~
+
+You can use fzf-lua <https://github.com/ibhagwan/fzf-lua> as a fuzzy picker
+for your tagged files.
+
+>lua
+    require("grapple").open_fzf()
+    -- or for a specific scope:
+    require("grapple").open_fzf({ scope = "global" })
+<
+
+Or via the Grapple command:
+
+>vim
+    :Grapple open_fzf
+<
+
+Inside the picker:
+
+- `<cr>`: select the tag
+- `<C-x>`: delete the selected tag(s) (multi-select with `<Tab>`)
+- `<C-r>`: rename the tag under the cursor
+
 
 TELESCOPE ~
 
@@ -979,6 +1036,11 @@ window
 >vim
     :Telescope grapple tags
 <
+
+Inside the picker:
+
+- `<cr>`: select the tag
+- `<C-X>`: delete the tag under the cursor
 
 
 STATUSLINE ~

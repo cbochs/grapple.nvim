@@ -253,6 +253,12 @@ require("grapple").setup({
     ---@type integer | string
     prune = "30d",
 
+    ---Fuzzy picker opened by <C-f> inside the Grapple tags window.
+    ---"auto" tries snacks -> fzf-lua -> telescope in order of availability.
+    ---Set to false to disable the <C-f> keymap.
+    ---@type "snacks" | "fzf_lua" | "telescope" | "auto" | false
+    fuzzy_picker = "auto",
+
     ---User-defined tags title function for Grapple windows
     ---By default, uses the resolved scope's ID
     ---@type fun(scope: grapple.resolved_scope): string?
@@ -837,6 +843,7 @@ Open a floating window with all the tags for a given scope. This buffer is modif
 - **Renaming** (`R`): rename the tag under the cursor
 - **Quickfix** (`<c-q>`): send all tags to the quickfix list ([`:h quickfix`](https://neovim.io/doc/user/quickfix.html))
 - **Go up** (`-`): navigate up to the [scopes window](#scopes-window)
+- **Fuzzy picker** (`<c-f>`): hand off to the configured fuzzy picker (see [`fuzzy_picker`](#settings))
 - **Help** (`?`): open the help window
 
 **API**:
@@ -947,6 +954,54 @@ Grapple saves all scopes to a common directory. The default directory is named `
 
 ## Integrations
 
+### snacks.nvim
+
+You can use [snacks.nvim](https://github.com/folke/snacks.nvim) as a fuzzy picker for your tagged files.
+
+Open the picker directly with the Lua API:
+
+```lua
+require("grapple").open_snacks()
+-- or for a specific scope:
+require("grapple").open_snacks({ scope = "global" })
+```
+
+Or use the `:Grapple` command:
+
+```vim
+:Grapple open_snacks
+```
+
+Inside the picker:
+
+- `<cr>`: select the tag
+- `<C-x>`: delete the tag under the cursor
+- `<C-r>`: rename the tag under the cursor
+
+### fzf-lua
+
+You can use [fzf-lua](https://github.com/ibhagwan/fzf-lua) as a fuzzy picker for your tagged files.
+
+Open the picker directly with the Lua API:
+
+```lua
+require("grapple").open_fzf()
+-- or for a specific scope:
+require("grapple").open_fzf({ scope = "global" })
+```
+
+Or use the `:Grapple` command:
+
+```vim
+:Grapple open_fzf
+```
+
+Inside the picker:
+
+- `<cr>`: select the tag
+- `<C-x>`: delete the selected tag(s) (multi-select with `<Tab>`)
+- `<C-r>`: rename the tag under the cursor
+
 ### Telescope
 
 You can use [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) to search through your tagged files instead of the built in popup windows.
@@ -962,6 +1017,11 @@ Then use this command to see the grapple tags for the project in a telescope win
 ```vim
 :Telescope grapple tags
 ```
+
+Inside the picker:
+
+- `<cr>`: select the tag
+- `<C-X>`: delete the tag under the cursor
 
 ### Statusline
 

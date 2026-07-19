@@ -251,6 +251,20 @@ function Grapple.toggle_tags(opts)
     return toggle(Grapple.open_tags, opts)
 end
 
+---Open a snacks.nvim fuzzy picker for all tags in the current scope.
+---Requires snacks.nvim to be installed.
+---@param opts? { scope?: string, id?: string }
+function Grapple.open_snacks(opts)
+    require("grapple.extensions.snacks").open_tags(opts)
+end
+
+---Open a fzf-lua fuzzy picker for all tags in the current scope.
+---Requires fzf-lua to be installed.
+---@param opts? { scope?: string, id?: string }
+function Grapple.open_fzf(opts)
+    require("grapple.extensions.fzf_lua").open_tags(opts)
+end
+
 ---Open a floating window populated with all defined scopes
 ---@param opts? { all: boolean }
 function Grapple.open_scopes(opts)
